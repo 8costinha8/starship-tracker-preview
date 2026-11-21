@@ -1,0 +1,78 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Style guide · Starship Tracker</title><link rel="stylesheet" href="assets/ds.css">
+<style>.sw{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.sw div{border-radius:12px;padding:12px;border:1px solid var(--sep);font:var(--t-foot)}.sw b{display:block;font:var(--t-head);margin-bottom:2px}
+.ts>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid var(--sep)}.ts small{font:var(--t-foot);color:var(--label-3);white-space:nowrap}
+.sp{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.sp i{display:block;background:var(--accent);border-radius:3px}.sp span{font:var(--t-cap);color:var(--label-3);display:block;text-align:center;margin-top:4px}
+h2{font:var(--t-title3);margin:32px 0 12px} ul{padding-left:20px;color:var(--label-2);font:var(--t-sub)} li{margin:6px 0}</style></head><body>
+<div class="proto"><div class="in"><b>Style guide</b> · design system v1<a href="index.html">All views</a></div></div>
+<div class="wrap">
+<h1 class="large">Style guide</h1>
+<p class="lede">One small set of rules for the whole app. Based on Apple's iOS text styles, an 8-point spacing grid and 44-point tap targets.</p>
+<div class="seg" id="font" role="group" aria-label="Typeface"><button data-f="sys" aria-pressed="true">iPhone system font</button><button data-f="man" aria-pressed="false">Manrope (today)</button></div>
+
+<h2>1 · Type: 7 sizes instead of 16</h2>
+<div class="ts">
+ <div><span style="font:var(--t-large)">Road to Flight 16</span><small>34 · page title</small></div>
+ <div><span style="font:var(--t-title2)">Starship Flight 16</span><small>22 · card title</small></div>
+ <div><span style="font:var(--t-title3)">Side by side</span><small>20 · section</small></div>
+ <div><span style="font:var(--t-head)">Booster 23</span><small>17 · headline</small></div>
+ <div><span style="font:var(--t-body)">Ship 43 returned to Megabay 2.</span><small>17 · body</small></div>
+ <div><span style="font:var(--t-sub);color:var(--label-2)">Booster 23 · Ship 43</span><small>15 · meta</small></div>
+ <div><span style="font:var(--t-foot);color:var(--label-3)">26 Oct · 16:32 UK · Photo · @LabPadre</span><small>13 · dates, credits</small></div>
+ <div><span class="chip">Ship 43</span><small>12 · chips (smallest)</small></div>
+ <div><span class="h-big" style="margin:0">T−01:59:58</span><small>48 · countdown only</small></div>
+</div>
+<p class="note">Sizes are in rem, so they grow with the iPhone text-size setting (Apple calls this Dynamic Type). Numbers use tabular figures so the countdown doesn't wobble.</p>
+
+<h2>2 · Spacing: 8-point grid</h2>
+<div class="sp">${''}</div>
+<div class="sp" id="sp"></div>
+<p class="note">Page edge 16 · card padding 16 · gap between cards 12 · between sections 24–32.</p>
+
+<h2>3 · Corners: 3 values, nested</h2>
+<div style="display:flex;gap:12px;align-items:center"><div style="background:var(--surface);border:1px solid var(--sep);border-radius:20px;padding:8px;width:150px"><div style="background:var(--surface-2);border-radius:12px;height:64px"></div></div><div style="font:var(--t-foot);color:var(--label-2)">Card 20 · photo/inner box 12 · chips round (999). Inner corner = outer corner − padding, so curves sit parallel (Apple's "concentric" rule).</div></div>
+
+<h2>4 · Colour: by meaning</h2>
+<div class="sw">
+ <div style="background:var(--surface)"><b>Surface</b>Cards</div>
+ <div style="background:var(--surface-hero)"><b>Hero</b>Next flight only</div>
+ <div style="color:var(--live)"><b>Live red</b>Only while live. One thing on screen.</div>
+ <div style="color:var(--accent)"><b>Accent</b>Links and taps</div>
+ <div style="color:var(--ok)"><b>✓ Done / Success</b></div>
+ <div style="color:var(--part)"><b>◐ In progress / Partial</b></div>
+ <div style="color:var(--fail)"><b>✕ Failure</b></div>
+ <div style="color:var(--label-3)"><b>○ Not yet</b></div>
+</div>
+<p class="note">Road steps keep their own colour <i>and</i> an icon <i>and</i> a word, never colour alone. Raptor changes from near-black (invisible on navy) to pink.</p>
+<div class="sw" id="cats"></div>
+
+<h2>5 · One card anatomy everywhere</h2>
+<article class="card"><div class="post-top"><span class="chip cat" style="--c:var(--c-cryo)">❄️ Cryo tests</span><span class="chip">Ship 43</span><span class="when">26 Oct · 16:32 UK</span></div>
+<p style="margin:12px 0">Ship 43 returned to Megabay 2 after cryo testing.</p><div class="frame"><img src="img/r-5245671915.jpg" alt=""></div>
+<div class="cap"><span>Photo · @LabPadre</span><a href="https://x.com/LabPadre/status/2114757145245671915" target="_blank" rel="noopener">View on X ↗</a></div></article>
+<ul><li><b>Top:</b> what (step) · who (vehicle) · when (date, UK).</li><li><b>Middle:</b> one sentence, then one photo in the locked 16:9 frame, vehicle centred.</li><li><b>Bottom:</b> credit on the left, link on the right. Always in that spot.</li></ul>
+
+<h2>6 · Words</h2>
+<ul>
+ <li><b>Credit = who published it.</b> "Photo · @SpaceX", "Photo · @RGVaerialphotos", "Source · NASASpaceflight". Never a vehicle name.</li>
+ <li><b>Vehicles:</b> always "Booster 22 · Ship 42". No B22/S42 on screen.</li>
+ <li><b>Dates:</b> "13 Nov 2026" for flights, "26 Oct · 16:32 UK" for updates. Year only when it isn't this year.</li>
+ <li><b>Status words:</b> Done · In progress · Not yet · Confirmed / Not confirmed.</li>
+ <li><b>Unknowns:</b> say it once ("Date to be confirmed"), never three times.</li>
+ <li><b>Live:</b> present tense ("Flight 16 is flying"), past tense once it lands.</li>
+</ul>
+
+<h2>7 · Touch and motion</h2>
+<ul><li>Everything tappable is at least 44 × 44 points.</li><li>One easing curve for everything (0.35 s, iOS-style settle). Cards shrink slightly when pressed.</li><li>Progress bars fill when a step completes. The live dot pulses only while live.</li><li>All motion switches off when "Reduce Motion" is on.</li></ul>
+<p class="end">Design system v1 · prototype</p>
+</div>
+<script src="data/data.js"></script>
+<script>
+document.getElementById("sp").innerHTML=[4,8,12,16,24,32,48].map(v=>`<div><i style="width:${v}px;height:${v}px"></i><span>${v}</span></div>`).join("");
+document.querySelector(".sp").remove();
+document.getElementById("cats").innerHTML=ROAD.categories.map(c=>`<div style="color:var(--c-${c.id})"><b>${c.icon} ${c.name}</b><span style="color:var(--label-3)">var(--c-${c.id})</span></div>`).join("");
+let loaded=false;
+document.getElementById("font").onclick=e=>{const b=e.target.closest("button");if(!b)return;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));
+ if(b.dataset.f==="man"&&!loaded){const l=document.createElement("link");l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap";document.head.appendChild(l);loaded=true}
+ document.documentElement.classList.toggle("manrope",b.dataset.f==="man")};
+</script></body></html>

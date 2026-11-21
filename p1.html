@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Proposed · Flight Log</title><link rel="stylesheet" href="assets/ds.css"></head><body>
+<div class="proto"><div class="in"><b>Proposed</b> · Page 1 · Flight Log<a href="index.html">All views</a></div></div>
+<div class="wrap">
+  <div class="nav">
+    <button class="icon-btn" aria-label="About"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 8v5M9 5.2v.1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+    <nav class="seg" style="flex:0 1 260px"><a href="p1.html" aria-current="page">Flight Log</a><a href="p2.html">Road to Flight 16</a></nav>
+    <span style="width:44px"></span>
+  </div>
+
+  <div class="toggles" role="group" aria-label="Preview state">
+    <div class="seg" style="width:100%">
+      <button data-mode="now" aria-pressed="true">Today</button><button data-mode="tminus">Countdown</button><button data-mode="flying">In flight</button><button data-mode="done">After</button>
+    </div>
+  </div>
+  <p class="note" id="mode-note">Today's real data. The other three buttons replay Flight 15's launch day (real liftoff time, simulated clock) so you can see how the top card changes.</p>
+
+  <section class="card hero" id="hero" aria-live="polite"></section>
+
+  <div id="log"></div>
+  <p class="end">That's every flight so far.</p>
+</div>
+<script src="data/data.js"></script><script src="data/roadimg.js"></script><script src="assets/ui.js"></script>
+<script>
+const {stamp,veh,stepsHTML,roadStates,esc}=UI;
+const F=[...FLIGHTS].sort((a,b)=>b.n-a.n), F15=FLIGHTS.find(f=>f.n===15);
+const LIFT=Date.parse(F15.date); // real Flight 15 liftoff (13 Nov 22:47 UK)
+const days=(a,b)=>Math.round((Date.UTC(...ymd(b))-Date.UTC(...ymd(a)))/864e5);
+function ymd(iso){const p=UI.uk(iso);return[p.year,["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].indexOf(p.mon),p.day]}
+const pad=n=>String(n).padStart(2,"0"); const hms=ms=>{const t=Math.max(0,Math.floor(ms/1000));return `${pad(Math.floor(t/3600))}:${pad(Math.floor(t/60)%60)}:${pad(t%60)}`};
+const firstNone=ROAD.categories.find(c=>c.status==="none");
+let mode="now", t0=Date.now(), timer=null;
+function hero(){
+  const h=document.getElementById("hero"); const el=Date.now()-t0; h.classList.toggle("is-live",mode==="flying");
+  if(mode==="now"){
+    const st=roadStates(false), done=st.filter(s=>s.s==="done").length;
+    h.innerHTML=`<div class="eyebrow"><span class="live-dot"></span>Next flight · waiting for a date</div>
+     <h2 class="h-title">Starship Flight 16</h2>
+     <div class="h-big quiet">Date to be confirmed</div>
+     <div class="h-meta">${veh(ROAD.vehicles[0])} · ${veh(ROAD.vehicles[1])}</div>
+     <div class="next-up"><div class="ic">${firstNone.icon}</div><div><div class="k">Next milestone</div><div class="v">${firstNone.name}</div><div class="h-meta" style="font:var(--t-foot)">${esc(firstNone.latest)}</div></div></div>
+     <div class="steps-head"><b>Road to Flight 16</b><span class="num">${done} of 6 done</span></div>${stepsHTML(st)}
+     <a class="link-row" href="p2.html">See every update<span aria-hidden="true">›</span></a>`;
+  } else if(mode==="tminus"){
+    const left=2*3600e3-el;
+    h.innerHTML=`<div class="eyebrow"><span class="live-dot" style="background:var(--part)"></span>Launching tonight · 13 Nov · 22:47 UK</div>
+     <h2 class="h-title">Starship Flight 15</h2>
+     <div class="h-big">T−${hms(left)}</div>
+     <div class="h-meta">Booster 22 · Ship 42 · Pad 2, Starbase</div>
+     <a class="link-row" href="https://x.com/SpaceX" target="_blank" rel="noopener">Webcast on X opens 1 hour before<span aria-hidden="true">›</span></a>
+     <div class="steps-head"><b>Road to Flight 15</b><span class="num">6 of 6 done</span></div>${stepsHTML(roadStates(true))}`;
+  } else if(mode==="flying"){
+    h.innerHTML=`<div class="eyebrow"><span class="live-dot"></span>Live · Flight 15 is flying</div>
+     <h2 class="h-title">Starship Flight 15</h2>
+     <div class="h-big">T+${hms(el)}</div>
+     <div class="h-meta">Lifted off 13 Nov · 22:47 UK</div>
+     <a class="link-row" style="justify-content:center;gap:8px;background:var(--live);color:#fff;border-radius:999px;margin-top:16px" href="https://x.com/SpaceX" target="_blank" rel="noopener">● Watch live on X</a>
+     <div class="steps-head"><b>Road to Flight 15</b><span class="num">6 of 6 done</span></div>${stepsHTML(roadStates(true))}`;
+  } else {
+    h.innerHTML=`<div class="eyebrow"><span class="live-dot" style="background:var(--ok)"></span>Flight complete · 13 Nov</div>
+     <h2 class="h-title">Starship Flight 15</h2>
+     <div style="margin:12px 0 4px"><span class="status success">✓ Success</span></div>
+     <p style="font:var(--t-body);color:var(--label-2);margin:8px 0 0">${esc(F15.story)}</p>
+     <div class="steps-head"><b>Road to Flight 15</b><span class="num">6 of 6 done</span></div>${stepsHTML(roadStates(true))}
+     <a class="link-row" href="card.html">Open the Flight 15 card<span aria-hidden="true">›</span></a>`;
+  }
+}
+document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{mode=b.dataset.mode;t0=Date.now();document.querySelectorAll("[data-mode]").forEach(x=>x.setAttribute("aria-pressed",x===b));
+  document.getElementById("mode-note").textContent=mode==="now"?"Today's real data. The other three buttons replay Flight 15's launch day (real liftoff time, simulated clock) so you can see how the top card changes.":"Replay of Flight 15 (real liftoff 13 Nov 22:47 UK, simulated clock). Only the top card changes; the log below stays as it is today.";
+  hero();clearInterval(timer);if(mode==="tminus"||mode==="flying")timer=setInterval(hero,1000)});
+hero();
+// log, grouped by year (Apple-style list sections)
+const OUT={success:"✓ Success",partial:"◐ Partial",failure:"✕ Failure"};
+let html="",yr=null;
+const since=days(F[0].date,new Date().toISOString());
+html+=`<div class="gap">${since} days since Flight ${F[0].n}</div>`;
+F.forEach((f,i)=>{const y=UI.uk(f.date).year; if(y!==yr){yr=y;html+=`<h3 class="year">${y}</h3>`}
+  const link=f.n===15?'href="card.html"':'';
+  html+=`<a class="row" ${link} ${link?"":'role="button" tabindex="0"'}><img class="th" src="img/f${f.n}-thumb.jpg" alt="" loading="lazy" decoding="async">
+   <div class="tx"><div class="t1"><b>Flight ${f.n}</b><span class="status ${f.outcome}">${OUT[f.outcome]}</span></div>
+   <div class="t2">${stamp(f.date,false,true)} · ${f.pad}</div><div class="t3">${veh(f.booster)} · ${veh(f.ship)}</div></div></a>`;
+  if(i<F.length-1){const nx=F[i+1];const sameYear=UI.uk(nx.date).year===y; if(sameYear) html+=`<div class="gap">${days(nx.date,f.date)} days</div>`; else html+=`<div class="gap">${days(nx.date,f.date)} days</div>`}
+});
+document.getElementById("log").innerHTML=html;
+</script></body></html>

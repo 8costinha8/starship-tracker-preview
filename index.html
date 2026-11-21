@@ -1,0 +1,85 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Starship Tracker · Front-end review</title><link rel="stylesheet" href="assets/ds.css">
+<style>
+h2{font:var(--t-title3);margin:32px 0 12px}
+.view{display:block;color:inherit;margin-bottom:16px}
+.view img{border-radius:12px;border:1px solid var(--sep);width:100%}
+.view .t{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.view .t b{font:var(--t-head)} .view .t span{white-space:nowrap;font:var(--t-foot);color:var(--accent);font-weight:600}
+.view p{font:var(--t-foot);color:var(--label-2);margin:0 0 8px}
+.grp{border-radius:20px;padding:16px;margin-bottom:12px;border:1px solid var(--sep);background:var(--surface)}
+.grp h3{font:var(--t-head);margin:0 0 8px} .grp ul{margin:0;padding-left:18px;font:var(--t-sub);color:var(--label-2)} .grp li{margin:8px 0} .grp li b{color:var(--label)}
+.lv{display:grid;grid-template-columns:28px 1fr;gap:8px 10px;font:var(--t-sub);color:var(--label-2)} .lv i{font-style:normal;font:var(--t-head);color:var(--label);text-align:center}
+ol.f{padding-left:22px;font:var(--t-sub);color:var(--label-2)} ol.f li{margin:10px 0} ol.f b{color:var(--label)} ol.f small{display:block;font:var(--t-foot);color:var(--label-3)}
+.src{font:var(--t-foot);color:var(--label-3)} .src a{display:inline-block;min-height:32px}
+</style></head><body>
+<div class="proto"><div class="in"><b>Front-end review</b> · 21 Nov · by Tusk</div></div>
+<div class="wrap">
+<h1 class="large">App review</h1>
+<p class="lede">Three prototype views and a style guide. Scroll each one, then reply yes or no per item at the bottom. The live app is untouched; everything here runs on a copy of today's real data.</p>
+
+<a class="view" href="p1.html"><div class="t"><b>1 · Flight Log (Page 1)</b><span>Open ›</span></div><p>New top card: one thing pops at a time. Try the four buttons: Today, Countdown, In flight, After.</p><img src="compare/p1.jpg" alt="Current versus proposed Flight Log" loading="lazy"></a>
+<a class="view" href="p2.html"><div class="t"><b>2 · Road to Flight 16 (Page 2)</b><span>Open ›</span></div><p>Booster 23 and Ship 43 side by side, then updates you can filter by vehicle.</p><img src="compare/p2.jpg" alt="Current versus proposed Road page" loading="lazy"></a>
+<a class="view" href="card.html"><div class="t"><b>3 · Opened Flight 15 card</b><span>Open ›</span></div><p>One photo per vehicle in the same frame, credit under it, and the full Road to Flight 15. Toggle stacked or swipe.</p><img src="compare/card.jpg" alt="Current versus proposed opened card" loading="lazy"></a>
+<a class="view" href="style.html"><div class="t"><b>4 · Style guide</b><span>Open ›</span></div><p>The rules behind all three: 7 text sizes, an 8-point grid, 3 corner sizes, colours by meaning, one card layout. Includes a font toggle.</p></a>
+
+<h2>What should pop, what should recede</h2>
+<div class="lv">
+ <i>1</i><div><b style="color:var(--label)">Live state and countdown.</b> The only red on screen, and only while live. Big, steady digits.</div>
+ <i>2</i><div><b style="color:var(--label)">Next milestone and progress.</b> "Next: Raptor engines" plus 6 labelled bars. People push harder when they can see the finish line (goal-gradient effect).</div>
+ <i>3</i><div><b style="color:var(--label)">Latest update.</b> One sentence, one photo, one credit.</div>
+ <i>4</i><div><b style="color:var(--label)">History.</b> Quieter, compact, grouped by year. Unknowns ("to be confirmed") are said once, softly.</div>
+</div>
+<p class="note">The idea: when one thing looks different from everything around it, that's what you notice and remember (the von Restorff effect), so only one thing gets to look different.</p>
+
+<h2>Your call</h2>
+<div class="grp"><h3>💚 You'll likely love</h3><ul>
+ <li><b>A top card that changes with the day.</b> It's waiting, then counting down, then live in red ("Flight 15 is flying"), then the result. Road shows 6 of 6 done from liftoff.</li>
+ <li><b>Road progress you can read.</b> 6 labelled bars and one line ("Done Cryo · In progress Pad · Not yet …") replace the unlabelled coloured dots. It's the same on Page 1, Page 2 and opened cards.</li>
+ <li><b>Booster vs Ship side by side</b> on Page 2, like Apple's compare-models page.</li>
+ <li><b>Filter updates</b> by All, Booster 23, Ship 43 or Pad.</li>
+ <li><b>One photo frame everywhere</b> (landscape, vehicle centred), always credited underneath ("Photo · @SpaceX").</li>
+ <li><b>Much faster to open.</b> The live Page 1 downloads 17.5 MB of photos; this prototype's whole photo set is 1.3 MB.</li>
+</ul></div>
+<div class="grp"><h3>🤔 You might not like (and why I'd still try it)</h3><ul>
+ <li><b>iPhone's own font instead of Manrope.</b> It has less personality, but it's sharper at small sizes and grows with your iPhone text setting. Compare both with the toggle in the Style guide.</li>
+ <li><b>Page 2 shows the newest update first</b> instead of grouping by step. "What's new?" is why you open it. "By step" stays one tap away.</li>
+ <li><b>Bigger text and taps, so pages get longer.</b> Most text today is 12.5 px; Apple's reading size is 17.</li>
+ <li><b>Raptor goes pink instead of near-black.</b> You chose black earlier, but on navy it measures 1.2 : 1, which is close to invisible as a dot.</li>
+ <li><b>A plain page switch instead of the sliding header pill.</b> It loses some playfulness, but the targets are bigger and clearer.</li>
+ <li><b>Compact log rows with year headings.</b> It feels less like a timeline story, but 15 flights are quicker to scan.</li>
+</ul></div>
+<div class="grp"><h3>✅ Ready to push now (simple fixes, no prototype needed)</h3><ul>
+ <li><b>Photo credit</b> names who published the photo, not "Booster 22".</li>
+ <li><b>About</b> stops saying "All photos by SpaceX" and stops showing a stuck "Last checked 14 Nov".</li>
+ <li><b>Static fires</b> stops showing a vehicle-assignment news story twice.</li>
+ <li><b>One time format</b>: "26 Oct · 16:32 UK" everywhere.</li>
+ <li><b>One vehicle name</b>: "Booster 22 · Ship 42", no "B22 / S42".</li>
+ <li><b>Readable grey text</b>: 2.9 : 1 becomes 4.9 : 1.</li>
+ <li><b>Bigger taps</b>: everything at least 44 points, with no visual change.</li>
+ <li><b>No text under 11 px</b>: photo credits are 9.5 px today.</li>
+ <li><b>"Manage notifications"</b> uses the app font. It's the only text in Arial.</li>
+ <li><b>"Highlights coming soon"</b> becomes quiet text instead of a dashed box.</li>
+ <li><b>Photo files shrunk</b>: same pictures, about 13× less data.</li>
+</ul></div>
+
+<h2>Top findings</h2>
+<ol class="f">
+ <li><b>Credits name vehicles, and About makes a false claim.</b> The opened card's photo corner says "Booster 22 / Ship 42". About says every photo is by SpaceX, but Road photos come from @RGVaerialphotos, @LabPadre and others.<small>app.js vehiclePhotosOf / cardPhotosOf, About line 1318</small></li>
+ <li><b>Static fires shows a news story twice.</b> "SpaceX may fly Flight 16 with Booster 23 and Ship 43" appears under Static fires for both vehicles, while the step itself says "Not yet".<small>road.json feed item news-mwpe749c-226041, box "static"</small></li>
+ <li><b>The newest Pad update is hidden.</b> "Pad 2 work has resumed" (19 Nov) is in the data, but both pages show the 28 Oct item.<small>Its hardware is "Pad 2", not a vehicle</small></li>
+ <li><b>Pad says "Not yet" on Page 1</b>, but the data says in progress and Page 2 shows Pad updates.</li>
+ <li><b>Road dots are colour only, with no labels.</b> The Raptor dot is near-black on navy (1.2 : 1).</li>
+ <li><b>17.5 MB of photos load on open.</b> One gallery photo alone is 3.8 MB, and a 100 px thumbnail is 2.9 MB.</li>
+ <li><b>There are 16 different text sizes</b>, the smallest 9.5 px (44 places). Apple uses 11 text styles with an 11 pt minimum.</li>
+ <li><b>The grey "faint" text is too low-contrast</b>: 2.9 : 1 on cards against a 4.5 : 1 minimum. It's used for "8 days since…", "Version 2" and similar.</li>
+ <li><b>Taps under 44 pt</b>: the header buttons (40), "Earlier updates" (14 tall) and the source badge (22).</li>
+ <li><b>The same thing gets different words.</b> "26 Oct · 16:32" vs "13 Sep · 05:02 UK", "B22 / S42" vs "Booster 22", "Cryo / Raptor / Pad" vs "Cryo tests / Raptor engines / Pad activity", and "SHIP 43" vs "Ship 43".</li>
+ <li><b>The top card says "to be confirmed/announced" three times.</b> About shows "Last checked 14 Nov" even though the checker ran today at 14:45 UK.</li>
+ <li><b>Credits come in three styles</b> (avatar badge on the photo, a "Photo · @handle" line, a vehicle name in the corner), and some Page 2 cards show no credit line at all.</li>
+</ol>
+
+<h2>Sources</h2>
+<p class="src">Apple Human Interface Guidelines: <a href="https://developer.apple.com/design/human-interface-guidelines/typography">Typography (iOS text styles: Body 17, Footnote 13, Caption 12/11)</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">Accessibility (44×44 pt controls, 11 pt minimum, 4.5:1 contrast)</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/layout">Layout (consistent spacing, progressive disclosure)</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/color">Colour (never colour alone, one meaning per colour)</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/motion">Motion (brief, purposeful, optional)</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/live-activities">Live Activities (show the one thing people need at a glance)</a> · <a href="https://developer.apple.com/design/human-interface-guidelines/materials">Materials</a> · <a href="https://www.apple.com/iphone/compare/">apple.com iPhone compare</a> · Laws of UX: <a href="https://lawsofux.com/von-restorff-effect/">von Restorff</a>, <a href="https://lawsofux.com/goal-gradient-effect/">goal-gradient</a>.</p>
+<p class="end">Prototype only · no notifications, no live data calls · current screenshots taken 21 Nov ~15:00 UK</p>
+</div></body></html>

@@ -1,0 +1,60 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Proposed · Road to Flight 16</title><link rel="stylesheet" href="assets/ds.css"></head><body>
+<div class="proto"><div class="in"><b>Proposed</b> · Page 2 · Road<a href="index.html">All views</a></div></div>
+<div class="wrap">
+  <div class="nav">
+    <a class="icon-btn" href="p1.html" aria-label="Back to the flight log"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M11 3.5L5.5 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <nav class="seg" style="flex:0 1 260px"><a href="p1.html">Flight Log</a><a href="p2.html" aria-current="page">Road to Flight 16</a></nav>
+    <span style="width:44px"></span>
+  </div>
+  <h1 class="large">Road to Flight 16</h1>
+  <p class="lede" id="lede"></p>
+  <section class="card"><div class="steps-head" style="margin-top:0"><b>Progress</b><span class="num" id="cnt"></span></div><div id="steps"></div></section>
+
+  <h2 style="font:var(--t-title3);margin:24px 0 12px">Side by side</h2>
+  <div class="cmp" id="cmp"></div>
+  <p class="note">Same rows for both vehicles, like Apple's model-compare pages: you see at a glance which vehicle is ahead.</p>
+
+  <h2 style="font:var(--t-title3);margin:24px 0 12px">Updates</h2>
+  <div class="seg" id="filter" role="group" aria-label="Show updates for" style="margin-bottom:8px"></div>
+  <div class="seg" id="order" role="group" aria-label="Order" style="margin-bottom:4px"><button data-o="new" aria-pressed="true">Newest first</button><button data-o="step" aria-pressed="false">By step</button></div>
+  <div id="posts"></div>
+
+  <section class="card" style="margin-top:24px;display:flex;justify-content:space-between;align-items:center;min-height:64px">
+    <div><b style="font:var(--t-head)">Flight 17</b><div class="h-meta" style="font:var(--t-foot)">Nothing tracked yet. It fills in once its vehicles are assigned.</div></div><span class="status none">0 of 6</span>
+  </section>
+</div>
+<script src="data/data.js"></script><script src="data/roadimg.js"></script><script src="assets/ui.js"></script>
+<script>
+const {stamp,veh,publisher,cellStatus,latestFor,catColor,stepsHTML,roadStates,STATUS_WORD,img,esc}=UI;
+const [B,S]=ROAD.vehicles.map(v=>/^B/.test(v)?v:v).sort(); // B23, S43
+document.getElementById("lede").textContent=`${veh(B)} · ${veh(S)} · updated ${stamp(ROAD.updatedAt)}`;
+const st=roadStates(false); document.getElementById("steps").innerHTML=stepsHTML(st); document.getElementById("cnt").textContent=`${st.filter(s=>s.s==="done").length} of 6 done`;
+// compare grid
+const perVeh=["cryo","raptor","static"], shared=["pad","faa","date"];
+let g=`<div class="hd"><b>${veh(B)}</b><span>Super Heavy</span></div><div class="hd"><b>${veh(S)}</b><span>Starship</span></div>`;
+ROAD.categories.forEach(c=>{
+  g+=`<div class="rowlabel" style="--c:${catColor(c.id)}">${c.icon} ${c.name}</div>`;
+  if(perVeh.includes(c.id)){[B,S].forEach(v=>{const s=cellStatus(c,v),l=latestFor(c,v);
+    g+=`<div class="cell"><span class="status ${s}">${s==="done"?"✓ ":s==="progress"?"◐ ":"○ "}${STATUS_WORD[s]}</span><div class="tx">${l?esc(l.text):"Nothing reported yet"}</div>${l?`<div class="dt">${stamp(l.at)}</div>`:""}</div>`})}
+  else {const s=c.status==="done"?"done":c.status==="progress"?"progress":"none",l=latestFor(c);
+    g+=`<div class="cell span"><span class="status ${s}">${s==="done"?"✓ ":s==="progress"?"◐ ":"○ "}${c.id==="date"&&s!=="done"?"Not confirmed":STATUS_WORD[s]}</span><div class="tx">${esc(l?l.text:c.latest)}</div>${l?`<div class="dt">${stamp(l.at)}</div>`:""}</div>`}
+});
+document.getElementById("cmp").innerHTML=g;
+// updates feed: every Road update, one card anatomy
+const ALL=[];ROAD.categories.forEach((c,ci)=>(c.history||[]).forEach(h=>ALL.push({...h,cat:c,ci})));
+const FILTERS=[["all","All"],[B,veh(B)],[S,veh(S)],["Pad 2","Pad"]];
+let f="all",o="new";
+document.getElementById("filter").innerHTML=FILTERS.map(([k,l])=>`<button data-f="${k}" aria-pressed="${k==="all"}">${l}</button>`).join("");
+function render(){
+  let list=ALL.filter(h=>f==="all"||h.hardware===f);
+  list.sort(o==="new"?(a,b)=>Date.parse(b.at)-Date.parse(a.at):(a,b)=>a.ci-b.ci||Date.parse(b.at)-Date.parse(a.at));
+  document.getElementById("posts").innerHTML=list.length?list.map(h=>{const im=img(h),pub=publisher(h.src,h.url);
+   return `<article class="card post"><div class="post-top"><span class="chip cat" style="--c:${catColor(h.cat.id)}">${h.cat.icon} ${h.cat.name}</span><span class="chip">${esc(veh(h.hardware))}</span><span class="when">${stamp(h.at)}</span></div>
+   <p>${esc(h.text)}</p>${im?`<div class="frame"><img src="${im}" alt="" loading="lazy" decoding="async"></div>`:""}
+   <div class="cap"><span>${im?"Photo":"Source"} · ${esc(pub)}</span><a href="${h.url}" target="_blank" rel="noopener">View on X ↗</a></div></article>`}).join(""):`<p class="note">No updates for this one yet.</p>`;
+}
+document.getElementById("filter").onclick=e=>{const b=e.target.closest("button");if(!b)return;f=b.dataset.f;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));render()};
+document.getElementById("order").onclick=e=>{const b=e.target.closest("button");if(!b)return;o=b.dataset.o;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));render()};
+render();
+</script></body></html>

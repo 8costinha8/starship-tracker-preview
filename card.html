@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Proposed · Opened Flight 15 card</title><link rel="stylesheet" href="assets/ds.css"></head><body>
+<div class="proto"><div class="in"><b>Proposed</b> · Opened card<a href="index.html">All views</a></div></div>
+<div class="wrap">
+  <div class="nav"><a class="icon-btn" href="p1.html" aria-label="Back"><svg width="18" height="18" viewBox="0 0 18 18"><path d="M11 3.5L5.5 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  <div class="seg" id="lay" role="group" aria-label="Photo layout"><button data-l="stack" aria-pressed="true">Photos stacked</button><button data-l="swipe" aria-pressed="false">Swipe</button></div><span style="width:44px"></span></div>
+
+  <article class="card" id="c"></article>
+  <p class="note">The toggle above is only for this review: pick the photo layout you prefer and the app keeps just that one.</p>
+</div>
+<script src="data/data.js"></script><script src="data/roadimg.js"></script><script src="assets/ui.js"></script>
+<script>
+const {stamp,veh,publisher,stepsHTML,roadStates,catColor,esc}=UI;
+const f=FLIGHTS.find(x=>x.n===15), A=ROAD.archive15.summary.items;
+const PH=[{veh:veh(f.booster),what:"Over the Gulf",src:"img/f15-booster.jpg",url:"https://x.com/SpaceX/status/2121439746740170859",pub:"@SpaceX"},
+          {veh:veh(f.ship),what:"Caught by the tower",src:"img/f15-ship.jpg",url:"https://x.com/SpaceX/status/2123097995679867195",pub:"@SpaceX"}];
+const AIMG={0:"img/a15-0.jpg",1:"img/a15-1.jpg",2:"img/a15-2.jpg",5:"img/a15-5.jpg"};
+let lay="stack";
+const fig=p=>`<figure style="margin:0"><div class="media-label">${p.veh}<span>${p.what}</span></div><div class="frame"><img src="${p.src}" alt="${p.veh}, Flight 15" decoding="async"></div><div class="cap"><span>Photo · ${p.pub}</span><a href="${p.url}" target="_blank" rel="noopener">View on X ↗</a></div></figure>`;
+function road(){
+  const cats=ROAD.categories; const B=veh(f.booster),S=veh(f.ship);
+  let g=`<div class="hd"><b>${B}</b><span>Super Heavy</span></div><div class="hd"><b>${S}</b><span>Starship</span></div>`;
+  cats.forEach(c=>{const items=A.map((x,i)=>({...x,i})).filter(x=>x.box===c.id); if(!items.length&&c.id!=="date")return;
+    g+=`<div class="rowlabel" style="--c:${catColor(c.id)}">${c.icon} ${c.name}</div>`;
+    const cell=(x,span)=>`<div class="cell${span?" span":""}"><span class="status done">✓ Done</span><div class="tx">${esc(x?x.text:"")}</div>${x&&x.photo?`<div class="dt">Source · ${esc(publisher("@"+x.photo.author,x.photo.post_url))}</div>`:""}</div>`;
+    const b=items.find(x=>x.vehicle===B), s=items.find(x=>x.vehicle===S), rest=items.filter(x=>x!==b&&x!==s);
+    if(b||s){g+=cell(b)+cell(s)} rest.forEach(x=>g+=cell(x,true));
+  });
+  return `<div class="steps-head"><b>Road to Flight 15</b><span class="num">6 of 6 done</span></div>${stepsHTML(roadStates(true))}<div class="cmp" style="margin-top:16px">${g}</div>`;
+}
+function render(){
+  const photos=lay==="stack"?PH.map(fig).join(""):`<div class="carousel" id="car">${PH.map(fig).join("")}</div><div class="dots"><i class="on"></i><i></i></div>`;
+  document.getElementById("c").innerHTML=`
+   <div class="row" style="padding:0;border:0;background:none;min-height:0;cursor:default"><img class="th" src="img/f15-thumb.jpg" alt=""><div class="tx"><div class="t1"><b style="font:var(--t-title2)">Flight 15</b><span class="status success">✓ Success</span></div><div class="t2">${stamp(f.date,true,true)} · ${f.pad}, Starbase</div><div class="t3">${veh(f.booster)} · ${veh(f.ship)} · ${f.block}</div></div></div>
+   <h3 style="font:var(--t-title3);margin:20px 0 8px">${esc(f.headline)}</h3>
+   <p style="font:var(--t-body);color:var(--label-2);margin:0">${esc(f.story)}</p>
+   <h4 style="font:var(--t-cap);color:var(--label-3);text-transform:uppercase;letter-spacing:.06em;margin:24px 0 0">Mission photos</h4>
+   ${photos}
+   <div class="quiet-line">▶︎ Highlights video: SpaceX hasn't posted it yet</div>
+   <div style="height:1px;background:var(--sep);margin:8px 0"></div>
+   ${road()}`;
+  const car=document.getElementById("car"); if(car) car.onscroll=()=>{const i=Math.round(car.scrollLeft/(car.firstElementChild.offsetWidth+12));document.querySelectorAll(".dots i").forEach((d,j)=>d.classList.toggle("on",i===j))};
+}
+document.getElementById("lay").onclick=e=>{const b=e.target.closest("button");if(!b)return;lay=b.dataset.l;[...e.currentTarget.children].forEach(x=>x.setAttribute("aria-pressed",x===b));render()};
+render();
+</script></body></html>
