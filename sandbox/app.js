@@ -3827,6 +3827,8 @@ function StarshipTracker() {
     const cancelDrag = () => {
       const from = g.from; g = null;
       setNow(from); setDragging(false); setFeedOpen(from === 1);
+      // swipeLock: a drag that started on Page 1 already had feedOpen=false, so the feedOpen effect never cleared feed-on and .st-wrap kept a transform layer (trapping sheets and lightboxes). Variants fix, 21 Nov.
+      if (FX("swipeLock") && from === 0) setTimeout(() => setFeedOn(false), FEED_SLIDE_MS + 30);
     };
     const end = (e) => {
       if (FX("swipeLock") && g && g.mode === "drag" && e && e.type === "touchcancel") return cancelDrag(); // system took the touch: never commit a page switch

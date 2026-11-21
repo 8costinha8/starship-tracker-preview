@@ -1,0 +1,159 @@
+/* ───────── Variant C · Apple-native ─────────
+   iOS dark system palette, SF type (Inter stands in off-Apple), large titles that collapse into a frosted bar,
+   segmented control for Page 1 / Page 2, push-style page change, cards open as a sheet you drag down to dismiss. */
+.st {
+  --bg: #000; --card: #1C1C1E; --card-open: #1C1C1E; --line: rgba(84,84,88,.65);
+  --text: #FFFFFF; --muted: rgba(235,235,245,.68); --faint: rgba(235,235,245,.5); --tint: #0A84FF; --red: #FF453A;
+  --slide: .5s cubic-bezier(.32,.72,0,1); --hdr-ease: .35s cubic-bezier(.32,.72,0,1);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Helvetica Neue", system-ui, sans-serif;
+  letter-spacing: -.01em; background: #000;
+}
+@media (max-width: 899px) {
+  .st { background: #000; }
+  .st::before { background: #000; }
+  /* frosted nav bar: clear at rest, material + hairline once the large title has scrolled away */
+  .hdr-bar { height: calc(var(--sat) + 56px); background: rgba(0,0,0,0); transition: background-color .2s, border-color .2s; border-bottom: .5px solid transparent; }
+  html.v-collapsed .hdr-bar { background: rgba(22,22,24,.78); -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px); border-bottom-color: rgba(84,84,88,.65); }
+  .hdr { top: calc(var(--sat) - 2px); height: 56px; }
+  /* segmented control */
+  .hdr::before { content: ""; position: absolute; top: 12px; height: calc(var(--ph, 28px) + 4px); border-radius: 9px; pointer-events: none;
+    left: calc(var(--cx, 0px) - (var(--wa, 0px) + var(--pg, 10px) + var(--wb, 0px)) / 2 - 2px); width: calc(var(--wa, 0px) + var(--pg, 10px) + var(--wb, 0px) + 4px);
+    background: rgba(118,118,128,.24); }
+  .hdr-pill { top: 14px; border-radius: 7px; background: #636366; border: .5px solid rgba(0,0,0,.04); box-shadow: 0 3px 8px rgba(0,0,0,.12), 0 3px 1px rgba(0,0,0,.04); }
+  .hdr-p { top: 14px; padding: 6px 14px; }
+  .hdr-p b, .hdr-p span { display: inline; font-size: 13px; font-weight: 600; color: #fff; letter-spacing: -.005em; opacity: 1; }
+  .hdr-a b { display: none; }
+  .hdr-b b::after { content: " "; }
+  .hdr-left, .hdr-right { top: 10px; }
+  .round-btn { width: 36px; height: 36px; border: 0; background: rgba(118,118,128,.24); color: var(--tint); }
+  .round-btn svg { stroke-width: 2; }
+  /* push-style page change: Road slides over, the Flight Log parallaxes and dims under it (no crossfade, nothing see-through) */
+  .feed-pane { background: #000; box-shadow: -12px 0 30px rgba(0,0,0,.5); }
+  .st.fx-xfade .feed-pane, .st .feed-pane { opacity: 1 !important; }
+  .st.fx-xfade.feed-on .st-wrap, .st.feed-on .st-wrap { opacity: calc(1 - var(--fp) * .55) !important; transform: translate3d(calc(var(--fp) * -30%), 0, 0) !important; }
+}
+.st-wrap { padding-left: 16px; padding-right: 16px; }
+.top { margin-bottom: 4px; }
+/* large titles */
+.v-large { margin: 0 4px 12px; transform-origin: 0 50%; will-change: transform, opacity;
+  transform: scale(calc(1 - var(--lt, 0) * .12)); opacity: calc(1 - var(--lt, 0) * 1.1); }
+.v-large b { display: block; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: .01em; color: #fff; }
+.v-large span { display: block; font-size: 15px; line-height: 20px; color: var(--muted); font-weight: 400; margin-bottom: 2px; }
+.feed .v-large { padding: 0 18px; margin: 0 0 6px; max-width: 440px; margin-left: auto; margin-right: auto; }
+.feed-head { padding-bottom: 4px; }
+
+/* hero: inset-grouped card */
+.next { border-radius: 14px; background: #1C1C1E; border: 0; box-shadow: none; padding: 16px; }
+.next-title { margin: 16px 0 12px; gap: 6px; }
+.next-title .t-word, .next-title .t-num { font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: .005em; }
+.facts { grid-template-columns: 1fr auto; gap: 0; margin: 0 -16px 12px; font-size: 17px; line-height: 22px; border-top: .5px solid var(--line); }
+.facts dt, .facts dd { padding: 11px 16px; border-bottom: .5px solid var(--line); }
+.facts dt { color: #fff; padding-right: 0; }
+.facts dd { color: var(--muted); text-align: right; padding-left: 8px; }
+.facts dt:last-of-type, .facts dd:last-of-type { border-bottom: 0; }
+.next-note, .next-upd { font-size: 15px; line-height: 20px; color: var(--muted); }
+.cd { border-radius: 8px; font-size: 15px; font-weight: 600; }
+.cd-tag { background: var(--red); }
+.cd-val { background: #2C2C2E; color: #fff; font-variant-numeric: tabular-nums; }
+.cd-tbc { background: rgba(118,118,128,.24); color: #fff; }
+.watch-badge { border-radius: 999px; background: rgba(118,118,128,.24); border: 0; color: var(--muted); font-size: 15px; }
+a.watch-badge-live { background: var(--red); color: #fff; box-shadow: none; }
+.v-tbc { color: var(--muted) !important; }
+
+.gap { height: 28px; }
+.gap-line { display: none; }
+.gap-label { left: 20px; font-size: 13px; color: var(--faint); font-weight: 400; text-transform: none; }
+.gap:has(.dashed) .gap-label, .gap .gap-label { left: 20px; }
+
+/* list rows */
+.card { border-radius: 14px; background: #1C1C1E; transition: background-color .15s; }
+.card-head { grid-template-columns: 96px 1fr; gap: 14px; padding: 12px 36px 12px 12px; border-radius: 14px; }
+.card-head:active { background: #2C2C2E; }
+.photo { border-radius: 10px; }
+.photo-thumb { width: 96px; height: 72px; }
+.photo.has-img img { filter: none; }
+.photo.has-img::after { background: none; }
+.title .t-word, .title .t-num { font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: -.02em; }
+.date { font-size: 15px; font-weight: 400; margin-top: 2px; color: var(--muted); }
+.sub { font-size: 13px; color: var(--faint); margin-top: 1px; }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+.pill-success { background: rgba(48,209,88,.16); color: #30D158; }
+.pill-partial { background: rgba(255,214,10,.16); color: #FFD60A; }
+.pill-failure { background: rgba(255,69,58,.16); color: #FF453A; }
+/* disclosure chevron, iOS style */
+.chev { top: 50%; bottom: auto; right: 14px; width: 14px; height: 14px; color: rgba(235,235,245,.3); transform: translateY(-50%) rotate(-90deg) !important; }
+
+/* ── the sheet: the opened card's details rise from the bottom; the list stays where it was ── */
+html.v-sheet .card.is-open .more { grid-template-rows: 1fr !important; position: fixed; left: 0; right: 0; bottom: 0; top: calc(var(--sat) + 44px); z-index: 41;
+  background: #1C1C1E; border-radius: 12px 12px 0 0; overflow-y: auto; overscroll-behavior: contain; box-shadow: 0 -10px 40px rgba(0,0,0,.5);
+  animation: v-sheet-in .45s cubic-bezier(.32,.72,0,1) both; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+html.v-sheet .card.is-open .more-inner { overflow: visible; }
+html.v-sheet .card.is-open .more-pad { opacity: 1; padding: 34px 20px calc(32px + env(safe-area-inset-bottom)); max-width: 520px; margin: 0 auto; }
+html.v-sheet .card.is-open .more::before { content: ""; position: sticky; top: 0; display: block; height: 0; z-index: 2; }
+html.v-sheet .card .more[data-v-closing] { animation: v-sheet-out .26s cubic-bezier(.4,0,1,1) both !important; }
+html.v-sheet .card.is-open .more[data-v-drag] { animation: none; transition: none; }
+.v-grab { position: sticky; top: 0; z-index: 3; height: 26px; margin-bottom: -26px; display: flex; justify-content: center; padding-top: 6px; background: linear-gradient(#1C1C1E 60%, rgba(28,28,30,0)); }
+.v-grab::before { content: ""; width: 36px; height: 5px; border-radius: 3px; background: rgba(235,235,245,.3); }
+.v-sheet-x { position: absolute; top: 12px; right: 14px; z-index: 4; width: 30px; height: 30px; border-radius: 50%; border: 0; background: rgba(118,118,128,.24); color: rgba(235,235,245,.6); font: 600 15px/30px -apple-system, Inter, sans-serif; cursor: pointer; }
+@keyframes v-sheet-in { from { transform: translate3d(0, 100%, 0); } to { transform: none; } }
+@keyframes v-sheet-out { from { transform: translate3d(0, var(--v-dy, 0px), 0); } to { transform: translate3d(0, 100%, 0); } }
+.v-sheet-scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.v-sheet-scrim.on { opacity: 1; pointer-events: auto; cursor: pointer; }
+html.v-sheet-open, html.v-sheet-open body { overflow: hidden; }
+html.v-sheet .card.is-open .headline { font-size: 28px; line-height: 34px; font-weight: 700; margin: 6px 0 10px; letter-spacing: .005em; }
+html.v-sheet .card.is-open .story { font-size: 17px; line-height: 24px; color: rgba(235,235,245,.85); }
+/* one landscape photo per vehicle */
+.gallery { grid-template-columns: 1fr; gap: 12px; }
+.photo-wide { aspect-ratio: 16 / 9; border-radius: 12px; }
+.photo-label { left: 10px; bottom: 8px; font-size: 13px; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.photo-credit { right: 10px; bottom: 8px; font-size: 11px; font-weight: 500; color: rgba(255,255,255,.8); text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+.highlights-link { border-radius: 12px; background: rgba(10,132,255,.16); border: 0; color: var(--tint); font-size: 17px; font-weight: 600; padding: 13px; }
+.highlights-soon { display: none; }
+.headline { font-size: 20px; font-weight: 700; }
+.story { font-size: 15px; color: var(--muted); }
+
+.road-head, .past-toggle { border-radius: 10px; background: #2C2C2E; border: 0; }
+.dot { width: 10px; height: 10px; }
+.road-count { color: var(--muted); }
+.past-box { background: #2C2C2E; border: 0; border-radius: 10px; }
+.end { color: var(--faint); font-size: 13px; }
+
+/* Page 2 */
+.feed-section.rfs { background: #1C1C1E; border: 0; border-radius: 14px; }
+.post, .rfs-feed .post { background: #2C2C2E; border: 0; border-radius: 12px; box-shadow: none; }
+.chip { border-radius: 6px; font-weight: 600; letter-spacing: 0; }
+.post-text { font-size: 15px; line-height: 20px; }
+.post-date, .post-credit, .xm-ctx { color: var(--faint) !important; }
+
+/* menu as a sheet from the bottom, grouped like Settings */
+.about { top: calc(var(--sat, 0px) + 44px); bottom: 0; left: 0; right: 0; width: auto; border-radius: 12px 12px 0 0; background: #1C1C1E; border: 0; padding: 20px 20px calc(32px + env(safe-area-inset-bottom));
+  transform: translate3d(0, 102%, 0); transition: transform .45s cubic-bezier(.32,.72,0,1), visibility 0s .45s; }
+.about.show { transform: none; transition: transform .45s cubic-bezier(.32,.72,0,1); }
+.about::before { content: ""; display: block; width: 36px; height: 5px; border-radius: 3px; background: rgba(235,235,245,.3); margin: -12px auto 10px; }
+.about h2 { font-size: 28px; font-weight: 700; }
+.about p, .about dd { font-size: 17px; line-height: 22px; color: var(--muted); }
+.about dt { font-size: 13px; text-transform: uppercase; letter-spacing: 0; color: var(--faint); margin-top: 22px; }
+.notify-manage-btn { background: rgba(10,132,255,.16) !important; color: var(--tint) !important; border: 0 !important; border-radius: 10px !important; font-size: 15px !important; padding: 10px 14px !important; }
+.scrim { background: rgba(0,0,0,.45); }
+
+html.v-ready [data-v-pending]:not([data-v-in]) { opacity: 0; }
+html.v-ready [data-v-in] { transition: opacity .25s ease-out, background-color .15s; }
+/* video bug A (whole page shrinks on a pull/pinch) is fixed by the noPinch patch in index.html; overscroll-behavior on html+body was tried and dropped: it blocked page scrolling in Chromium */
+
+@media (prefers-reduced-motion: reduce) {
+  html.v-ready [data-v-pending]:not([data-v-in]) { opacity: 1; }
+  html.v-sheet .card.is-open .more, html.v-sheet .card .more[data-v-closing] { animation: none !important; }
+  .st *, .st *::before, .st *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+  .v-large { transform: none; }
+}
+.title .t-word { font-size: 0 !important; }
+.title .t-word::after { content: "Flight"; font-size: 17px; }
+.v-sheet-eyebrow { font-size: 13px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: .02em; margin-top: 4px; }
+.card:not(.is-open) .v-sheet-eyebrow { display: none; }
+/* DaVinci #3: when date and site are both TBC, say it once (the facts row); the pill returns as soon as there is a NET or countdown */
+.next:has(.v-tbc) .cd:has(.cd-tbc) { display: none; }
+.next:has(.v-tbc) .next-top:not(:has(.watch-badge)):not(:has(.cd:not(:has(.cd-tbc)))) { display: none; }
+.next:has(.v-tbc) .next-title { margin-top: 4px; }
+/* while a sheet is open, the Flight Log must not be a stacking context / containing block (a lingering feed-on transform would trap the fixed sheet under the scrim) */
+html.v-sheet-open .st .st-wrap, html.v-sheet-open .st.feed-on .st-wrap, html.v-sheet-open .st.fx-xfade.feed-on .st-wrap { transform: none !important; will-change: auto !important; opacity: 1 !important; filter: none !important; }
+.facts dt { white-space: nowrap; }

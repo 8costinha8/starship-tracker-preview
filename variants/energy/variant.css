@@ -1,0 +1,127 @@
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap");
+/* ───────── Variant B · Live Launch Energy ─────────
+   Deep space black, one hot accent (ignition orange), bold display numbers, snappy springs,
+   swipeable landscape photo cards, press-in states that feel like a tap engine. */
+.st {
+  --bg: #0D111D; --card: #161C2C; --card-open: #1A2134; --line: #2A3350;
+  --text: #F3F5FA; --muted: #A7B0C8; --faint: #8A93AE; --hot: #FF6A3D; --hot2: #FFB02E; --red: #FF4D4F;
+  --slide: .46s cubic-bezier(.2,1.18,.32,1); --hdr-ease: .46s cubic-bezier(.2,1.18,.32,1);
+  --press: transform .38s cubic-bezier(.3,1.65,.5,1);
+  background: #0D111D;
+}
+@media (max-width: 899px) {
+  .st { background: #0D111D; }
+  .st::before { background: radial-gradient(90% 40% at 50% -6%, rgba(255,106,61,.22) 0%, rgba(255,106,61,0) 70%), radial-gradient(130% 60% at 50% -10%, #1B2238 0%, #0D111D 65%), #0D111D; }
+  .hdr-bar { background: linear-gradient(180deg, #0F1424 0%, #0F1424 calc(var(--sat) + 54px), rgba(15,20,36,0) 100%); }
+  .hdr-pill { background: linear-gradient(135deg, #FF6A3D 0%, #F04E6A 100%); border: 0; box-shadow: 0 8px 22px -8px rgba(255,106,61,.7); border-radius: 16px; }
+  .hdr-p b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+  .hdr-p span { font-size: 11px; font-weight: 700; color: #fff; opacity: calc(.55 + .45 * var(--act)); }
+  .hdr-p:active, .round-btn:active { transform: scale(.9) !important; transition: transform .08s !important; }
+}
+.round-btn { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: #D5DBEA; transition: var(--press); }
+
+/* hero: bold, live, glowing */
+.next { position: relative; overflow: hidden; border-radius: 26px; padding: 18px 18px 18px; border: 1px solid rgba(255,140,90,.35);
+  background: linear-gradient(165deg, #2A1F2E 0%, #1B1E33 45%, #141A2B 100%); box-shadow: 0 30px 60px -30px rgba(255,90,50,.55), inset 0 1px 0 rgba(255,255,255,.06); }
+.next::before { content: ""; position: absolute; inset: -40% -20% auto; height: 140%; pointer-events: none;
+  background: conic-gradient(from 200deg at 50% 50%, rgba(255,106,61,0) 0deg, rgba(255,106,61,.18) 60deg, rgba(255,176,46,0) 120deg); animation: v-sweep 7s linear infinite; }
+.next > * { position: relative; }
+@keyframes v-sweep { to { transform: rotate(360deg); } }
+.next-title { flex-direction: column; align-items: flex-start; gap: 0; margin: 18px 0 14px; }
+.next-title .t-word { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--hot2); }
+.next-title .t-num { font-size: 76px; line-height: .95; font-weight: 800; letter-spacing: -.05em; color: #fff; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #FFFFFF 30%, #FFC9B4 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* countdown emphasis */
+.cd { border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 10px 24px -12px rgba(255,77,79,.7); }
+.cd-tag { background: linear-gradient(135deg, #FF4D4F, #FF6A3D); padding: 8px 11px; letter-spacing: .04em; }
+.cd-val { padding: 8px 12px; font-size: 16px; font-feature-settings: "tnum"; background: #fff; color: #0D111D; }
+.cd-tbc { background: rgba(255,176,46,.14); color: #FFD08A; border: 1px solid rgba(255,176,46,.35); border-radius: 12px; }
+.watch-badge { border-radius: 12px; font-weight: 800; }
+a.watch-badge-live { background: linear-gradient(135deg, #FF4D4F, #FF6A3D); box-shadow: 0 0 0 0 rgba(255,77,79,.6); animation: v-live 1.6s ease-out infinite; }
+@keyframes v-live { 0% { box-shadow: 0 0 0 0 rgba(255,77,79,.6); } 100% { box-shadow: 0 0 0 14px rgba(255,77,79,0); } }
+.facts { font-size: 14px; gap: 6px 16px; }
+.facts dt { color: var(--faint); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .08em; padding-top: 2px; }
+.facts dd { font-weight: 600; }
+.next-note, .next-upd { color: #D8DDEA; font-size: 14.5px; }
+.v-tbc { color: #FFD08A !important; }
+
+/* connectors: glowing timeline */
+.gap-line { background: linear-gradient(180deg, rgba(255,106,61,.5), rgba(42,51,80,1)); left: 64px; width: 2px; }
+.gap-line.dashed { border-left: 2px dashed rgba(255,106,61,.55); }
+.gap-label { left: 78px; font-weight: 700; color: var(--muted); font-size: 12px; }
+
+/* cards: punchy, press-in */
+.card { border-radius: 22px; background: var(--card); border: 1px solid rgba(255,255,255,.06); box-shadow: 0 16px 34px -24px rgba(0,0,0,.9); transition: var(--press), background-color .2s, border-color .2s; }
+.card.is-open { border-color: rgba(255,106,61,.35); background: var(--card-open); }
+.card-head { grid-template-columns: 120px 1fr; gap: 14px; padding: 12px; border-radius: 22px; transition: var(--press); }
+.card-head:active { transform: scale(.965); transition: transform .08s ease-out; }
+.photo { border-radius: 14px; }
+.photo-thumb { width: 120px; height: 90px; }
+.photo.has-img img { filter: saturate(112%) contrast(108%); }
+.photo.has-img::after { background: linear-gradient(180deg, rgba(13,17,29,0) 55%, rgba(13,17,29,.8) 100%); }
+.title .t-word { white-space: nowrap; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; }
+.title .t-num { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+
+.date { font-size: 13px; font-weight: 700; margin-top: 4px; }
+.sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.pill { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 4px 8px; border-radius: 8px; }
+.pill-success { background: rgba(62,207,142,.16); color: #5FE0A6; }
+.chev { right: 14px; bottom: 14px; width: 18px; height: 18px; color: var(--hot); }
+.headline { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.story { font-size: 14.5px; color: #D3D9E8; }
+/* swipeable photo cards: one landscape frame per vehicle, snap from one to the next */
+.gallery { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -16px; padding: 2px 16px 8px; scrollbar-width: none; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+.gallery::-webkit-scrollbar { display: none; }
+.gallery > .photo-wide { flex: 0 0 86%; aspect-ratio: 16 / 9; scroll-snap-align: center; border-radius: 16px; box-shadow: 0 14px 30px -18px rgba(0,0,0,.9); transition: var(--press); }
+.gallery > .photo-wide:active { transform: scale(.97); transition: transform .08s; }
+.photo-label { left: 12px; bottom: 10px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.photo-credit { right: 12px; bottom: 10px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); }
+.photo-credit::before { content: "📷 "; }
+.highlights-link { border-radius: 14px; background: linear-gradient(135deg, rgba(255,77,79,.18), rgba(255,106,61,.12)); border-color: rgba(255,106,61,.45); color: #FFD9CB; font-weight: 800; transition: var(--press); }
+.highlights-link:active { transform: scale(.96); transition: transform .08s; }
+.highlights-soon { display: none; }
+
+.road-head, .past-toggle { background: rgba(255,255,255,.04); border-color: rgba(255,106,61,.3); transition: var(--press); }
+.road-head:active, .past-toggle:active { transform: scale(.97); transition: transform .08s; }
+.dot { width: 10px; height: 10px; }
+.dot-done, .dot-complete { box-shadow: 0 0 8px var(--c); }
+.past-box { background: #10151F; border-color: rgba(255,255,255,.07); }
+
+/* Page 2 */
+.feed-section.rfs { background: #161C2C; border-color: rgba(255,106,61,.25); border-radius: 24px; }
+.post, .rfs-feed .post { background: #10151F; border-color: rgba(255,255,255,.07); border-radius: 18px; transition: var(--press); }
+.post:active { transform: scale(.985); transition: transform .08s; }
+.chip { font-weight: 800; }
+.post-date, .post-credit, .xm-ctx { color: var(--muted) !important; }
+
+/* menu */
+.about { background: #121726; border-right: 1px solid rgba(255,106,61,.25); transition: transform .42s cubic-bezier(.2,1.15,.32,1), visibility 0s .42s; }
+.about.show { transition: transform .42s cubic-bezier(.2,1.15,.32,1); }
+.about h2 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.about dt { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 800; color: var(--hot2); }
+.notify-manage-btn { background: linear-gradient(135deg, #FF4D4F, #FF6A3D) !important; color: #fff !important; border: 0 !important; font-weight: 800; }
+
+/* entrance: quick spring pop-up with a light stagger */
+html.v-ready [data-v-pending]:not([data-v-in]) { opacity: 0; transform: translateY(22px) scale(.97); }
+html.v-ready [data-v-in] { transition: opacity .3s ease-out, transform .55s cubic-bezier(.2,1.35,.35,1), background-color .2s, border-color .2s; }
+
+/* video bug A (whole page shrinks on a pull/pinch) is fixed by the noPinch patch in index.html; overscroll-behavior on html+body was tried and dropped: it blocked page scrolling in Chromium */
+
+@media (prefers-reduced-motion: reduce) {
+  html.v-ready [data-v-pending]:not([data-v-in]) { opacity: 1; transform: none; }
+  .next::before, a.watch-badge-live { animation: none !important; }
+  .st *, .st *::before, .st *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+  .card-head:active, .post:active, .gallery > .photo-wide:active { transform: none; }
+}
+.v-dots { display: flex; justify-content: center; gap: 6px; margin: 2px 0 2px; }
+.v-dots i { width: 6px; height: 6px; border-radius: 3px; background: rgba(255,255,255,.25); transition: width .3s cubic-bezier(.3,1.6,.5,1), background-color .2s; }
+.v-dots i.on { width: 18px; background: var(--hot); }
+.next-title .t-num, .title .t-num, .cd-val, .gap-label { font-family: "Space Grotesk", Manrope, system-ui, sans-serif; }
+.feed-section.rfs { box-shadow: inset 0 2px 0 rgba(255,106,61,.55), 0 20px 40px -28px rgba(255,90,50,.45); }
+.feed-pill-title { font-weight: 800; }
+.rfs-live { box-shadow: 0 0 0 0 rgba(255,77,79,.5); }
+/* DaVinci #3: when date and site are both TBC, say it once (the facts row); the pill returns as soon as there is a NET or countdown */
+.next:has(.v-tbc) .cd:has(.cd-tbc) { display: none; }
+.next:has(.v-tbc) .next-top:not(:has(.watch-badge)):not(:has(.cd:not(:has(.cd-tbc)))) { display: none; }
+.next:has(.v-tbc) .next-title { margin-top: 4px; }

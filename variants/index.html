@@ -1,0 +1,48 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Starship Tracker · 3 feel directions (sandbox)</title>
+<style>
+:root{color-scheme:dark}body{margin:0;background:#11161F;color:#E8EDF7;font:15px/1.5 -apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif}
+main{max-width:980px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 16px 60px}
+h1{font-size:26px;margin:0 0 4px}.sub{color:#A9B3CF;margin:0 0 20px;font-size:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+a.v{display:block;text-decoration:none;color:inherit;border-radius:20px;padding:16px;border:1px solid rgba(255,255,255,.08);background:#1A2132;transition:transform .15s}
+a.v:active{transform:scale(.98)}a.v b{display:block;font-size:18px;margin-bottom:4px}a.v span{color:#A9B3CF;font-size:14px}a.v i{display:inline-block;margin-top:10px;font-style:normal;font-weight:600;font-size:13px}
+.calm{border-color:rgba(157,180,240,.35)!important}.calm i{color:#9DB4F0}.energy i{color:#FF8A5C}.native i{color:#0A84FF}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:6px;background:#2E3A5C;color:#C9D6FA;margin-bottom:8px}
+h2{font-size:18px;margin:28px 0 10px}img.cmp{width:100%;border-radius:12px;display:block;margin-bottom:10px}
+.vids{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.vids figure{margin:0}.vids video{width:100%;border-radius:12px;background:#000}.vids figcaption{font-size:13px;color:#A9B3CF;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}th{color:#A9B3CF;font-weight:600}.ok{color:#7FD6A4}.bad{color:#F09A9A}
+.note{font-size:13px;color:#A9B3CF}
+</style></head><body><main>
+<h1>Three feel directions</h1>
+<p class="sub">Same data, same structure (Page 1 Flight Log · Page 2 Road to Flight). Only the feel changes. Sandbox copies: push, Firebase and the service worker are off. Not tested on a real iPhone yet.</p>
+<div class="grid">
+<a class="v calm" href="calm/index.html"><span class="tag">DaVinci's pick · most polished</span><b>A · Calm Mission Control</b><span>Matte and quiet: one type scale, equal-weight nav, flat cards, 240 ms fades. The launch-day red countdown and Watch-live pulse are borrowed from B.</span><br><i>Open the app →</i></a>
+<a class="v energy" href="energy/index.html"><b>B · Live Launch Energy</b><span>Bold and alive: a giant flight number, a glowing hero, ignition-orange accents, springy press-in taps and swipeable photo cards.</span><br><i>Open the app →</i></a>
+<a class="v native" href="native/index.html"><b>C · Apple-native</b><span>Feels like an iOS app: large titles that collapse, a segmented control, push-style page change, cards open as sheets you drag down to close.</span><br><i>Open the app →</i></a>
+</div>
+<p class="note">The live app is untouched. Each link is a full copy you can tap through. Swipe left or right to switch pages, and tap a flight to open it.</p>
+<h2>Side by side (live vs A, B, C)</h2>
+<img class="cmp" src="compare/compare-p1.jpg" alt="Page 1 compared"><img class="cmp" src="compare/compare-card.jpg" alt="Opened card compared">
+<img class="cmp" src="compare/compare-p2.jpg" alt="Page 2 compared"><img class="cmp" src="compare/compare-menu.jpg" alt="Menu compared">
+<img class="cmp" src="compare/compare-launchday.jpg" alt="Launch day compared (test fixture)">
+<p class="note">The launch-day row uses a made-up Flight 16 date (about 1 day 6 hours away), only to preview the countdown styling.</p>
+<h2>Interaction clips (about 20 s each, recorded in desktop Chrome at iPhone size)</h2>
+<div class="vids">
+<figure><video src="compare/live/interactions.webm" controls muted playsinline preload="metadata"></video><figcaption>Live today</figcaption></figure>
+<figure><video src="compare/calm/interactions.webm" controls muted playsinline preload="metadata"></video><figcaption>A · Calm</figcaption></figure>
+<figure><video src="compare/energy/interactions.webm" controls muted playsinline preload="metadata"></video><figcaption>B · Energy</figcaption></figure>
+<figure><video src="compare/native/interactions.webm" controls muted playsinline preload="metadata"></video><figcaption>C · Native</figcaption></figure>
+</div>
+<p class="note">Each clip scrolls with a sideways wobble, pulls down at the top, opens and closes a card (C drags its sheet down), swipes to Page 2 and back, then opens the menu. iPhone Safari can't play .webm, so watch these on a computer.</p>
+<h2>Checks (automated, Chrome 390×844 @3x)</h2>
+<table><tr><th>Check</th><th>Live</th><th>A</th><th>B</th><th>C</th></tr>
+<tr><td>Scroll that starts with a sideways wobble still scrolls (video bug B)</td><td class="bad">✗ 0 px</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+<tr><td>Never both pages see-through at once mid-swipe</td><td class="bad">✗ 91% + 29%</td><td class="ok">✓ 24% + 0%</td><td class="ok">✓ 24% + 0%</td><td class="ok">✓ opaque push</td></tr>
+<tr><td>Pinch / pull can't shrink the page (video bug A, touch-action rule)</td><td class="bad">✗ off</td><td class="ok">✓ on</td><td class="ok">✓ on</td><td class="ok">✓ on</td></tr>
+<tr><td>Real swipe switches pages and back</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+<tr><td>Card opens and closes</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓ + photo swipe doesn't switch page</td><td class="ok">✓ + drag-down dismiss</td></tr>
+<tr><td>Reduced motion: animations off, nothing left hidden</td><td>n/a</td><td class="ok">✓</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+<tr><td>Console errors</td><td class="ok">0</td><td class="ok">0</td><td class="ok">0</td><td class="ok">0</td></tr></table>
+<p class="note">Bug A can't be reproduced in desktop Chrome; only the fix rule was checked. It needs a quick pinch test on your iPhone.</p>
+</main></body></html>
