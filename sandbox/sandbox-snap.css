@@ -1,0 +1,140 @@
+/* GENERATED from the live stylesheet by TUS-1 (re-generate if live CSS changes). sb-type: font-size -> 11/13/15/17/22/28 in rem. sb-radius: border-radius -> 8/12/18/24/pill. */
+html.sb-type .brand{font-size:0.9375rem !important}
+html.sb-type .brand span{font-size:0.8125rem !important}
+html.sb-radius .next{border-radius:24px !important}
+html.sb-type .watch-badge{font-size:0.8125rem !important}
+html.sb-radius .watch-badge{border-radius:12px !important}
+html.sb-type .cd{font-size:0.8125rem !important}
+html.sb-radius .cd{border-radius:12px !important}
+html.sb-type .next-title .t-word{font-size:1.375rem !important}
+html.sb-type .next-title .t-num{font-size:1.75rem !important}
+html.sb-type .facts{font-size:0.8125rem !important}
+html.sb-type .facts .pred-basis{font-size:0.8125rem !important}
+html.sb-type .next-note{font-size:0.8125rem !important}
+html.sb-type .next-upd{font-size:0.8125rem !important}
+html.sb-type .gap-label{font-size:0.8125rem !important}
+html.sb-radius .card{border-radius:18px !important}
+html.sb-radius .card-head{border-radius:18px !important}
+html.sb-radius .photo{border-radius:12px !important}
+html.sb-type .photo-cap{font-size:0.6875rem !important}
+html.sb-type .gallery[data-vehicles] .photo-credit{font-size:0.6875rem !important}
+html.sb-type .photo-credit{font-size:0.6875rem !important}
+html.sb-radius .lightbox img{border-radius:12px !important}
+html.sb-type .title .t-word{font-size:1.062rem !important}
+html.sb-type .title .t-num{font-size:1.375rem !important}
+html.sb-type .date{font-size:0.9375rem !important}
+html.sb-type .sub{font-size:0.8125rem !important}
+html.sb-type .pill{font-size:0.8125rem !important}
+html.sb-radius .pill{border-radius:999px !important}
+html.sb-type .headline{font-size:1.062rem !important}
+html.sb-type .story{font-size:0.9375rem !important}
+html.sb-type .past-toggle{font-size:0.8125rem !important}
+html.sb-radius .past-toggle{border-radius:999px !important}
+html.sb-type .past-toggle .road-count{font-size:0.8125rem !important}
+html.sb-radius .past-box{border-radius:12px !important}
+html.sb-type .past-veh{font-size:0.8125rem !important}
+html.sb-type .past-box p{font-size:0.8125rem !important}
+html.sb-type .past-pill{font-size:0.6875rem !important}
+html.sb-radius .past-pill{border-radius:999px !important}
+html.sb-radius .past-photo{border-radius:8px !important}
+html.sb-radius .box-photo{border-radius:8px !important}
+html.sb-type .highlights-link{font-size:0.8125rem !important}
+html.sb-radius .highlights-link{border-radius:12px !important}
+html.sb-type .end{font-size:0.8125rem !important}
+html.sb-type .about h2{font-size:1.375rem !important}
+html.sb-type .about p{font-size:0.9375rem !important}
+html.sb-type .about dt{font-size:0.8125rem !important}
+html.sb-type .about dd{font-size:0.9375rem !important}
+html.sb-type .about .about-foot{font-size:0.8125rem !important}
+html.sb-type .notify-manage-btn{font-size:0.8125rem !important}
+html.sb-radius .notify-manage-btn{border-radius:12px !important}
+html.sb-radius .notify-modal{border-radius:18px !important}
+html.sb-type .notify-modal h2{font-size:1.062rem !important}
+html.sb-type .notify-modal p{font-size:0.9375rem !important}
+html.sb-type .notify-btn{font-size:0.8125rem !important}
+html.sb-radius .notify-btn{border-radius:12px !important}
+html.sb-radius .feedback-box{border-radius:18px !important}
+html.sb-type .feedback-box h3{font-size:1.062rem !important}
+html.sb-type .about .feedback-box p{font-size:0.8125rem !important}
+html.sb-type .feedback-field{font-size:1.062rem !important}
+html.sb-radius .feedback-field{border-radius:12px !important}
+html.sb-type .feedback-count{font-size:0.8125rem !important}
+html.sb-type .about .feedback-box .feedback-error{font-size:0.8125rem !important}
+html.sb-type .feedback-send{font-size:0.9375rem !important}
+html.sb-type .feedback-again{font-size:0.8125rem !important}
+html.sb-radius .road-head{border-radius:999px !important}
+html.sb-radius .road-head:focus-visible{border-radius:999px !important}
+html.sb-type .road-title h2{font-size:0.8125rem !important}
+html.sb-type .road-xoff{font-size:0.6875rem !important}
+html.sb-radius .road-xoff{border-radius:999px !important}
+html.sb-type .road-sum{font-size:0.8125rem !important}
+html.sb-radius .callout{border-radius:18px !important}
+html.sb-type .callout-icon{font-size:1.375rem !important}
+html.sb-type section.road .callout-icon{font-size:1.062rem !important}
+html.sb-type section.road .callout-head .badge{font-size:0.6875rem !important}
+html.sb-type .callout-name{font-size:0.9375rem !important}
+html.sb-type .callout-latest{font-size:0.8125rem !important}
+html.sb-type .badge{font-size:0.6875rem !important}
+html.sb-radius .badge{border-radius:999px !important}
+html.sb-radius .mini{border-radius:12px !important}
+html.sb-type .flog-name{font-size:0.6875rem !important}
+html.sb-type .mini-date{font-size:0.8125rem !important}
+html.sb-type .mini-src{font-size:0.6875rem !important}
+html.sb-radius .mini-src{border-radius:8px !important}
+html.sb-type .mini p{font-size:0.8125rem !important}
+html.sb-type .mini-phase{font-size:0.6875rem !important}
+html.sb-radius .mini-phase{border-radius:8px !important}
+html.sb-radius .mini-media{border-radius:12px !important}
+html.sb-type .mini-ctx{font-size:0.6875rem !important}
+html.sb-radius .mini-ctx{border-radius:8px !important}
+html.sb-radius .buildup.feed-bu li.bu-pill{border-radius:12px !important}
+html.sb-radius .feed-bu .bu-pill.bu-ext > a{border-radius:12px !important}
+html.sb-type .mini-tier{font-size:0.6875rem !important}
+html.sb-radius .mini-tier{border-radius:8px !important}
+html.sb-type .buildup{font-size:0.8125rem !important}
+html.sb-type .buildup summary{font-size:0.8125rem !important}
+html.sb-radius .buildup li.bu-tap:focus-visible{border-radius:8px !important}
+html.sb-type .badge-count{font-size:0.6875rem !important}
+html.sb-type .xm-ctx{font-size:0.6875rem !important}
+html.sb-type .mini-unc{font-size:0.6875rem !important}
+html.sb-radius .mini-unc{border-radius:8px !important}
+html.sb-radius .feed-section.rfs{border-radius:24px !important}
+html.sb-radius button.feed-pill:focus-visible{border-radius:8px !important}
+html.sb-type .feed-pill-title{font-size:1.062rem !important}
+html.sb-type .feed-pill .road-count{font-size:0.9375rem !important}
+html.sb-type .feed-pill-action{font-size:0.9375rem !important}
+html.sb-type .rfs-live{font-size:0.8125rem !important}
+html.sb-radius .rfs-live{border-radius:999px !important}
+html.sb-radius .rfs-watch{border-radius:999px !important}
+html.sb-type .rfs-date{font-size:0.8125rem !important}
+html.sb-type .rfs-row[data-fit$="12"] .rfs-live{font-size:0.8125rem !important}
+html.sb-type .rfs-row[data-fit$="11"] .rfs-live{font-size:0.6875rem !important}
+html.sb-type .feed-pill[data-fit="st2"] .feed-pill-title{font-size:1.062rem !important}
+html.sb-type .feed-pill[data-fit="st2"] .feed-pill-action{font-size:0.9375rem !important}
+html.sb-radius .rfs-feed .post{border-radius:18px !important}
+html.sb-radius .rfs-feed .post::after{border-radius:18px !important}
+html.sb-type .rfs-feed .post-date{font-size:0.8125rem !important}
+html.sb-type .rfs-feed .post > .post-text{font-size:0.9375rem !important}
+html.sb-type .rtf-teaser{font-size:0.9375rem !important}
+html.sb-type .rtf-peek-eyebrow{font-size:0.8125rem !important}
+html.sb-type .rtf-peek-title{font-size:1.062rem !important}
+html.sb-type .rtf-soon{font-size:0.9375rem !important}
+html.sb-radius .post{border-radius:18px !important}
+html.sb-radius .post::after{border-radius:18px !important}
+html.sb-type .chip{font-size:0.8125rem !important}
+html.sb-radius .chip{border-radius:999px !important}
+html.sb-type .chip-i{font-size:0.8125rem !important}
+html.sb-type .post-sep{font-size:0.8125rem !important}
+html.sb-type .post-date{font-size:0.8125rem !important}
+html.sb-type .post-text{font-size:0.9375rem !important}
+html.sb-type .post-src{font-size:0.6875rem !important}
+html.sb-radius .post-src{border-radius:8px !important}
+html.sb-type .fdiv{font-size:0.8125rem !important}
+@media (max-width: 899px){html.sb-radius .hdr-pill{border-radius:12px !important}
+html.sb-type .hdr-p b{font-size:0.9375rem !important}
+html.sb-type .hdr-p span{font-size:0.6875rem !important}}
+html.sb-type .road-chip{font-size:0.8125rem !important}
+html.sb-radius .road-chip:focus-visible{border-radius:8px !important}
+html.sb-radius .xm-grid{border-radius:12px !important}
+html.sb-radius .xm-split > a{border-radius:12px !important}
+html.sb-type .xm-foot{font-size:0.6875rem !important}

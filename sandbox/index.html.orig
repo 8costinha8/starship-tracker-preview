@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#2E3D63" />
+<title>Starship Tracker</title>
+<meta name="description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+
+<!-- Link preview: what X, Reddit, WhatsApp, iMessage etc. show when someone shares the link -->
+<meta property="og:title" content="Starship Tracker">
+<meta property="og:description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://8costinha8.github.io/starship-tracker/">
+<meta property="og:image" content="https://8costinha8.github.io/starship-tracker/images/og-image-v20261114c.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Starship Tracker: next flight countdown and every flight so far">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Starship Tracker">
+<meta name="twitter:description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+<meta name="twitter:image" content="https://8costinha8.github.io/starship-tracker/images/og-image-v20261114c.png">
+<meta name="twitter:image:alt" content="Starship Tracker: next flight countdown and every flight so far">
+
+<!-- PWA: makes the app installable with its own icon and name -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-v20261114c-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="icons/icon-v20261114c-16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="icons/icon-v20261114c-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-v20261114c-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Starship">
+
+<style>html, body { margin:0; background: radial-gradient(130% 55% at 50% -8%, #2E3D63 0%, #1A2236 62%) #1A2236; }</style>
+<script>
+/* SANDBOX toggles (TUS-1). Default = all ON. ?sbx=off opens with everything off (= live), ?sbx=on forces all on. Saved per phone. */
+(function(){
+ var T=[
+  {id:"press",group:"Motion",title:"Press feedback",desc:"Cards, bars and buttons shrink slightly under your finger and spring back."},
+  {id:"cardopen",group:"Motion",title:"Card opening",desc:"Headline, story, photos rise in one by one; thumbnail settles, chevron springs."},
+  {id:"enter",group:"Motion",title:"First-load wave",desc:"The top card and first cards arrive in a short stagger."},
+  {id:"dots",group:"Motion",title:"Road dots pop",desc:"The six dots pop in sequence when a Road list opens."},
+  {id:"sheets",group:"Motion",title:"Sheet and photo zoom",desc:"About slides with the iOS curve; tapped photo grows out of its thumbnail."},
+  {id:"digits",group:"Motion",title:"Countdown digit roll",desc:"Only the digit that changed rolls."},
+  {id:"live",group:"Motion",title:"Live badge glow",desc:"Watch live breathes softly while the stream is live."},
+  {id:"swipe",group:"Motion",title:"Photo swipe",desc:"Swipe between Booster and Ship in an opened card, with snap and dots (phones)."},
+  {id:"ptr",group:"Motion",title:"Pull to refresh",desc:"Pull down at the top of Page 1 (home-screen app only; Safari tabs have their own)."},
+  {id:"spacing",group:"Layout",title:"Spacing rhythm",desc:"One 16px left edge for thumbnail, headline and story; gaps on the 8pt grid."},
+  {id:"hero",group:"Layout",title:"Hero hierarchy",desc:"Known facts stand out, 'to be confirmed' recedes."},
+  {id:"badges",group:"Layout",title:"One badge shape",desc:"Same height, padding and weight for every pill."},
+  {id:"timeline",group:"Layout",title:"Timeline nodes and log label",desc:"Small node on each connector and a 'Flight log' heading."},
+  {id:"order",group:"Layout",title:"Photos before Road list",desc:"Opened card: story, photos, then the Road list."},
+  {id:"menu",group:"Layout",title:"Menu sheet",desc:"Grouped rows, Done button, swipe left to close."},
+  {id:"type",group:"Design rules",title:"Type scale: 16 sizes to 6",desc:"All text snaps to 11, 13, 15, 17, 22, 28 and follows text-size settings."},
+  {id:"radius",group:"Design rules",title:"Radius scale",desc:"Corner radii snap to 8, 12, 18, 24 and round."},
+  {id:"credit",group:"Credits",title:"Credit = publisher",desc:"Photo credit names who published it; vehicle name moves to the other corner; About text corrected."},
+  {id:"a11y",group:"Accessibility & speed",title:"Readable text, 44pt taps",desc:"Greys contrast 4.9:1, credits 11px, bigger hit areas, button font."},
+  {id:"reduce",group:"Accessibility & speed",title:"Respect Reduce Motion everywhere",desc:"With the iPhone setting on, all of the app's animations stop."},
+  {id:"images",group:"Accessibility & speed",title:"Light photos (WebP)",desc:"Resized WebP photos, gallery photos load when a card is touched. 17.5 MB to 0.2 MB.",reload:true}
+ ];
+ var H=document.documentElement,K="sbx-toggles-v1",st={};try{st=JSON.parse(localStorage.getItem(K)||"{}")}catch(e){}
+ var q=new URLSearchParams(location.search).get("sbx");
+ T.forEach(function(t){var v=q==="off"?false:q==="on"?true:(st[t.id]===undefined?true:!!st[t.id]);if(v)H.classList.add("sb-"+t.id)});
+ window.__sbToggles=T; window.__sbOn=function(id){return H.classList.contains("sb-"+id)}; window.__sbBuild="TUS-1 sandbox · 21 Nov";
+})();
+</script>
+<link rel="stylesheet" href="sandbox-snap.css" data-sbx><link rel="stylesheet" href="sandbox.css" data-sbx>
+</head>
+<body><div id="sbx-flag" style="position:fixed;top:env(safe-area-inset-top,0);left:50%;transform:translateX(-50%);z-index:9999;background:#f5a623;color:#111;font:600 10px/1 system-ui;padding:3px 8px;border-radius:0 0 6px 6px;pointer-events:none">SANDBOX</div>
+<div id="root"></div>
+
+<!-- React itself, loaded from a CDN so there's no install/build step -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Babel lets the browser understand JSX directly, so you can edit app.js as plain JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Firebase + notification logic: must load BEFORE app.js, since app.js
+     checks window.STNotify as soon as it starts up -->
+<script src="data/imgmap.js"></script>
+<script src="notifications.js"></script>
+<script src="scripts/cleanup.js"></script>
+<script src="scripts/flightlog.js"></script>
+<script src="scripts/handover.js"></script>
+<script src="scripts/road-pick.js"></script>
+
+<script type="text/babel" src="app.js"></script>
+<script src="sandbox.js"></script>
+</body>
+</html>

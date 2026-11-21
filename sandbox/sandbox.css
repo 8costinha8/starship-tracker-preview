@@ -1,0 +1,210 @@
+/* SANDBOX stylesheet (TUS-1). Every rule is scoped to one toggle class on <html> (sb-<id>), set by the panel.
+   With all toggles OFF nothing here matches, so the app equals live. Loaded AFTER the app's own <style> (sandbox.js moves it). */
+:root{ --sb-ease: cubic-bezier(.32,.72,0,1); --sb-spring: cubic-bezier(.34,1.36,.64,1); --sb-out: cubic-bezier(.2,.8,.2,1); }
+
+/* ===== a11y · readable text and 44pt taps ===== */
+html.sb-a11y .st button{ font-family:inherit; }
+html.sb-a11y .photo-credit{ font-size:11px; }
+html.sb-a11y .round-btn{ width:44px; height:44px; }
+html.sb-a11y .top{ grid-template-columns:44px 1fr 44px; }
+html.sb-a11y .buildup summary{ padding:15px 0; margin:-15px 0; }
+html.sb-a11y .past-toggle, html.sb-a11y .road-head{ min-height:44px; }
+html.sb-a11y .highlights-soon{ border-color:transparent; background:none; color:#A3AEC8; }
+html.sb-a11y .highlights-link, html.sb-a11y .notify-manage-btn{ min-height:44px; }
+html.sb-a11y button.feed-pill{ min-height:44px; }
+html.sb-a11y .xm-foot a{ min-height:44px; padding:0 4px; margin-bottom:-6px; }
+html.sb-a11y .hdr-p::after{ content:""; position:absolute; inset:-6px -4px; }
+html.sb-a11y .xm-grid > a.src-badge::after, html.sb-a11y .xm-split > a.src-badge::after{ content:""; position:absolute; inset:-11px; }
+
+/* ===== reduce · the app's own animations also obey "Reduce Motion" ===== */
+@media (prefers-reduced-motion: reduce){
+  html.sb-reduce *, html.sb-reduce *::before, html.sb-reduce *::after{ animation-duration:.001ms !important; animation-delay:0s !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; transition-delay:0s !important; scroll-behavior:auto !important; }
+  .sbx-dots i, .sbx-ptr, .sbx-ptr svg{ transition:none !important; }
+  .sbx-ptr.spin svg{ animation:none !important; }
+}
+
+/* ===== credit · photo credit = publisher; the vehicle name moves to the other corner ===== */
+html.sb-credit .photo-label{ position:absolute; left:8px; bottom:6px; z-index:1; font-size:11px; font-weight:700; color:rgba(240,244,252,.92); }
+html.sb-credit .gallery[data-vehicles] .photo-credit{ font-size:9.5px; font-weight:400; color:rgba(228,234,246,.8); }
+html.sb-a11y.sb-credit .gallery[data-vehicles] .photo-credit{ font-size:11px; }
+
+@media (prefers-reduced-motion: no-preference){
+/* ===== press · tap feedback ===== */
+html.sb-press .card-head, html.sb-press .road-head, html.sb-press .past-toggle, html.sb-press .round-btn, html.sb-press .hdr-p,
+html.sb-press .highlights-link:not(.highlights-soon), html.sb-press .watch-badge-live, html.sb-press .photo.tappable{
+  transition: transform .45s var(--sb-spring), background-color .2s, filter .2s; -webkit-tap-highlight-color: transparent; }
+html.sb-press .card{ transition: transform .5s var(--sb-spring), background-color .3s; }
+html.sb-press .card:has(> .card-head:active){ transform:scale(.985); transition:transform .12s var(--sb-out); }
+html.sb-press .road-head:active, html.sb-press .past-toggle:active{ transform:scale(.98); filter:brightness(1.12); transition-duration:.1s; }
+html.sb-press .round-btn:active{ transform:scale(.9); background:rgba(255,255,255,.1); transition-duration:.1s; }
+html.sb-press .photo.tappable:active{ transform:scale(.97); transition-duration:.1s; }
+html.sb-press .highlights-link:not(.highlights-soon):active{ transform:scale(.97); }
+
+/* ===== cardopen · content rises in sequence, thumb settles, chevron springs ===== */
+html.sb-cardopen .card.is-open .more-pad{ transition:opacity .2s; }
+html.sb-cardopen .card.is-open .more-pad > *{ animation:sb-rise .5s var(--sb-ease) both; }
+html.sb-cardopen .card.is-open .more-pad > :nth-child(1){ animation-delay:.06s }
+html.sb-cardopen .card.is-open .more-pad > :nth-child(2){ animation-delay:.11s }
+html.sb-cardopen .card.is-open .more-pad > :nth-child(3){ animation-delay:.16s }
+html.sb-cardopen .card.is-open .more-pad > :nth-child(4){ animation-delay:.21s }
+html.sb-cardopen .card.is-open .more-pad > :nth-child(n+5){ animation-delay:.26s }
+html.sb-cardopen .card.is-open .gallery .photo{ animation:sb-photo .6s var(--sb-ease) both; }
+html.sb-cardopen .card.is-open .gallery .photo:nth-child(2){ animation-delay:.07s; }
+html.sb-cardopen .chev{ transition:transform .55s var(--sb-spring), color .3s; }
+html.sb-cardopen .card .photo-thumb img{ transition:transform .6s var(--sb-ease); }
+html.sb-cardopen .card.is-open .photo-thumb img{ transform:scale(1.06); }
+@keyframes sb-rise{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+@keyframes sb-photo{ from{ opacity:0; transform:scale(.96) } to{ opacity:1; transform:none } }
+
+/* ===== enter · first load stagger ===== */
+html.sb-enter.sb-entering .next{ animation:sb-rise .55s var(--sb-ease) both; }
+html.sb-enter.sb-entering .st-wrap > div > .card{ animation:sb-rise .55s var(--sb-ease) both; animation-delay:calc(var(--sb-i, 6) * 45ms + 80ms); }
+
+/* ===== dots · Road dots pop when a list opens ===== */
+html.sb-dots .road-head[aria-expanded="true"] .dot, html.sb-dots .past-toggle.open .dot{ animation:sb-pop .42s var(--sb-spring) both; }
+html.sb-dots .road-dots .dot:nth-child(2){ animation-delay:.03s } html.sb-dots .road-dots .dot:nth-child(3){ animation-delay:.06s }
+html.sb-dots .road-dots .dot:nth-child(4){ animation-delay:.09s } html.sb-dots .road-dots .dot:nth-child(5){ animation-delay:.12s }
+html.sb-dots .road-dots .dot:nth-child(6){ animation-delay:.15s }
+@keyframes sb-pop{ 0%{ transform:scale(.4) } 60%{ transform:scale(1.25) } 100%{ transform:scale(1) } }
+
+/* ===== sheets · About / scrim / lightbox easing ===== */
+html.sb-sheets .about.show{ transition:transform .5s var(--sb-ease); }
+html.sb-sheets .scrim{ transition:opacity .4s var(--sb-ease); }
+html.sb-sheets .lightbox{ transition:opacity .3s var(--sb-ease), background-color .3s; }
+
+/* ===== live · Watch live badge breathes ===== */
+html.sb-live a.watch-badge-live{ animation:sb-breathe 2.4s ease-in-out infinite; }
+@keyframes sb-breathe{ 0%,100%{ box-shadow:0 10px 22px -10px rgba(238,107,110,.8) } 50%{ box-shadow:0 10px 28px -6px rgba(238,107,110,1) } }
+}
+
+/* ===== swipe · photos in an opened card swipe with snap and dots (phones) ===== */
+html.sb-swipe .gallery.sb-swipe{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; gap:8px; overscroll-behavior-x:contain; }
+html.sb-swipe .gallery.sb-swipe::-webkit-scrollbar{ display:none }
+html.sb-swipe .gallery.sb-swipe > .photo{ flex:0 0 100%; scroll-snap-align:center; scroll-snap-stop:always; }
+.sbx-dots{ display:none; justify-content:center; gap:6px; margin:8px 0 2px; }
+html.sb-swipe .sbx-dots{ display:flex; }
+.sbx-dots i{ width:6px; height:6px; border-radius:50%; background:rgba(228,234,246,.3); transition:width .35s var(--sb-ease), background .35s; }
+.sbx-dots i.on{ width:16px; border-radius:3px; background:rgba(228,234,246,.9); }
+
+/* ===== ptr · pull to refresh ===== */
+.sbx-ptr{ position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 8px); z-index:40; transform:translate(-50%,-60px); opacity:0; display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:999px;
+  background:rgba(34,45,70,.92); color:#E4EAF6; font:600 13px/1 Manrope,system-ui,sans-serif; box-shadow:0 10px 30px -12px rgba(0,0,0,.8); pointer-events:none; }
+.sbx-ptr svg{ transition:transform .2s; } .sbx-ptr.ready svg{ transform:rotate(180deg); } .sbx-ptr.spin svg{ animation:sb-spin .8s linear infinite; }
+@keyframes sb-spin{ to{ transform:rotate(360deg) } }
+
+/* ===== spacing · rhythm + one 16px left edge ===== */
+html.sb-spacing .card-head{ padding:16px; grid-template-columns:80px 1fr; gap:12px; }
+html.sb-spacing .gap{ height:48px; --gx:56px; }
+html.sb-spacing .gap-line{ left:56px; }
+html.sb-spacing .gap-label{ left:72px; }
+html.sb-spacing .more-pad{ padding:4px 16px 16px; }
+html.sb-spacing .chev{ right:16px; bottom:16px; }
+html.sb-spacing .next-title{ margin:24px 0 16px; }
+html.sb-spacing .facts{ gap:8px 16px; }
+html.sb-spacing .top{ margin-bottom:24px; }
+html.sb-spacing .end{ margin-top:32px; }
+html.sb-spacing .st-wrap{ padding-bottom:112px; }
+
+/* ===== hero · known facts pop, placeholders recede ===== */
+html.sb-hero .facts dd.sb-tbc{ color:var(--faint); font-weight:400; }
+html.sb-hero .facts dd:not(.sb-tbc){ font-weight:600; }
+html.sb-hero .facts dt{ color:#B4BFDD; }
+html.sb-hero .next-note{ color:#A3AEC8; }
+
+/* ===== badges · one badge shape ===== */
+html.sb-badges .pill, html.sb-badges .watch-badge{ display:inline-flex; align-items:center; min-height:26px; padding:0 10px; line-height:1; letter-spacing:0; font-weight:600; border-radius:999px; }
+html.sb-badges .past-pill{ display:inline-flex; align-items:center; min-height:20px; padding:0 8px; line-height:1; }
+
+/* ===== timeline · nodes on connectors + log label ===== */
+html.sb-timeline .gap::before{ content:""; position:absolute; left:calc(var(--gx,54px) - 2px); top:50%; width:5px; height:5px; margin-top:-2px; border-radius:50%; background:#5A6A9A; z-index:1; }
+.sb-sec{ display:none; }
+html.sb-timeline .sb-sec{ display:flex; justify-content:space-between; align-items:baseline; margin:4px 4px 12px; color:var(--text); font-weight:700; font-size:17px; }
+html.sb-timeline .sb-sec span{ font-weight:500; font-size:13px; color:var(--faint); font-variant-numeric:tabular-nums; }
+
+/* ===== order · story, photos, Road list, highlights ===== */
+html.sb-order .more-pad{ display:flex; flex-direction:column; }
+html.sb-order .more-pad .headline{ order:1; } html.sb-order .more-pad .story{ order:2; }
+html.sb-order .more-pad .gallery{ order:3; margin-top:16px; }
+html.sb-order .more-pad .sbx-dots{ order:3; }
+html.sb-order .more-pad .past-toggle{ order:4; margin-top:16px; }
+html.sb-order .more-pad .past-wrap{ order:5; }
+html.sb-order .more-pad .highlights-link{ order:6; margin-top:12px; }
+
+/* ===== menu · grouped About sheet, Done, swipe left to close ===== */
+html.sb-menu .about{ background:#1B2336; padding-top:calc(14px + env(safe-area-inset-top,0px)); }
+html.sb-menu .about h2{ font-size:28px; margin:34px 0 4px; }
+html.sb-menu .about > p{ color:var(--muted); }
+html.sb-menu .about dl{ background:#222D46; border-radius:18px; padding:2px 16px; margin:20px 0 0; }
+html.sb-menu .about dt{ margin-top:14px; }
+html.sb-menu .about dd{ padding-bottom:14px; border-bottom:1px solid rgba(255,255,255,.07); }
+html.sb-menu .about dd:last-of-type{ border-bottom:0; }
+html.sb-menu .about .about-foot{ text-align:center; }
+.sb-done{ display:none; }
+html.sb-menu .sb-done{ display:inline-flex; align-items:center; justify-content:center; position:absolute; right:12px; top:calc(6px + env(safe-area-inset-top,0px)); min-height:44px; min-width:64px; padding:0 12px; border:0; background:none; color:#A9BDF0; font:600 17px Manrope,system-ui,sans-serif; cursor:pointer; }
+
+/* ===== SANDBOX PANEL (always on; not a toggle) ===== */
+.sbx-gear{ position:fixed; right:6px; bottom:calc(6px + env(safe-area-inset-bottom,0px)); z-index:9990; width:44px; height:44px; border:0; background:none; padding:0; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+.sbx-gear span{ position:absolute; inset:7px; border-radius:50%; background:rgba(245,166,35,.16); border:1px solid rgba(245,166,35,.55); display:grid; place-items:center; color:#F5A623; opacity:.8; transition:opacity .2s; }
+.sbx-gear:active span{ opacity:1; }
+.sbx-scrim{ position:fixed; inset:0; z-index:9991; background:rgba(8,12,24,.5); opacity:0; pointer-events:none; transition:opacity .3s; }
+.sbx-scrim.show{ opacity:1; pointer-events:auto; }
+.sbx-sheet{ position:fixed; left:0; right:0; bottom:0; z-index:9992; max-width:520px; margin:0 auto; max-height:86vh; overflow-y:auto; overscroll-behavior:contain; border-radius:24px 24px 0 0; background:#1B2336; color:#E4EAF6;
+  font:400 15px/1.4 Manrope,system-ui,sans-serif; padding:8px 16px calc(24px + env(safe-area-inset-bottom,0px)); transform:translateY(105%); visibility:hidden; transition:transform .45s cubic-bezier(.32,.72,0,1), visibility 0s .45s; box-shadow:0 -20px 50px -20px rgba(0,0,0,.8); }
+.sbx-sheet.show{ transform:none; visibility:visible; transition:transform .45s cubic-bezier(.32,.72,0,1); }
+.sbx-grab{ width:40px; height:5px; border-radius:3px; background:rgba(255,255,255,.25); margin:4px auto 10px; }
+.sbx-sheet h2{ font-size:22px; margin:6px 0 2px; } .sbx-sheet .sub{ color:#97A3BD; font-size:13px; margin:0 0 12px; }
+.sbx-bar{ display:flex; gap:8px; margin:0 0 6px; } .sbx-bar button{ flex:1; min-height:44px; border-radius:12px; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.06); color:#E4EAF6; font:600 14px Manrope,system-ui,sans-serif; cursor:pointer; }
+.sbx-sheet h3{ font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#8E9AB8; margin:18px 4px 6px; font-weight:600; }
+.sbx-group{ background:#222D46; border-radius:16px; padding:0 14px; }
+.sbx-row{ display:flex; align-items:center; gap:12px; min-height:56px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.07); cursor:pointer; }
+.sbx-row:last-child{ border-bottom:0; }
+.sbx-row .t{ flex:1; min-width:0; } .sbx-row b{ display:block; font-weight:600; font-size:15px; } .sbx-row small{ display:block; color:#97A3BD; font-size:12.5px; line-height:1.3; margin-top:1px; }
+.sbx-sw{ flex:none; width:51px; height:31px; border-radius:16px; background:rgba(255,255,255,.18); position:relative; transition:background .25s; }
+.sbx-sw::after{ content:""; position:absolute; left:2px; top:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,.35); transition:transform .25s cubic-bezier(.34,1.36,.64,1); }
+.sbx-row[aria-checked="true"] .sbx-sw{ background:#34C759; } .sbx-row[aria-checked="true"] .sbx-sw::after{ transform:translateX(20px); }
+.sbx-note{ color:#8E9AB8; font-size:12px; margin:14px 4px 0; }
+.sbx-reload{ color:#F5A623; font-size:11px; font-weight:600; }
+
+/* ===== DaVinci #8/#9 · meta contrast >= 4.5:1 (separate from a11y) ===== */
+html.sb-contrast .st{ --muted:#A9B3CF; --faint:#9AA6C4; }
+html.sb-contrast .facts dt{ color:#B4BFDD; }
+html.sb-contrast .buildup summary, html.sb-contrast details > summary{ color:#A9B3CF; }
+
+/* ===== DaVinci #1 · nav: equal labels, one track, sliding highlight. --fit keeps both labels clear of the icon buttons. ===== */
+html.sb-nav .hdr-p{ padding:7px 10px; }
+html.sb-nav .hdr, html.sb-nav .hdr-p, html.sb-nav .hdr-pill{ --s: var(--fit, 1); --T: calc((var(--wa, 0px) + var(--pg, 10px) + var(--wb, 0px)) * var(--fit, 1)); }
+html.sb-nav .hdr-a{ -webkit-transform:translate3d(calc(var(--cx, 0px) - var(--T) / 2), 0, 0) scale(var(--s)); transform:translate3d(calc(var(--cx, 0px) - var(--T) / 2), 0, 0) scale(var(--s)); }
+html.sb-nav .hdr-b{ -webkit-transform:translate3d(calc(var(--cx, 0px) - var(--T) / 2 + (var(--wa, 0px) + var(--pg, 10px)) * var(--fit, 1)), 0, 0) scale(var(--s)); transform:translate3d(calc(var(--cx, 0px) - var(--T) / 2 + (var(--wa, 0px) + var(--pg, 10px)) * var(--fit, 1)), 0, 0) scale(var(--s)); }
+html.sb-nav .hdr-pill{ width:calc((var(--wa, 0px) + (var(--wb, 0px) - var(--wa, 0px)) * var(--fp)) * var(--fit, 1));
+  --xa: calc(var(--cx, 0px) - var(--T) / 2);
+  --xb: calc(var(--cx, 0px) - var(--T) / 2 + (var(--wa, 0px) + var(--pg, 10px)) * var(--fit, 1));
+  -webkit-transform:translate3d(calc(var(--xa) + (var(--xb) - var(--xa)) * var(--fp)), 0, 0); transform:translate3d(calc(var(--xa) + (var(--xb) - var(--xa)) * var(--fp)), 0, 0); }
+html.sb-nav .hdr::before{ content:""; position:absolute; top:6px; height:calc(var(--ph,54px) + 8px); border-radius:18px; background:rgba(255,255,255,.07); pointer-events:none;
+  width:calc(var(--T) + 12px * var(--fit, 1)); left:calc(var(--cx, 0px) - var(--T) / 2 - 6px * var(--fit, 1)); }
+html.sb-nav .hdr-p b, html.sb-nav .hdr-p span{ opacity:calc(.74 + .26 * var(--act)); }
+html.sb-nav .hdr-p span{ color:#E4EAF6; }
+
+/* ===== DaVinci #2 · title: one weight, one baseline. Title + number stay on one line; the status pill drops if it does not fit. ===== */
+html.sb-title .title .t-num{ font-weight:600; font-size:inherit; line-height:inherit; letter-spacing:0; font-variant-numeric:lining-nums tabular-nums; }
+html.sb-title .next-title .t-num{ font-weight:600; line-height:inherit; font-variant-numeric:lining-nums tabular-nums; }
+html.sb-title .next-title{ line-height:1.1; }
+html.sb-title .info-top, html.sb-type .info-top, html.sb-spacing .info-top{ flex-wrap:wrap; column-gap:8px; row-gap:2px; }
+html.sb-title .info-top .title, html.sb-type .info-top .title, html.sb-spacing .info-top .title{ flex:1 0 auto; white-space:nowrap; min-width:min-content; }
+html.sb-title .info-top .pill, html.sb-type .info-top .pill, html.sb-spacing .info-top .pill{ flex:0 0 auto; margin-left:auto; }
+
+/* ===== DaVinci #3 · hero: one TBC line instead of stacked filler ===== */
+.sb-tbcline{ display:none; }
+html.sb-tbc .sb-tbcline{ display:block; margin:0 0 14px; font-size:15px; font-weight:500; color:#CDD6EE; }
+html.sb-tbc .sb-fold{ display:none !important; }
+
+/* ===== DaVinci #6 · Road dots: 10px, ring vs fill, count first ===== */
+html.sb-roaddots .road-dots .dot{ width:10px; height:10px; border-width:2px; }
+html.sb-roaddots .road-dots{ gap:4px; }
+html.sb-roaddots .road-sum{ gap:6px; }
+html.sb-roaddots .road-sum .road-count{ order:-1; flex:1 0 auto; color:var(--text); font-weight:600; font-variant-numeric:tabular-nums; }
+html.sb-roaddots .road-sum .road-chev{ order:5; }
+
+/* ===== DaVinci #7 · calmer status pills: small dot + word, no loud fill ===== */
+html.sb-pills .pill{ background:none !important; padding:3px 0 3px 12px; position:relative; font-size:11px; font-weight:600; letter-spacing:.02em; }
+html.sb-pills .pill::before{ content:""; position:absolute; left:0; top:50%; width:6px; height:6px; margin-top:-3px; border-radius:50%; background:currentColor; }
+html.sb-pills .pill-success{ color:#8FC9A8; }
