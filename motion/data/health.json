@@ -1,0 +1,39 @@
+{
+  "scripts": {
+    "check-flights": {
+      "at": "2026-11-21T14:45:25.028Z",
+      "status": "ok",
+      "error": null,
+      "consecutive_failures": 0,
+      "last_ok": "2026-11-21T14:45:25.028Z"
+    },
+    "check-road": {
+      "at": "2026-11-21T10:15:30.252Z",
+      "status": "ok",
+      "error": null,
+      "consecutive_failures": 0,
+      "last_ok": "2026-11-21T10:15:30.252Z"
+    }
+  },
+  "updated": "2026-11-21T14:45:25.028Z",
+  "status": "ok",
+  "consecutive_failures": 0,
+  "alert": false,
+  "last_error": {
+    "at": "2026-11-14T21:31:42.993Z",
+    "error": "Value for argument \"data\" is not a valid Firestore document. Cannot use \"undefined\" as a Firestore value (found in field \"pendingPush.url\"). If you want to ignore undefined values, enable `ignoreUndefinedProperties`."
+  },
+  "committed_at": "2026-11-21T14:45:25.028Z",
+  "render_check": {
+    "at": "2026-11-21T06:00:27.320Z",
+    "status": "failed",
+    "failures": 5,
+    "items": [
+      "[render-tense] Feed news-mwehc1so-0b6a15: \"Countdown started at Starbase for a potentially historic Starship mission.\" is a headline fragment (no subject article / auxiliary)",
+      "[render-date] cryo B23: Flight Log shows 15 Oct, Road card shows 18 Oct · 05:51",
+      "[render-crossover] Static fires · Ship 43 shows \"SpaceX may fly Flight 16 with Booster 23 and Ship 43.\" (names B23)",
+      "[render-crossover] Static fires · Booster 23 shows \"SpaceX may fly Flight 16 with Booster 23 and Ship 43.\" (names S43)",
+      "[render-mismatch] Flight Log cryo Booster 23 15 Oct: \"Booster 23 completed a cryo proof test at Massey's.\" ≠ Road card Cryo tests · Booster 23 › 16 Oct · 01:24: \"Booster 23 completed a cryo proof test.\" (same post https://x.com/StarshipGazer/status/2110889490336350574)"
+    ]
+  }
+}

@@ -16,8 +16,27 @@ ol.f{padding-left:22px;font:var(--t-sub);color:var(--label-2)} ol.f li{margin:10
 <div class="proto"><div class="in"><b>Front-end review</b> · 21 Nov · by Tusk</div></div>
 <div class="wrap">
 <h1 class="large">App review</h1>
-<p class="lede">Three prototype views and a style guide. Scroll each one, then reply yes or no per item at the bottom. The live app is untouched; everything here runs on a copy of today's real data.</p>
+<p class="lede">Start with the motion pass. It's your real app, same layout and font, with only small polish added. Use the Before / After switch at the bottom to feel the difference on your phone.</p>
 
+<a class="view" href="motion/index.html" style="background:var(--surface);border:1px solid rgba(169,189,240,.3);border-radius:20px;padding:12px 16px 16px"><div class="t"><b>⭐ Motion &amp; feel pass (main review)</b><span>Open ›</span></div>
+<p>Try: tap a flight card · press and hold anything · open a card and swipe its photos · tap a photo · pull down at the very top · open About. Switch Before / After at the bottom.</p><img src="compare/motion-card.jpg" alt="Before and after, opening the Flight 15 card" loading="lazy"></a>
+<a class="view" href="motion/index.html?mock=launchday"><div class="t"><b>Launch-day demo, with motion</b><span>Open ›</span></div><p>The app's own launch-day rehearsal (fake clock, plays in about a minute) so you can see the countdown digits roll and the live badge breathe.</p></a>
+<div class="grp"><h3>What changed in the After version</h3><ul>
+ <li><b>Press feedback:</b> cards, bars and buttons shrink slightly under your finger and spring back.</li>
+ <li><b>Opening a card:</b> headline, story, Road bar and photos rise in one after another. The thumbnail settles and the chevron springs.</li>
+ <li><b>Photos:</b> in an opened card, swipe between Booster and Ship with snap and dots. The page swipe still works everywhere else.</li>
+ <li><b>Photo tap:</b> the full-screen photo grows out of the one you tapped instead of fading in.</li>
+ <li><b>First load:</b> the top card and the first cards arrive in a short wave, under half a second.</li>
+ <li><b>Road dots</b> pop in sequence when you open a Road list.</li>
+ <li><b>Countdown</b> digits roll, and only the digit that changed moves. The live badge glows softly.</li>
+ <li><b>Pull down at the top</b> to check for updates, the way iPhone apps do.</li>
+ <li><b>Small consistency fixes:</b> 44-point taps, readable grey text, no 9.5 px credits, the About button in the app font.</li>
+ <li><b>Reduce Motion:</b> with it on, all movement switches off.</li>
+</ul></div>
+
+<p class="src">Based on: Apple HIG <a href="https://developer.apple.com/design/human-interface-guidelines/motion">Motion</a> (brief, precise, purposeful, optional) · <a href="https://developer.apple.com/design/human-interface-guidelines/gestures">Gestures</a> (respond immediately, give feedback during the gesture, match expectations) · WWDC18 <a href="https://developer.apple.com/videos/play/wwdc2018/803/">Designing Fluid Interfaces</a> (follow the finger, keep velocity, interruptible) · <a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">Accessibility</a> (44 pt, Reduce Motion).</p>
+<h2>Optional ideas from pass 1 (bigger layout changes)</h2>
+<p class="note">These change the layout, so treat them as ideas only. The "Ready to push now" list further down still applies.</p>
 <a class="view" href="p1.html"><div class="t"><b>1 · Flight Log (Page 1)</b><span>Open ›</span></div><p>New top card: one thing pops at a time. Try the four buttons: Today, Countdown, In flight, After.</p><img src="compare/p1.jpg" alt="Current versus proposed Flight Log" loading="lazy"></a>
 <a class="view" href="p2.html"><div class="t"><b>2 · Road to Flight 16 (Page 2)</b><span>Open ›</span></div><p>Booster 23 and Ship 43 side by side, then updates you can filter by vehicle.</p><img src="compare/p2.jpg" alt="Current versus proposed Road page" loading="lazy"></a>
 <a class="view" href="card.html"><div class="t"><b>3 · Opened Flight 15 card</b><span>Open ›</span></div><p>One photo per vehicle in the same frame, credit under it, and the full Road to Flight 15. Toggle stacked or swipe.</p><img src="compare/card.jpg" alt="Current versus proposed opened card" loading="lazy"></a>
@@ -32,7 +51,7 @@ ol.f{padding-left:22px;font:var(--t-sub);color:var(--label-2)} ol.f li{margin:10
 </div>
 <p class="note">The idea: when one thing looks different from everything around it, that's what you notice and remember (the von Restorff effect), so only one thing gets to look different.</p>
 
-<h2>Your call</h2>
+<h2>Pass 1 · your call</h2>
 <div class="grp"><h3>💚 You'll likely love</h3><ul>
  <li><b>A top card that changes with the day.</b> It's waiting, then counting down, then live in red ("Flight 15 is flying"), then the result. Road shows 6 of 6 done from liftoff.</li>
  <li><b>Road progress you can read.</b> 6 labelled bars and one line ("Done Cryo · In progress Pad · Not yet …") replace the unlabelled coloured dots. It's the same on Page 1, Page 2 and opened cards.</li>

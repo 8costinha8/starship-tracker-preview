@@ -1,0 +1,94 @@
+/* Motion & interaction pass (TUS-1 pass 2). Everything is scoped to html.mo ("After").
+   Remove the class and the app is byte-for-byte the live look ("Before").
+   All movement sits inside prefers-reduced-motion: no-preference; static consistency fixes apply regardless. */
+:root{ --mo-ease: cubic-bezier(.32,.72,0,1); --mo-spring: cubic-bezier(.34,1.36,.64,1); --mo-out: cubic-bezier(.2,.8,.2,1); }
+
+/* ---------- consistency (no motion) ---------- */
+html.mo .st button{ font-family: inherit; }                          /* "Manage notifications" was Arial */
+html.mo .st{ --faint:#8E9AB8; }                                       /* 2.88:1 -> 4.87:1 on cards */
+html.mo .photo-credit{ font-size: 11px; }                             /* 9.5px -> Apple 11pt minimum */
+html.mo .round-btn{ width:44px; height:44px; }                        /* 40 -> 44pt tap target */
+html.mo .top{ grid-template-columns: 44px 1fr 44px; }
+html.mo .buildup summary{ padding: 15px 0; margin: -15px 0; }         /* "Earlier updates": 14 -> 44 tall hit area, same look */
+html.mo .past-toggle, html.mo .road-head{ min-height: 44px; }
+html.mo .highlights-soon{ border-color: transparent; background: none; }
+
+@media (prefers-reduced-motion: no-preference){
+/* ---------- 1. tap feedback: press = shrink + lighten, release = spring back ---------- */
+html.mo .card-head, html.mo .road-head, html.mo .past-toggle, html.mo .round-btn, html.mo .hdr-p,
+html.mo .highlights-link:not(.highlights-soon), html.mo .watch-badge-live, html.mo .photo.tappable{
+  transition: transform .45s var(--mo-spring), background-color .2s, filter .2s; -webkit-tap-highlight-color: transparent; }
+html.mo .card:has(> .card-head:active){ transform: scale(.985); transition: transform .12s var(--mo-out); }
+html.mo .card{ transition: transform .5s var(--mo-spring), background-color .3s; }
+html.mo .road-head:active, html.mo .past-toggle:active{ transform: scale(.98); filter: brightness(1.12); transition-duration: .1s; }
+html.mo .round-btn:active{ transform: scale(.9); background: rgba(255,255,255,.1); transition-duration: .1s; }
+html.mo .photo.tappable:active{ transform: scale(.97); transition-duration: .1s; }
+html.mo .highlights-link:not(.highlights-soon):active{ transform: scale(.97); }
+
+/* ---------- 2. card open: content rises in sequence, thumb settles, chevron springs ---------- */
+html.mo .card.is-open .more-pad{ transition: opacity .2s; }
+html.mo .card.is-open .more-pad > *{ animation: mo-rise .5s var(--mo-ease) both; }
+html.mo .card.is-open .more-pad > :nth-child(1){ animation-delay: .06s }
+html.mo .card.is-open .more-pad > :nth-child(2){ animation-delay: .11s }
+html.mo .card.is-open .more-pad > :nth-child(3){ animation-delay: .16s }
+html.mo .card.is-open .more-pad > :nth-child(4){ animation-delay: .21s }
+html.mo .card.is-open .more-pad > :nth-child(n+5){ animation-delay: .26s }
+html.mo .card.is-open .gallery .photo{ animation: mo-photo .6s var(--mo-ease) both; }
+html.mo .card.is-open .gallery .photo:nth-child(2){ animation-delay: .07s; }
+html.mo .chev{ transition: transform .55s var(--mo-spring), color .3s; }
+html.mo .card .photo-thumb img{ transition: transform .6s var(--mo-ease); }
+html.mo .card.is-open .photo-thumb img{ transform: scale(1.06); }
+@keyframes mo-rise{ from{ opacity:0; transform: translateY(10px) } to{ opacity:1; transform:none } }
+@keyframes mo-photo{ from{ opacity:0; transform: scale(.96) } to{ opacity:1; transform:none } }
+
+/* ---------- 3. first load: cards arrive in a short stagger (first 6 only, total < 0.5 s) ---------- */
+html.mo.mo-enter .next{ animation: mo-rise .55s var(--mo-ease) both; }
+html.mo.mo-enter .st-wrap > div > .card{ animation: mo-rise .55s var(--mo-ease) both; animation-delay: calc(var(--mo-i, 6) * 45ms + 80ms); }
+
+/* ---------- 4. Road summary dots pop when the list opens (a "progress" cue) ---------- */
+html.mo .road-head[aria-expanded="true"] .dot, html.mo .past-toggle.open .dot{ animation: mo-pop .42s var(--mo-spring) both; }
+html.mo .road-dots .dot:nth-child(2){ animation-delay: .03s } html.mo .road-dots .dot:nth-child(3){ animation-delay: .06s }
+html.mo .road-dots .dot:nth-child(4){ animation-delay: .09s } html.mo .road-dots .dot:nth-child(5){ animation-delay: .12s }
+html.mo .road-dots .dot:nth-child(6){ animation-delay: .15s }
+@keyframes mo-pop{ 0%{ transform: scale(.4) } 60%{ transform: scale(1.25) } 100%{ transform: scale(1) } }
+
+/* ---------- 5. sheets: About slides with the iOS sheet curve, lightbox zooms from the photo ---------- */
+html.mo .about.show{ transition: transform .5s var(--mo-ease); }
+html.mo .scrim{ transition: opacity .4s var(--mo-ease); }
+html.mo .lightbox{ transition: opacity .3s var(--mo-ease), background-color .3s; }
+html.mo .lightbox img{ transform: scale(var(--mo-lb-s, .9)) translate(var(--mo-lb-x, 0), var(--mo-lb-y, 0)); transition: transform .5s var(--mo-ease); }
+html.mo .lightbox.show img{ transform: none; }
+
+/* ---------- 6. countdown digits roll (only the digit that changed) ---------- */
+html.mo .cd-val .mo-d{ display:inline-block; }
+html.mo .cd-val .mo-d.roll{ animation: mo-roll .38s var(--mo-ease); }
+@keyframes mo-roll{ from{ transform: translateY(-55%); opacity:0 } to{ transform:none; opacity:1 } }
+
+/* ---------- 7. live badge: gentle breathing glow instead of only a dot ---------- */
+html.mo a.watch-badge-live{ animation: mo-breathe 2.4s ease-in-out infinite; }
+@keyframes mo-breathe{ 0%,100%{ box-shadow: 0 10px 22px -10px rgba(238,107,110,.8) } 50%{ box-shadow: 0 10px 28px -6px rgba(238,107,110,1) } }
+}
+
+/* ---------- pull to refresh indicator (motion.js) ---------- */
+.mo-ptr{ position: fixed; left: 50%; top: calc(env(safe-area-inset-top,0px) + 8px); z-index: 40; transform: translate(-50%, -60px); opacity: 0;
+  display:flex; align-items:center; gap:8px; padding: 8px 14px; border-radius: 999px; background: rgba(34,45,70,.92); color:#E4EAF6;
+  font: 600 13px/1 Manrope, system-ui, sans-serif; box-shadow: 0 10px 30px -12px rgba(0,0,0,.8); pointer-events:none; }
+.mo-ptr svg{ transition: transform .2s; } .mo-ptr.ready svg{ transform: rotate(180deg); }
+.mo-ptr.spin svg{ animation: mo-spin .8s linear infinite; }
+@keyframes mo-spin{ to{ transform: rotate(360deg) } }
+
+/* ---------- photo swipe in the opened card (motion.js adds .mo-swipe on phones) ---------- */
+html.mo .gallery.mo-swipe{ display:flex; overflow-x:auto; scroll-snap-type:x mandatory; scrollbar-width:none; gap:8px; overscroll-behavior-x:contain; }
+html.mo .gallery.mo-swipe::-webkit-scrollbar{ display:none }
+html.mo .gallery.mo-swipe > .photo{ flex: 0 0 100%; scroll-snap-align: center; scroll-snap-stop: always; }
+.mo-dots{ display:flex; justify-content:center; gap:6px; margin: 8px 0 2px; }
+.mo-dots i{ width:6px; height:6px; border-radius:50%; background: rgba(228,234,246,.3); transition: width .35s var(--mo-ease), background .35s; }
+.mo-dots i.on{ width:16px; border-radius:3px; background: rgba(228,234,246,.9); }
+
+/* ---------- the Before/After switch (prototype only) ---------- */
+.mo-ba{ position: fixed; z-index: 60; left: 50%; bottom: calc(env(safe-area-inset-bottom,0px) + 12px); transform: translateX(-50%);
+  display:flex; padding:3px; gap:2px; border-radius:999px; background: rgba(14,20,36,.86); border:1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 14px 30px -12px rgba(0,0,0,.9); }
+.mo-ba button{ border:0; min-height:40px; min-width:76px; padding:0 14px; border-radius:999px; background:none; color:rgba(228,234,246,.7);
+  font: 600 13px/1 Manrope, system-ui, sans-serif; cursor:pointer; }
+.mo-ba button[aria-pressed="true"]{ background:#E4EAF6; color:#1A2236; }
