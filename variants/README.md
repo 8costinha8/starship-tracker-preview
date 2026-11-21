@@ -7,3 +7,10 @@ Hub: index.html. Each variant is a full app copy of base-21nov (live c29c909, wi
 - Dropped: html,body{overscroll-behavior-y:none}. It blocked all page scrolling in Chromium in the native variant.
 - Review assets: compare/ (side-by-side JPGs, per-variant PNGs, interactions.webm, interact*.json). Tools: _tools/ (shoot.py, interact.py, ld.py launch-day fixture, compare.py). Raw shots: _shots/.
 - Not tested on a real iPhone.
+
+## D · HIG rulebook + creative motion (added 21 Nov 2026, 18:51 UK)
+- App: `hig/index.html`. Rulebook with pass/fail per rule: `hig/HIG-RULES.md` (and `.html`). HIG source text: `hig/_hig-src/`. Raw test output: `hig/_verify/`, `_shots/hig/audit.json`.
+- C is kept but relabelled "iOS look (superseded)".
+- Tools added: `_tools/anim.py` (motion checks), `anim_video.py` (animation clip), `a11y.py`, `titles.py`.
+- Clip: `compare/hig/animations.webm`. Not embedded in the hub (no `<video>`), only linked.
+- Not tested on a real iPhone or Safari.

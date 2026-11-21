@@ -1,0 +1,478 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>HIG rulebook · Starship Tracker D</title><style>:root{color-scheme:dark}body{margin:0;background:#11161F;color:#E8EDF7;font:15px/1.5 system-ui,sans-serif;padding:16px;max-width:1000px;margin:auto}a{color:#9DB4F0}table{border-collapse:collapse;width:100%;font-size:13px;display:block;overflow-x:auto}td,th{padding:6px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left;vertical-align:top}code{background:#1A2132;padding:1px 4px;border-radius:4px}</style></head><body><h1>HIG rulebook for the Starship Tracker (variant D)</h1>
+<p><strong>What this is.</strong> Apple's Human Interface Guidelines (HIG) read from Apple's own documentation (the JSON behind developer.apple.com/design/human-interface-guidelines; text kept in <code>_hig-src/</code>). Each rule below is one the HIG gives that applies to a <strong>web app on a phone</strong>. The app keeps its own navy palette and Manrope font. These rules are applied, not Apple's look.</p>
+<p><strong>How it was checked.</strong> Playwright + Chrome (not Safari, not a real iPhone) at 320, 390 and 430 px wide, DPR 3, touch on. Scripts: <code>../_tools/audit.py</code>, <code>anim.py</code>, <code>a11y.py</code>, <code>titles.py</code>, <code>interact.py</code>. Raw results: <code>../_shots/hig/audit.json</code>, <code>_verify/anim.json</code>, <code>_verify/a11y.json</code>.
+Run: 21 Nov 2026, 18:49 UK time.</p>
+<p>Links go to the HIG page (Apple's pages are JS-only, so the exact paragraph is quoted instead of anchored).
+Base: https://developer.apple.com/design/human-interface-guidelines/</p>
+<p>Result key: <strong>PASS</strong> = measured in the browser. <strong>PASS*</strong> = passes, with a caveat in the Notes. <strong>PARTIAL</strong> = only partly met. <strong>FAIL</strong> = not met.</p>
+<h2>Layout and spacing — <a href="https://developer.apple.com/design/human-interface-guidelines/layout">layout</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule (what the HIG says)</th>
+<th>320</th>
+<th>390</th>
+<th>430</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1</td>
+<td>Respect safe areas (content must not sit under the notch, home indicator or rounded corners)</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td><code>viewport-fit=cover</code> plus <code>env(safe-area-inset-*)</code> on all four edges is present in the CSS. <strong>Checked by reading the CSS only.</strong> Chrome has no notch, so the actual inset is not tested.</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>Content first: the important thing is visible without scrolling</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Hero card and the start of Flight 15 are on the first screen. First card top at y = 399 of 700 (320), 385 of 844 (390, 430).</td>
+</tr>
+<tr>
+<td>L3</td>
+<td>Consistent margins</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>16 px side margin on every page.</td>
+</tr>
+<tr>
+<td>L4</td>
+<td>Spacing on a grid</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>Spacing found: 16 / 20 / 12 / 40 / 16. All are multiples of <strong>4</strong>, not of 8, so this is a 4-pt grid, not a strict 8-pt one.</td>
+</tr>
+<tr>
+<td>L5</td>
+<td>Nothing clipped or sideways-scrolling at any width</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Page width equals viewport width on pages 1 and 2.</td>
+</tr>
+<tr>
+<td>L6</td>
+<td>Adapt gracefully when space is tight (title never leaves the number alone on a line)</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>15 flight titles per width: 0 with the number alone, number has same size and weight as the words (18 px / 600). Pill sits beside the title only when it fits (0 / 6 / 15 of 15 at 320 / 390 / 430).</td>
+</tr>
+</tbody>
+</table>
+<h2>Typography — <a href="https://developer.apple.com/design/human-interface-guidelines/typography">typography</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+<th>320</th>
+<th>390</th>
+<th>430</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>T1</td>
+<td>Minimum 11 pt text (default 17 pt)</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>0 text nodes under 11 px across p1, open card, p2, menu.</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>Type scales with the user's text size</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>All font sizes converted from px to rem (91 declarations). With the root size at 125 %, 150 % and 200 %, there is no sideways overflow and no clipped header at any width. <strong>Simulated by setting the root font-size</strong>, which is not iOS Dynamic Type (iOS Safari doesn't pass that to web pages unless a page opts in).</td>
+</tr>
+<tr>
+<td>T3</td>
+<td>Clear hierarchy through size and weight, avoid thin weights</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>0 text with weight below 400. Hero 28 → card title 18 → body 15 → meta 13 → label 11.</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>Limit typefaces</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>One family (Manrope).</td>
+</tr>
+<tr>
+<td>T5</td>
+<td>Keep truncation to a minimum as text grows</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Nothing is cut off at 200 %: long rows wrap (Road bar drops its count to a second line, hero rows wrap).</td>
+</tr>
+</tbody>
+</table>
+<h2>Color, contrast, dark mode — <a href="https://developer.apple.com/design/human-interface-guidelines/color">color</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/dark-mode">dark-mode</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">accessibility</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+<th>320</th>
+<th>390</th>
+<th>430</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td>Text contrast at least 4.5:1 (text up to 17 pt)</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Lowest of ~485 text elements = <strong>4.71:1</strong>. Computed from real computed colours over the real background layers.</td>
+</tr>
+<tr>
+<td>C2</td>
+<td>Same on photos</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>Text over photos sits on a dark scrim; lowest ratio against the scrim colour is 9.34:1. <strong>Calculated from the scrim colour, not sampled from rendered pixels.</strong></td>
+</tr>
+<tr>
+<td>C3</td>
+<td>Support Increase Contrast</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td><code>prefers-contrast: more</code> emulated: card border goes from faint to rgb(141,156,200), muted text becomes #D5DCEE.</td>
+</tr>
+<tr>
+<td>C4</td>
+<td>Don't use colour alone to say something</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>Status pills carry words ("Success"). Road dots have the "1 of 6 done" count next to them. <strong>Judged by reading the screens</strong>, not automated.</td>
+</tr>
+<tr>
+<td>C5</td>
+<td>Support both light and dark appearance</td>
+<td>FAIL</td>
+<td>FAIL</td>
+<td>FAIL</td>
+<td>Deliberate: the app has one navy, dark look and keeps it as the brand. Not implemented.</td>
+</tr>
+</tbody>
+</table>
+<h2>Accessibility — <a href="https://developer.apple.com/design/human-interface-guidelines/accessibility">accessibility</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+<th>320</th>
+<th>390</th>
+<th>430</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A1</td>
+<td>Hit targets at least 44 × 44 pt</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>0 interactive elements under 44 × 44 on page 1, open card, page 2 and menu. (The X-post badge is 22 px visually inside a 44 px link.)</td>
+</tr>
+<tr>
+<td>A2</td>
+<td>Every control has an accessible name</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>5 image-only links in updates had no name; D now labels them ("Open photo or video source on x.com (new tab)"). 0 unnamed after the fix.</td>
+</tr>
+<tr>
+<td>A3</td>
+<td>Honour Reduce Motion</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Emulated <code>prefers-reduced-motion: reduce</code>: 0 running animations, no ghost, no stagger, digit roll hidden, dots snap, card transitions 0 s. Glow stays as a static border, not animated.</td>
+</tr>
+<tr>
+<td>A4</td>
+<td>Honour Reduce Transparency</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Emulated: header turns solid (rgb 31,40,64), scrim 0.6 → 0.88 opacity. (The page has little blur to start with.)</td>
+</tr>
+<tr>
+<td>A5</td>
+<td>Show where you are, and keyboard focus</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Current page pill has <code>aria-current="page"</code>. <code>:focus-visible</code> outlines exist. Card heads expose <code>aria-expanded</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2>Navigation, gestures, feedback — <a href="https://developer.apple.com/design/human-interface-guidelines/gestures">gestures</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/page-controls">page-controls</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/segmented-controls">segmented-controls</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/buttons">buttons</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+<th>320</th>
+<th>390</th>
+<th>430</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N1</td>
+<td>Navigation sits in the same place on every screen</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Header rectangles for the menu button and page pills are identical on Page 1 and Page 2.</td>
+</tr>
+<tr>
+<td>N2</td>
+<td>Back is predictable</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Swipe right on Page 2 returns to Page 1 (390 only, interact.py). Esc, scrim tap, Close button, swipe-down all close the menu (3 widths). Focus returns to the menu button.</td>
+</tr>
+<tr>
+<td>N3</td>
+<td>Gestures are never the only way</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Page pills do what the swipe does. Menu has a Close button.</td>
+</tr>
+<tr>
+<td>N4</td>
+<td>A gesture must not fire the wrong action</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>Vertical scroll with a wobbling finger moved 341 px and never switched page or opened a card. No ghosted crossfade (<code>no_ghost: true</code>). Run at 390 only.</td>
+</tr>
+<tr>
+<td>N5</td>
+<td>Standard behaviour of the page (no unexpected shrink on pull)</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td>PASS*</td>
+<td><code>touch-action: pan-x pan-y</code> on html, pull-down leaves y = 0. <strong>Chrome can't reproduce the iOS Safari pinch/pull shrink, so only the rule is verified.</strong></td>
+</tr>
+<tr>
+<td>F1</td>
+<td>Visible pressed state on every tappable</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Forced <code>:active</code> on card head, menu button, page pill, Road bar, highlights link: all change (background or scale). A catch-all <code>:active</code> rule covers anything else. The "Watch live" badge wasn't on screen to test.</td>
+</tr>
+</tbody>
+</table>
+<h2>Sheets and disclosure — <a href="https://developer.apple.com/design/human-interface-guidelines/sheets">sheets</a>, <a href="https://developer.apple.com/design/human-interface-guidelines/disclosure-controls">disclosure-controls</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Rule</th>
+<th>320</th>
+<th>390</th>
+<th>430</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S1</td>
+<td>Use a sheet for a focused, self-contained task (the About menu), not for content people are browsing</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>About menu is a bottom sheet. Flight details stay as in-place disclosure on the card.</td>
+</tr>
+<tr>
+<td>S2</td>
+<td>Grabber on a draggable sheet</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Present.</td>
+</tr>
+<tr>
+<td>S3</td>
+<td>Obvious way to close, in a standard place</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>"Close" button at top leading edge, focused on open.</td>
+</tr>
+<tr>
+<td>S4</td>
+<td>Swipe down to dismiss</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Real touch swipe (CDP) closes it at all three widths.</td>
+</tr>
+<tr>
+<td>S5</td>
+<td>Dim what's behind, tap outside to dismiss</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>Scrim tap closes it.</td>
+</tr>
+<tr>
+<td>S6</td>
+<td>Focus handled</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td><code>role=dialog</code>, <code>aria-modal</code>, focus moves in on open and back to the opener on close.</td>
+</tr>
+<tr>
+<td>S7</td>
+<td>Progressive disclosure shows state (chevron rotates, <code>aria-expanded</code>)</td>
+<td>PASS</td>
+<td>PASS</td>
+<td>PASS</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2>Motion — <a href="https://developer.apple.com/design/human-interface-guidelines/motion">motion</a></h2>
+<p>HIG: add motion purposefully; keep feedback brief and precise; let people cancel it; make it optional; avoid motion on interactions that happen frequently.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Animation / rule</th>
+<th>Result</th>
+<th>Measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M1</td>
+<td>Staggered list entrance, first load only</td>
+<td>PASS</td>
+<td>Duration 280 ms, delay 50 ms per item, max 4 items animate. Later items start at up to +150 ms, so the last one ends at <strong>430 ms</strong>, slightly over the 400 ms target; each single animation is 280 ms. Replays on page switch: 0. Replays on scroll: 0. Tapping a card at 60 ms, while 4 items were still entering, opened it.</td>
+</tr>
+<tr>
+<td>M2</td>
+<td>Card open as a shared-element expand from the thumbnail</td>
+<td>PASS</td>
+<td>Thumbnail ghost travels 133 × 92 → 326 × 183 px, 260 ms move + 80 ms fade; ghost gone <strong>368 ms</strong> after start (measured). Card height animation 320 ms. Ghost has <code>pointer-events: none</code>. Touch, wheel or key press removes it (1 → 0 ghosts). Second card tapped 100 ms into the first still opened (no blocked tap, 0 ghosts left).</td>
+</tr>
+<tr>
+<td>M3</td>
+<td>Countdown digits roll</td>
+<td>PASS</td>
+<td>Only the digit that changed moves, 220 ms, once per second (3 samples: 227, 202, 227 ms). Overlay text equals the real text on every sample (12/12) and sits exactly over it. Real text stays in the DOM for screen readers; overlay is <code>aria-hidden</code>.</td>
+</tr>
+<tr>
+<td>M4</td>
+<td>Road dot fills when a milestone completes</td>
+<td>PASS*</td>
+<td>400 ms animation, class removed afterwards. <strong>Triggered by adding <code>dot-done</code> to a dot in the DOM.</strong> The real trigger (road.json changing, polled every 15 min) was not simulated end to end.</td>
+</tr>
+<tr>
+<td>M5</td>
+<td>Subtle glow on launch day</td>
+<td>PASS</td>
+<td>With a fixture launch 4 h away: <code>data-v-live</code> set, red glow border, 400 ms bloom. With one 30 h away: no glow. Fixture only, not real launch data.</td>
+</tr>
+<tr>
+<td>M6</td>
+<td>Bottom sheet slide</td>
+<td>PASS</td>
+<td>360 ms open, 220 ms swipe-dismiss.</td>
+</tr>
+<tr>
+<td>M7</td>
+<td>Every motion is off under Reduce Motion</td>
+<td>PASS</td>
+<td>See A3.</td>
+</tr>
+<tr>
+<td>M8</td>
+<td>Cancelable, never blocks a tap</td>
+<td>PASS</td>
+<td>See M1, M2.</td>
+</tr>
+<tr>
+<td>M9</td>
+<td>Avoid motion on frequent interactions</td>
+<td>PARTIAL</td>
+<td>The digit roll happens every second by design (you asked for it). It is small (one digit, 220 ms) and off under Reduce Motion, but the HIG says to generally avoid this. Also lowers the "purposeful" rating: the roll shows time passing, which is information, but a static count would also do.</td>
+</tr>
+</tbody>
+</table>
+<h2>Score (D, at 320 / 390 / 430)</h2>
+<p>Rules are counted once; each has the same result at all three widths unless noted.</p>
+<table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>L2, L3, L5, L6, T1, T3, T4, T5, C1, C3, A1, A2, A3, A4, A5, N1, N2, N3, F1, S1, S2, S3, S4, S5, S6, S7, M1, M2, M3, M5, M6, M7, M8 = <strong>33</strong></td>
+</tr>
+<tr>
+<td>PASS* (caveat)</td>
+<td>L1, L4, T2, C2, C4, N4, N5, M4 = <strong>8</strong></td>
+</tr>
+<tr>
+<td>PARTIAL</td>
+<td>M9 = <strong>1</strong></td>
+</tr>
+<tr>
+<td>FAIL</td>
+<td>C5 = <strong>1</strong></td>
+</tr>
+<tr>
+<td>Total</td>
+<td><strong>43</strong></td>
+</tr>
+</tbody>
+</table>
+<h2>Things I did not verify</h2>
+<ul>
+<li>No real iPhone and no Safari. Chrome only. Safe-area insets, the iOS pinch/pull behaviour, and Dynamic Type are not tested for real.</li>
+<li>Text-on-photo contrast comes from the scrim colour, not from pixels.</li>
+<li>The dot-fill is checked at DOM level only.</li>
+<li>Launch-day glow and digit roll used a made-up launch time that's only in the test browser.</li>
+<li>Edge cases: every width was tested on page 1, one open card, page 2 and the menu. Cards at positions other than the first were not individually opened at each width.</li>
+<li>200 % text size fits without overflow but pages get long; the HIG asks for this level of support, not for a nice layout there.</li>
+</ul></body></html>

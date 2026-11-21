@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#2E3D63" />
+<title>Starship Tracker · HIG (sandbox)</title>
+<meta name="description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+
+<!-- Link preview: what X, Reddit, WhatsApp, iMessage etc. show when someone shares the link -->
+<meta property="og:title" content="Starship Tracker">
+<meta property="og:description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://8costinha8.github.io/starship-tracker/">
+<meta property="og:image" content="https://8costinha8.github.io/starship-tracker/images/og-image-v20261114c.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Starship Tracker: next flight countdown and every flight so far">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Starship Tracker">
+<meta name="twitter:description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+<meta name="twitter:image" content="https://8costinha8.github.io/starship-tracker/images/og-image-v20261114c.png">
+<meta name="twitter:image:alt" content="Starship Tracker: next flight countdown and every flight so far">
+
+<!-- PWA: makes the app installable with its own icon and name -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-v20261114c-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="icons/icon-v20261114c-16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="icons/icon-v20261114c-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-v20261114c-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Starship">
+
+<style>html, body { margin:0; background: radial-gradient(130% 55% at 50% -8%, #2E3D63 0%, #1A2236 62%) #1A2236; }</style>
+</head>
+<body><div id="sbx-flag" style="position:fixed;top:env(safe-area-inset-top,0);left:50%;transform:translateX(-50%);z-index:9999;background:#f5a623;color:#111;font:600 10px/1 system-ui;padding:3px 8px;border-radius:0 0 6px 6px;pointer-events:none">SANDBOX · HIG</div>
+<div id="root"></div>
+<!-- VARIANT: loads after #root so it wins over the in-app styles; variant.js sets window.VARIANT before app.js -->
+<link rel="stylesheet" href="variant.css">
+<script src="variant.js"></script>
+
+<!-- React itself, loaded from a CDN so there's no install/build step -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<!-- Babel lets the browser understand JSX directly, so you can edit app.js as plain JSX -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Firebase + notification logic: must load BEFORE app.js, since app.js
+     checks window.STNotify as soon as it starts up -->
+<script src="notifications.js"></script>
+<script src="scripts/cleanup.js"></script>
+<script src="scripts/flightlog.js"></script>
+<script src="scripts/handover.js"></script>
+<script src="scripts/road-pick.js"></script>
+
+<!-- Bug A fix (flag "noPinch"): the iOS elastic pinch-zoom-out shrinks the whole page (header included) to ~70% and springs back.
+     touch-action stops the pinch on modern iOS; the gesture* listeners cover Safari/home-screen mode. Zoom for accessibility stays available through iOS Accessibility Zoom. -->
+<style>html.fx-nopinch { touch-action: pan-x pan-y; }</style>
+<script>
+(function () {
+  function on() { try { return window.SBX && typeof window.SBX.flag === "function" ? !!window.SBX.flag("noPinch") : true; } catch (e) { return true; } }
+  function sync() { document.documentElement.classList.toggle("fx-nopinch", on()); }
+  sync(); window.addEventListener("sbx-flags", sync); window.addEventListener("load", sync);
+  ["gesturestart", "gesturechange", "gesturend"].forEach(function (t) {
+    document.addEventListener(t, function (e) { if (on()) e.preventDefault(); }, { passive: false });
+  });
+})();
+</script>
+<script type="text/babel" src="app.js"></script>
+</body>
+</html>

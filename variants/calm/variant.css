@@ -127,3 +127,11 @@ html.v-ready [data-v-in] { transition: opacity .28s ease-out, transform .28s eas
 .next:has(.v-tbc) .cd:has(.cd-tbc) { display: none; }
 .next:has(.v-tbc) .next-top:not(:has(.watch-badge)):not(:has(.cd:not(:has(.cd-tbc)))) { display: none; }
 .next:has(.v-tbc) .next-title { margin-top: 4px; }
+
+/* title row fix (same approach as sandbox/app html.sb-title): the number matches the words in size and weight, never wraps onto its own line; the status pill drops below when the row is too narrow */
+.info-top { flex-wrap: wrap; column-gap: 8px; row-gap: 2px; }
+.info-top .title { flex: 1 0 auto; white-space: nowrap; min-width: min-content; }
+.info-top .pill { flex: 0 0 auto; margin-left: auto; }
+.title .t-word, .title .t-num { font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -.01em; color: var(--text); }
+.title .t-num { font-variant-numeric: lining-nums tabular-nums; }
+.info-top .pill { padding-top: 0; }

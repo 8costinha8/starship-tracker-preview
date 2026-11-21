@@ -157,3 +157,9 @@ html.v-ready [data-v-in] { transition: opacity .25s ease-out, background-color .
 /* while a sheet is open, the Flight Log must not be a stacking context / containing block (a lingering feed-on transform would trap the fixed sheet under the scrim) */
 html.v-sheet-open .st .st-wrap, html.v-sheet-open .st.feed-on .st-wrap, html.v-sheet-open .st.fx-xfade.feed-on .st-wrap { transform: none !important; will-change: auto !important; opacity: 1 !important; filter: none !important; }
 .facts dt { white-space: nowrap; }
+
+/* title row fix (same approach as sandbox/app html.sb-title): the number matches the words in size and weight, never wraps onto its own line; the status pill drops below when the row is too narrow */
+.info-top { flex-wrap: wrap; column-gap: 8px; row-gap: 2px; }
+.info-top .title { flex: 1 0 auto; white-space: nowrap; min-width: min-content; }
+.info-top .pill { flex: 0 0 auto; margin-left: auto; }
+.title .t-num { font-variant-numeric: lining-nums tabular-nums; }
