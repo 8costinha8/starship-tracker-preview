@@ -1,0 +1,407 @@
+{
+ "built": "2026-11-21T18:12:36.961Z",
+ "flight": 16,
+ "outcomes": [
+  "success",
+  "partial",
+  "failure"
+ ],
+ "states": [
+  {
+   "id": "1a-tbd-no-ll2-flight",
+   "clock": "2026-11-21T17:30:00.000Z",
+   "title": "TBD: LL2 lists no Flight 16 at all (today's real LL2 state)",
+   "scenario": 1,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "1b-tbd-ll2-placeholder",
+   "clock": "2026-11-25T10:00:00.000Z",
+   "title": "TBD: LL2 lists Flight 16 as TBD, placeholder 31 Dec (Q4)",
+   "scenario": 1,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "2a-net-announced-day",
+   "clock": "2026-12-05T10:00:00.000Z",
+   "title": "NET announced: LL2 TBC, 12 Dec (day precision) + NSF dated post",
+   "scenario": 2,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "2b-net-go-exact-time",
+   "clock": "2026-12-10T12:00:00.000Z",
+   "title": "NET confirmed with exact time: LL2 Go 12 Dec 22:30Z, SpaceX page post",
+   "scenario": 2,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "2c-slip-same-day",
+   "clock": "2026-12-12T15:00:00.000Z",
+   "title": "Same-day slip: 22:30Z -> 23:15Z on 12 Dec (LL2 Go)",
+   "scenario": 2,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "2d-slip-new-day",
+   "clock": "2026-12-12T20:00:00.000Z",
+   "title": "Slip to a new day: 12 Dec -> 13 Dec 22:30Z",
+   "scenario": 2,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "4a-hold-t-12m",
+   "clock": "2026-12-13T22:18:00.000Z",
+   "title": "Hold at T-12 min (13 Dec attempt): LL2 status Hold",
+   "scenario": 4,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "4b-scrubbed-next-day",
+   "clock": "2026-12-13T22:50:00.000Z",
+   "title": "Scrub: 13 Dec scrubbed, NET 14 Dec 22:30Z (LL2 Go)",
+   "scenario": 4,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "3a-t-minus-4h",
+   "clock": "2026-12-14T18:30:00.000Z",
+   "title": "Launch day, T-4h (window not open, no Watch live yet)",
+   "scenario": 3,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "3b-t-minus-59m",
+   "clock": "2026-12-14T21:31:00.000Z",
+   "title": "Under 1 hour: T-59:00 (Watch live opens at T-60)",
+   "scenario": 3,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "3c-window-open-t-30m",
+   "clock": "2026-12-14T22:00:00.000Z",
+   "title": "Launch window opens (T-30m)",
+   "scenario": 3,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "3d-t-minus-45s",
+   "clock": "2026-12-14T22:29:15.000Z",
+   "title": "Under 1 minute: T-45s",
+   "scenario": 3,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "3e-t-zero-ll2-lag",
+   "clock": "2026-12-14T22:30:02.000Z",
+   "title": "T-0 (+2s) while LL2 still says Go (lag)",
+   "scenario": 3,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "5a-liftoff-t-plus-1m",
+   "clock": "2026-12-14T22:31:06.000Z",
+   "title": "Liftoff confirmed: LL2 In Flight (T+1 min)",
+   "scenario": 5,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "5b-in-flight-booster-returning",
+   "clock": "2026-12-14T22:34:41.000Z",
+   "title": "In flight, booster returning (T+4m), hero present tense",
+   "scenario": 5,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "6a-booster-caught",
+   "clock": "2026-12-14T22:38:41.000Z",
+   "title": "Booster result: caught (T+8m); ship still flying",
+   "scenario": 6,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "5c-in-flight-orbit-deployed",
+   "clock": "2026-12-14T23:40:41.000Z",
+   "title": "In flight: ship deployed satellites (T+1h10m)",
+   "scenario": 5,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "5d-in-flight-deorbit-pending-catch",
+   "clock": "2026-12-15T20:05:41.000Z",
+   "title": "In flight: deorbit burn done, catch still ahead (T+21h35m, LL2 Deployed)",
+   "scenario": 5,
+   "outcome": null,
+   "flight": null
+  },
+  {
+   "id": "6b-ship-result-success-pre-ll2",
+   "clock": "2026-12-15T21:03:41.000Z",
+   "title": "Ship result posted (Ship caught; booster caught: Success); LL2 not yet final",
+   "scenario": 6,
+   "outcome": "success",
+   "flight": null
+  },
+  {
+   "id": "6b-ship-result-partial-pre-ll2",
+   "clock": "2026-12-15T21:03:41.000Z",
+   "title": "Ship result posted (Ship splashdown (no catch): Partial); LL2 not yet final",
+   "scenario": 6,
+   "outcome": "partial",
+   "flight": null
+  },
+  {
+   "id": "6b-ship-result-failure-pre-ll2",
+   "clock": "2026-12-15T21:03:41.000Z",
+   "title": "Ship result posted (Ship lost in reentry: Failure); LL2 not yet final",
+   "scenario": 6,
+   "outcome": "failure",
+   "flight": null
+  },
+  {
+   "id": "7a-logged-success",
+   "clock": "2026-12-15T21:13:41.000Z",
+   "title": "Result confirmed (Ship caught; booster caught: Success): LL2 final, flight logged in app.js",
+   "scenario": 7,
+   "outcome": "success",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "success",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was caught by the tower."
+   }
+  },
+  {
+   "id": "7a-logged-partial",
+   "clock": "2026-12-15T21:13:41.000Z",
+   "title": "Result confirmed (Ship splashdown (no catch): Partial): LL2 final, flight logged in app.js",
+   "scenario": 7,
+   "outcome": "partial",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "partial",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 skipped the tower catch and splashed down in the Indian Ocean."
+   }
+  },
+  {
+   "id": "7a-logged-failure",
+   "clock": "2026-12-15T21:13:41.000Z",
+   "title": "Result confirmed (Ship lost in reentry: Failure): LL2 final, flight logged in app.js",
+   "scenario": 7,
+   "outcome": "failure",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "failure",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was lost during reentry."
+   }
+  },
+  {
+   "id": "7b-rolled-success",
+   "clock": "2026-12-15T21:28:41.000Z",
+   "title": "Result confirmed, next checker cycle (success)",
+   "scenario": 7,
+   "outcome": "success",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "success",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was caught by the tower."
+   }
+  },
+  {
+   "id": "7b-rolled-partial",
+   "clock": "2026-12-15T21:28:41.000Z",
+   "title": "Result confirmed, next checker cycle (partial)",
+   "scenario": 7,
+   "outcome": "partial",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "partial",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 skipped the tower catch and splashed down in the Indian Ocean."
+   }
+  },
+  {
+   "id": "7b-rolled-failure",
+   "clock": "2026-12-15T21:28:41.000Z",
+   "title": "Result confirmed, next checker cycle (failure)",
+   "scenario": 7,
+   "outcome": "failure",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "failure",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was lost during reentry."
+   }
+  },
+  {
+   "id": "8a-next-day-success-ll2-still-lists-f16",
+   "clock": "2026-12-16T09:30:00.000Z",
+   "title": "Next day 16 Dec 09:30 (success); LL2 still lists F16 as finished, no F17 yet",
+   "scenario": 8,
+   "outcome": "success",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "success",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was caught by the tower."
+   }
+  },
+  {
+   "id": "8a-next-day-partial-ll2-still-lists-f16",
+   "clock": "2026-12-16T09:30:00.000Z",
+   "title": "Next day 16 Dec 09:30 (partial); LL2 still lists F16 as finished, no F17 yet",
+   "scenario": 8,
+   "outcome": "partial",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "partial",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 skipped the tower catch and splashed down in the Indian Ocean."
+   }
+  },
+  {
+   "id": "8a-next-day-failure-ll2-still-lists-f16",
+   "clock": "2026-12-16T09:30:00.000Z",
+   "title": "Next day 16 Dec 09:30 (failure); LL2 still lists F16 as finished, no F17 yet",
+   "scenario": 8,
+   "outcome": "failure",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "failure",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was lost during reentry."
+   }
+  },
+  {
+   "id": "8b-next-day-success-f17-listed",
+   "clock": "2026-12-16T09:45:00.000Z",
+   "title": "Next day (success); LL2 now lists Flight 17 (TBD)",
+   "scenario": 8,
+   "outcome": "success",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "success",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was caught by the tower."
+   }
+  },
+  {
+   "id": "8b-next-day-partial-f17-listed",
+   "clock": "2026-12-16T09:45:00.000Z",
+   "title": "Next day (partial); LL2 now lists Flight 17 (TBD)",
+   "scenario": 8,
+   "outcome": "partial",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "partial",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 skipped the tower catch and splashed down in the Indian Ocean."
+   }
+  },
+  {
+   "id": "8b-next-day-failure-f17-listed",
+   "clock": "2026-12-16T09:45:00.000Z",
+   "title": "Next day (failure); LL2 now lists Flight 17 (TBD)",
+   "scenario": 8,
+   "outcome": "failure",
+   "flight": {
+    "n": 16,
+    "date": "2026-12-14T22:30:41.000Z",
+    "pad": "Pad 2",
+    "block": "V3",
+    "booster": "B23",
+    "ship": "S43",
+    "outcome": "failure",
+    "headline": "Flight 16 fixture headline",
+    "highlights": "",
+    "story": "Booster 23 was caught by the tower, while Ship 43 was lost during reentry."
+   }
+  }
+ ]
+}

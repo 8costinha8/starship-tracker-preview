@@ -1,6 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+/* Start the Flight 16 launch-day bundle before Babel compiles app.js. No synchronous XHR (it can hang iOS Safari and Playwright when a fake clock is installed). */
+window.__ldF16Ready = (function () {
+  if (new URLSearchParams(location.search).get("mock") !== "launchday") return Promise.resolve(null);
+  return fetch("mock/f16/index.json?t=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (idx) {
+      if (!idx || !Array.isArray(idx.states) || !idx.states.length) return null;
+      var q = new URLSearchParams(location.search);
+      var outcome = (idx.outcomes || []).indexOf(q.get("outcome")) >= 0 ? q.get("outcome") : "success";
+      var ids = idx.states.filter(function (s) { return !s.outcome || s.outcome === outcome; }).map(function (s) { return s.id; });
+      return Promise.all(ids.map(function (id) {
+        return fetch("mock/f16/" + id + "/ll2.json", { cache: "no-store" })
+          .then(function (r) { return r.ok ? r.json() : { results: [] }; })
+          .catch(function () { return { results: [] }; });
+      })).then(function (js) {
+        var ll2s = {}; ids.forEach(function (id, i) { ll2s[id] = js[i]; });
+        return { idx: idx, ll2s: ll2s };
+      });
+    })
+    .catch(function () { return null; });
+})();
+</script>
+
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#2E3D63" />

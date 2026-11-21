@@ -378,7 +378,71 @@ function getMock() {
 // Completely inert without ?mock=launchday (LD is null, nowMs is Date.now).
 const LD_T0 = Date.parse("2026-10-13T22:00:00Z"); // mock liftoff: 23:00 UK time
 const SIM_NOW = { A: "2026-11-03T18:45:00Z", B: "2026-11-12T23:55:00Z", C: "2026-11-13T01:05:00Z", D: "2026-11-13T09:30:00Z" };
-const LD = getMock() === "launchday" ? makeLaunchdayMock() : SIM ? (() => { const q = new URLSearchParams(window.location.search); const b = Date.parse(q.get("t") || SIM_NOW[SIM]), a = Date.now(), r = Number(q.get("rate") || 1); return { now: () => b + (Date.now() - a) * r, jump() {}, rate() {} }; })() : null;
+let LD = null; // set in bootApp(), after the launch-day index has been fetched (no sync XHR)
+// Modernised launch-day demo (21 Nov, rehearsal harness): when mock/f16/index.json exists, ?mock=launchday is a hand-driven walk
+// through Flight 16's whole lifecycle (TBD -> NET -> slips -> countdown -> liftoff -> in flight -> result -> logged -> next day),
+// using road.json + LL2 states the REAL checkers produced from fixtures. A small control bar steps/plays a fake clock.
+// Params: &state=3b (start state id prefix) &outcome=success|partial|failure &rate=60 (autoplay) . Everything is in memory.
+function makeLaunchdayF16(idx, ll2s) {
+  const q = new URLSearchParams(window.location.search);
+  const outcome = idx.outcomes.includes(q.get("outcome")) ? q.get("outcome") : "success";
+  const track = idx.states.filter((s) => !s.outcome || s.outcome === outcome).map((s) => ({ ...s, ms: Date.parse(s.clock) }));
+  track.sort((a, b) => a.ms - b.ms);
+  const startI = Math.max(0, track.findIndex((s) => s.id.startsWith(q.get("state") || "\u0000")));
+  let base = track[startI].ms, anchor = Date.now(), rate = Number(q.get("rate") || 0);
+  const cur = () => { const n = api.now(); let k = 0; track.forEach((s, i) => { if (s.ms <= n) k = i; }); return k; };
+  const ll2Cache = { ...(ll2s || {}) }; // preloaded in bootApp() — no sync XHR
+  const api = {
+    f16: true, track, outcome,
+    T0: (track.find((s) => s.id.startsWith("5a")) || track[startI]).ms - 25000, // liftoff
+    now: () => base + (Date.now() - anchor) * rate,
+    jump(v, r = rate) { base = v; anchor = Date.now(); rate = r; },
+    rate(r) { base = api.now(); anchor = Date.now(); rate = r; },
+    index: cur, state: () => track[cur()],
+    go(i) { i = Math.max(0, Math.min(track.length - 1, i)); api.jump(track[i].ms, 0); },
+    next() { api.go(cur() + 1); }, prev() { api.go(cur() - 1); },
+    ll2(url) {
+      const id = api.state().id;
+      const data = ll2Cache[id] || { results: [] };
+      return url === LL2_ENDPOINT ? data : (data.results || []).find((l) => l.url === url) || null;
+    },
+  };
+  window.__ld = api;
+  // The story writer's FLIGHTS entry (what check-flights.js wrote) appears/disappears with the state, in memory only.
+  setInterval(() => {
+    const want = api.state().flight, have = FLIGHTS.findIndex((f) => f.n === 16);
+    if (want && have < 0) FLIGHTS.push({ ...want, photo: want.photo || { thumb: "images/f16-thumb.jpg", gallery: ["images/f16-a.jpg", "images/f16-b.jpg"] } });
+    else if (!want && have >= 0) FLIGHTS.splice(have, 1);
+    LAST_LOGGED_N = Math.max(...FLIGHTS.map((f) => f.n));
+  }, 250);
+  // Control bar (phone friendly): step through the states, play at a speed, pick the outcome branch.
+  const bar = () => {
+    const uk = (ms) => new Date(ms).toLocaleString("en-GB", { timeZone: "Europe/London", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    const d = document.createElement("div");
+    d.id = "ld-bar";
+    d.style.cssText = "position:fixed;left:6px;right:6px;bottom:calc(env(safe-area-inset-bottom,0px) + 6px);z-index:99999;background:rgba(15,18,30,.94);color:#fff;font:12px/1.3 system-ui;border:1px solid #f5a623;border-radius:12px;padding:8px 10px;box-shadow:0 4px 24px #000a";
+    const btn = "background:#2a3150;color:#fff;border:0;border-radius:8px;padding:9px 11px;font:600 13px system-ui;margin:0 4px 0 0;min-width:42px";
+    d.innerHTML = `<div id="ld-t" style="font-weight:600"></div><div id="ld-s" style="opacity:.75;margin:2px 0 6px"></div><div id="ld-r">
+      <button style="${btn}" data-a="prev">⏮</button><button style="${btn}" data-a="play">▶ ×60</button><button style="${btn}" data-a="pause">⏸</button><button style="${btn}" data-a="next">⏭</button>
+      <button style="${btn}" data-a="x1">×1</button><button style="${btn}" data-a="x300">×300</button>
+      <select id="ld-o" style="${btn};min-width:0"><option>success</option><option>partial</option><option>failure</option></select><button style="${btn}" data-a="min">–</button></div>`;
+    document.body.appendChild(d);
+    const o = d.querySelector("#ld-o"); o.value = outcome; o.onchange = () => { q.set("outcome", o.value); q.set("state", api.state().id.slice(0, 2)); location.search = q.toString(); };
+    d.onclick = (e) => {
+      const a = e.target.getAttribute && e.target.getAttribute("data-a"); if (!a) return;
+      if (a === "prev") api.prev(); if (a === "next") api.next(); if (a === "pause") api.rate(0);
+      if (a === "play") api.rate(60); if (a === "x1") api.rate(1); if (a === "x300") api.rate(300);
+      if (a === "min") { const r = d.querySelector("#ld-r"); r.style.display = r.style.display === "none" ? "" : "none"; }
+    };
+    setInterval(() => {
+      const s = api.state();
+      d.querySelector("#ld-t").textContent = `MOCK F16 (${outcome}) · ${api.index() + 1}/${track.length} · UK ${uk(api.now())} · ×${rate}`;
+      d.querySelector("#ld-s").textContent = `${s.id}: ${s.title}`;
+    }, 250);
+  };
+  if (document.body) bar(); else window.addEventListener("DOMContentLoaded", bar);
+  return api;
+}
 function makeLaunchdayMock() {
   let base = LD_T0 - 5 * DAY, anchor = Date.now(), rate = 1;
   const api = {
@@ -410,6 +474,7 @@ function makeLaunchdayMock() {
   return api;
 }
 function ldLL2(url) {
+  if (LD && LD.f16) return LD.ll2(url);
   const v = nowMs(), M = 60000;
   const status = v < LD_T0 - 3 * DAY ? ["TBC", "M"] : v < LD_T0 ? ["Go", "SEC"] : v < LD_T0 + 66 * M ? ["In Flight", "SEC"] : ["Success", "SEC"];
   const f15 = {
@@ -1545,10 +1610,23 @@ const ONE_CARD = ["static", "cryo", "raptor"];
 const logView = (m, road) => { try { return window.RoadCleanup ? window.RoadCleanup.flightLogView(m, road) : m; } catch { return m; } };
 function useRoad() {
   const [road, setRoad] = React.useState(() => {
+    if (LD && LD.f16) return null; // launch-day walk-through: never read the real road cache
     try { const d = JSON.parse(localStorage.getItem(ROAD_CACHE_KEY)) || null; if (d && d.image_cache) IMG_CACHE = d.image_cache; return d; } catch { return null; }
   });
   React.useEffect(() => {
     let alive = true;
+    if (LD && LD.f16) { // launch-day walk-through: road.json follows the fake clock's state (nothing is cached or saved)
+      let last = "";
+      const tick = () => {
+        const id = LD.state().id; if (id === last) return; last = id;
+        fetch(`mock/f16/${id}/road.json`, { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((data) => {
+          if (!alive || !data || !Array.isArray(data.categories) || LD.state().id !== id) return;
+          IMG_CACHE = data.image_cache || {}; setRoad(data);
+        }).catch(() => {});
+      };
+      tick(); const t = setInterval(tick, 400);
+      return () => { alive = false; clearInterval(t); };
+    }
     fetch(`${ROAD_URL}?t=${Date.now()}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
@@ -2749,8 +2827,14 @@ function heroMissionLines(road, n, f, now) {
 function heroOutcomeItems(road, n) {
   const pickLatest = (arr) => arr.slice().sort((a, b) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0))[0];
   const autoItems = [];
+  // Rehearsal fix (F16): a "result" (splashed down / caught) can only come from a post made AFTER liftoff. Before this, a 19 Nov
+  // SpaceX post about a booster safe abort, tagged Flight 16, made the hero say "Booster 23 splashed down." the second F16 lifted off.
+  const liftoffMs = (typeof sbOn !== "function" || sbOn("data")) /* sandbox toggle "Pipeline data fixes" */ && road && road.mission_alerts && Number(road.mission_alerts.flight) === Number(n) ? Date.parse(road.mission_alerts.liftoff_actual || "") : NaN;
   for (const u of heroSourceLines(road, n)) {
-    for (const o of extractHeroOutcomes(u.line, road)) autoItems.push({ ...o, at: u.at, name: o.name || defaultHeroVehicleNames(road)[o.stage] });
+    for (const o of extractHeroOutcomes(u.line, road)) {
+      if (o.kind === "result" && Number.isFinite(liftoffMs) && Date.parse(u.at || "") < liftoffMs - 60000) continue;
+      autoItems.push({ ...o, at: u.at, name: o.name || defaultHeroVehicleNames(road)[o.stage] });
+    }
   }
   const autoResult = {};
   for (const stage of ["booster", "ship"]) {
@@ -2777,6 +2861,9 @@ function heroOutcomeItems(road, n) {
     autoItems.slice().sort((a, b) => (Date.parse(a.at || "") || 0) - (Date.parse(b.at || "") || 0)).forEach((o) => keys.set(o.stage + ":" + o.kind, o));
     outcomes = [...keys.values()];
   }
+  // Rehearsal fix (F16): once the flight is airborne a stage with no recorded result must read as pending ("Tower catch still ahead"),
+  // not vanish: the old ship clause only existed while some pre-flight "plans to catch" line survived in mission_updates.
+  if (Number.isFinite(liftoffMs) && !outcomes.some((o) => o.stage === "ship")) outcomes.push({ stage: "ship", kind: "pending", clause: "with a tower catch still ahead", name: defaultHeroVehicleNames(road).ship, at: road.mission_alerts.liftoff_actual });
   return outcomes;
 }
 // --- end hero-lines helpers ---
@@ -4701,5 +4788,20 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, info) { console.error(this.props.where || "app", error, info && info.componentStack); }
   render() { return this.state.error ? (this.props.fallback || null) : this.props.children; }
 }
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(<ErrorBoundary where="app"><StarshipTracker /></ErrorBoundary>);
+function mountApp() {
+  const root = ReactDOM.createRoot(document.getElementById("root"));
+  root.render(<ErrorBoundary where="app"><StarshipTracker /></ErrorBoundary>);
+}
+function bootApp() {
+  if (getMock() !== "launchday") {
+    LD = SIM ? (() => { const q = new URLSearchParams(window.location.search); const b = Date.parse(q.get("t") || SIM_NOW[SIM]), a = Date.now(), r = Number(q.get("rate") || 1); return { now: () => b + (Date.now() - a) * r, jump() {}, rate() {} }; })() : null;
+    mountApp();
+    return;
+  }
+  const ready = window.__ldF16Ready || Promise.resolve(null);
+  Promise.resolve(ready).then((pre) => {
+    LD = (pre && pre.idx) ? makeLaunchdayF16(pre.idx, pre.ll2s || {}) : makeLaunchdayMock();
+    mountApp();
+  }).catch(() => { LD = makeLaunchdayMock(); mountApp(); });
+}
+bootApp();
