@@ -1,0 +1,339 @@
+/* v2: Space Grotesk is now loaded by <link> in index.html (an @import here blocked the whole stylesheet) */
+/* ───────── Variant B · Live Launch Energy ─────────
+   Deep space black, one hot accent (ignition orange), bold display numbers, snappy springs,
+   swipeable landscape photo cards, press-in states that feel like a tap engine. */
+.st {
+  --bg: #0D111D; --card: #161C2C; --card-open: #1A2134; --line: #2A3350;
+  --text: #F3F5FA; --muted: #A7B0C8; --faint: #8A93AE; --hot: #FF6A3D; --hot2: #FFB02E; --red: #FF4D4F;
+  --slide: .38s cubic-bezier(.2,1,.3,1); --hdr-ease: .38s cubic-bezier(.2,1,.3,1);
+  --press: transform .38s cubic-bezier(.3,1.65,.5,1);
+  background: #0D111D;
+}
+@media (max-width: 899px) {
+  .st { background: #0D111D; }
+  .st::before { background: radial-gradient(90% 40% at 50% -6%, rgba(255,106,61,.22) 0%, rgba(255,106,61,0) 70%), radial-gradient(130% 60% at 50% -10%, #1B2238 0%, #0D111D 65%), #0D111D; }
+  .hdr-pill { background: linear-gradient(135deg, #FF6A3D 0%, #F04E6A 100%); border: 0; box-shadow: 0 8px 22px -8px rgba(255,106,61,.7); border-radius: 16px; }
+  .hdr-p b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+  .hdr-p span { font-size: 11px; font-weight: 700; color: #fff; opacity: calc(.55 + .45 * var(--act)); }
+  .hdr-p:active, .round-btn:active { transform: scale(.9) !important; transition: transform .08s !important; }
+}
+.round-btn { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: #D5DBEA; transition: var(--press); }
+
+/* hero: bold, live, glowing */
+.next { position: relative; overflow: hidden; border-radius: 26px; padding: 18px 18px 18px; border: 1px solid rgba(255,140,90,.35);
+  background: linear-gradient(165deg, #2A1F2E 0%, #1B1E33 45%, #141A2B 100%); box-shadow: 0 30px 60px -30px rgba(255,90,50,.55), inset 0 1px 0 rgba(255,255,255,.06); }
+.next::before { content: ""; position: absolute; left: 50%; top: 64px; width: 760px; height: 760px; margin: -380px 0 0 -380px; pointer-events: none; z-index: 0;
+  /* v5 radar: one soft wedge of light. Tail fades in over ~100deg, brightest just behind a feathered leading edge; a radial mask fades it to nothing
+     before the box edge, so there is no hard line anywhere. The box is fixed px and top-anchored (centre 64px below the card top): opening the card cannot move it. */
+  background: conic-gradient(from 0deg, rgba(255,150,100,0) 0deg, rgba(255,150,100,.03) 26deg, rgba(255,150,100,.08) 52deg, rgba(255,154,106,.15) 74deg, rgba(255,160,112,.23) 90deg, rgba(255,166,118,.28) 98deg, rgba(255,164,116,.22) 106deg, rgba(255,160,112,.14) 115deg, rgba(255,158,110,.07) 126deg, rgba(255,158,110,.025) 138deg, rgba(255,158,110,0) 150deg, rgba(255,158,110,0) 360deg);
+  -webkit-mask-image: radial-gradient(circle closest-side, rgba(0,0,0,0) 0%, rgba(0,0,0,.5) 6%, #000 15%, rgba(0,0,0,.84) 26%, rgba(0,0,0,.6) 42%, rgba(0,0,0,.36) 58%, rgba(0,0,0,.16) 78%, rgba(0,0,0,.04) 92%, transparent 100%);
+  mask-image: radial-gradient(circle closest-side, rgba(0,0,0,0) 0%, rgba(0,0,0,.5) 6%, #000 15%, rgba(0,0,0,.84) 26%, rgba(0,0,0,.6) 42%, rgba(0,0,0,.36) 58%, rgba(0,0,0,.16) 78%, rgba(0,0,0,.04) 92%, transparent 100%);
+  animation: v-sweep 7s linear infinite; will-change: transform; transform: rotate(0deg); }
+@keyframes v-sweep { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .next::before { display: none; } }
+.next-title { flex-direction: column; align-items: flex-start; gap: 0; margin: 18px 0 14px; }
+.next-title .t-word { font-size: 13px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--hot2); }
+.next-title .t-num { font-size: 76px; line-height: .95; font-weight: 800; letter-spacing: -.05em; color: #fff; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #FFFFFF 30%, #FFC9B4 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* countdown emphasis */
+.cd { border-radius: 12px; font-size: 15px; font-weight: 800; box-shadow: 0 10px 24px -12px rgba(255,77,79,.7); }
+.cd-tag { background: linear-gradient(135deg, #FF4D4F, #FF6A3D); padding: 8px 11px; letter-spacing: .04em; }
+.cd-val { padding: 8px 12px; font-size: 16px; font-feature-settings: "tnum"; background: #fff; color: #0D111D; }
+.cd-tbc { background: rgba(255,176,46,.14); color: #FFD08A; border: 1px solid rgba(255,176,46,.35); border-radius: 12px; }
+.watch-badge { border-radius: 12px; font-weight: 800; }
+a.watch-badge-live { background: linear-gradient(135deg, #FF4D4F, #FF6A3D); box-shadow: 0 0 0 0 rgba(255,77,79,.6); animation: v-live 1.6s ease-out infinite; }
+@keyframes v-live { 0% { box-shadow: 0 0 0 0 rgba(255,77,79,.6); } 100% { box-shadow: 0 0 0 14px rgba(255,77,79,0); } }
+.facts { font-size: 14px; gap: 6px 16px; }
+.facts dt { color: var(--faint); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: .08em; padding-top: 2px; }
+.facts dd { font-weight: 600; }
+.next-note, .next-upd { color: #D8DDEA; font-size: 14.5px; }
+.v-tbc { color: #FFD08A !important; }
+
+/* connectors: glowing timeline */
+.gap-line { background: linear-gradient(180deg, rgba(255,106,61,.5), rgba(42,51,80,1)); left: 64px; width: 2px; }
+.gap-line.dashed { border-left: 2px dashed rgba(255,106,61,.55); }
+.gap-label { left: 78px; font-weight: 700; color: var(--muted); font-size: 12px; }
+
+/* cards: punchy, press-in */
+.card { border-radius: 22px; background: var(--card); border: 1px solid rgba(255,255,255,.06); box-shadow: 0 16px 34px -24px rgba(0,0,0,.9); transition: var(--press), background-color .2s, border-color .2s; }
+.card.is-open { border-color: rgba(255,106,61,.35); background: var(--card-open); }
+.card-head { grid-template-columns: 120px 1fr; gap: 14px; padding: 12px; border-radius: 22px; transition: var(--press); }
+.card-head:active { transform: scale(.965); transition: transform .08s ease-out; }
+.photo { border-radius: 14px; }
+.photo-thumb { width: 120px; height: 90px; }
+.photo.has-img img { filter: saturate(112%) contrast(108%); }
+.photo.has-img::after { background: linear-gradient(180deg, rgba(13,17,29,0) 55%, rgba(13,17,29,.8) 100%); }
+.title .t-word { white-space: nowrap; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; }
+.title .t-num { font-size: 34px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+
+.date { font-size: 13px; font-weight: 700; margin-top: 4px; }
+.sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.pill { font-size: 10.5px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; padding: 4px 8px; border-radius: 8px; }
+.pill-success { background: rgba(62,207,142,.16); color: #5FE0A6; }
+.chev { right: 14px; bottom: 14px; width: 18px; height: 18px; color: var(--hot); }
+.headline { font-size: 19px; font-weight: 800; letter-spacing: -.01em; }
+.story { font-size: 14.5px; color: #D3D9E8; }
+/* swipeable photo cards: one landscape frame per vehicle, snap from one to the next */
+.gallery.v-car { display: block; overflow: hidden; margin: 0 -16px; padding: 2px 0 8px; touch-action: pan-y; -webkit-user-select: none; user-select: none; cursor: grab; }
+.v-track { display: flex; gap: 10px; padding: 0 16px; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
+.v-track > .photo-wide { flex: 0 0 auto; width: var(--sw, 76vw); aspect-ratio: 16 / 9; border-radius: 16px; box-shadow: 0 14px 30px -18px rgba(0,0,0,.9); transition: var(--press); -webkit-user-drag: none; }
+.v-track img { -webkit-user-drag: none; pointer-events: none; }
+.v-car.v-dragging { cursor: grabbing; }
+.v-car.v-dragging .photo-wide { transition: none; }
+.v-track > .photo-wide:active { transform: scale(.985); transition: transform .08s; }
+/* iOS-style scrolling dots: ~7 visible, centre larger/brighter, edges smaller and fading; positions are written live while dragging */
+.v-ind { position: relative; height: 20px; margin: 0 auto 2px; width: 100%; }
+.v-ind > i { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%; background: #fff; opacity: 0; will-change: transform, opacity; }
+.photo-label { left: 12px; bottom: 10px; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.photo-credit { right: 12px; bottom: 10px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); }
+.highlights-link { border-radius: 14px; background: linear-gradient(135deg, rgba(255,77,79,.18), rgba(255,106,61,.12)); border-color: rgba(255,106,61,.45); color: #FFD9CB; font-weight: 800; transition: var(--press); }
+.highlights-link:active { transform: scale(.96); transition: transform .08s; }
+.highlights-soon { display: none; }
+
+.road-head, .past-toggle { background: rgba(255,255,255,.04); border-color: rgba(255,106,61,.3); transition: var(--press); }
+.road-head:active, .past-toggle:active { transform: scale(.97); transition: transform .08s; }
+.dot { width: 10px; height: 10px; }
+.dot-done, .dot-complete { box-shadow: 0 0 8px var(--c); }
+.past-box { background: #10151F; border-color: rgba(255,255,255,.07); }
+
+/* Page 2 */
+.feed-section.rfs { background: #161C2C; border-color: rgba(255,106,61,.25); border-radius: 24px; }
+.post, .rfs-feed .post { background: #10151F; border-color: rgba(255,255,255,.07); border-radius: 18px; transition: var(--press); }
+.post:active { transform: scale(.985); transition: transform .08s; }
+.chip { font-weight: 800; }
+.post-date, .post-credit, .xm-ctx { color: var(--muted) !important; }
+
+/* menu */
+.about { background: #121726; border-right: 1px solid rgba(255,106,61,.25); transition: transform .42s cubic-bezier(.2,1.15,.32,1), visibility 0s .42s; }
+.about.show { transition: transform .42s cubic-bezier(.2,1.15,.32,1); }
+.about h2 { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.about dt { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 800; color: var(--hot2); }
+.notify-manage-btn { background: linear-gradient(135deg, #FF4D4F, #FF6A3D) !important; color: #fff !important; border: 0 !important; font-weight: 800; }
+
+/* entrance: quick spring pop-up with a light stagger */
+html.v-ready [data-v-pending]:not([data-v-in]) { opacity: 0; transform: translateY(22px) scale(.97); }
+html.v-ready [data-v-in] { transition: opacity .3s ease-out, transform .55s cubic-bezier(.2,1.35,.35,1), background-color .2s, border-color .2s; }
+
+/* video bug A (whole page shrinks on a pull/pinch) is fixed by the noPinch patch in index.html; overscroll-behavior on html+body was tried and dropped: it blocked page scrolling in Chromium */
+
+@media (prefers-reduced-motion: reduce) {
+  html.v-ready [data-v-pending]:not([data-v-in]) { opacity: 1; transform: none; }
+  .next::before, a.watch-badge-live { animation: none !important; }
+  .st *, .st *::before, .st *::after { transition-duration: 0s !important; animation-duration: 0s !important; }
+  .card-head:active, .post:active, .gallery > .photo-wide:active { transform: none; }
+}
+.next-title .t-num, .title .t-num, .cd-val, .gap-label { font-family: "Space Grotesk", Manrope, system-ui, sans-serif; }
+.feed-section.rfs { box-shadow: inset 0 2px 0 rgba(255,106,61,.55), 0 20px 40px -28px rgba(255,90,50,.45); }
+.feed-pill-title { font-weight: 800; }
+.rfs-live { box-shadow: 0 0 0 0 rgba(255,77,79,.5); }
+/* DaVinci #3: when date and site are both TBC, say it once (the facts row); the pill returns as soon as there is a NET or countdown */
+.next:has(.v-tbc) .cd:has(.cd-tbc) { display: none; }
+.next:has(.v-tbc) .next-top:not(:has(.watch-badge)):not(:has(.cd:not(:has(.cd-tbc)))) { display: none; }
+.next:has(.v-tbc) .next-title { margin-top: 4px; }
+
+/* title row fix (same approach as sandbox/app html.sb-title): the number matches the words in size and weight, never wraps onto its own line; the status pill drops below when the row is too narrow */
+.info-top { flex-wrap: wrap; column-gap: 8px; row-gap: 2px; }
+.info-top .title { flex: 1 0 auto; white-space: nowrap; min-width: min-content; }
+.info-top .pill { flex: 0 0 auto; margin-left: auto; }
+
+/* ═════════ v2 · fixes ═════════ */
+:root { --tap: 44px; }
+/* contrast: white text on the orange/red gradients was 2.8–3.5:1; the gradients are deeper now (white on them is 4.6:1 or better) */
+.hdr-pill, .cd-tag, a.watch-badge-live, .notify-manage-btn { background-image: linear-gradient(135deg, #D93A12 0%, #CC2F45 100%) !important; }
+.hdr-pill { background: linear-gradient(135deg, #D93A12 0%, #CC2F45 100%); }
+.cd-tag { background: linear-gradient(135deg, #CC2F45, #D93A12); }
+.notify-manage-btn { background: linear-gradient(135deg, #D93A12, #CC2F45) !important; }
+/* 44 pt hit targets (visual size of the little X source badge is unchanged) */
+.round-btn, .hdr-left, .hdr-right { width: var(--tap); height: var(--tap); }
+.road-head, .past-toggle, .highlights-link, .notify-manage-btn, .feed-pill, button.feed-pill, a.watch-badge, .watch-badge, .hdr-p { min-height: var(--tap); }
+.highlights-link { padding-top: 0; padding-bottom: 0; }
+.st .buildup summary, .st .post > .buildup.feed-bu > summary, .st .buildup:not(.feed-bu) summary { min-height: var(--tap); display: flex; align-items: center; }
+.post-link, .xm-foot a, .post-src a, a.post-link { display: inline-flex; align-items: center; min-height: var(--tap); min-width: var(--tap); font-size: 12px; }
+.xm-grid > a.src-badge, .xm-split > a.src-badge { width: 44px; height: 44px; right: 0; bottom: 0; background: none; box-shadow: none; overflow: visible; }
+.xm-grid > a.src-badge img, .xm-split > a.src-badge img { width: 22px; height: 22px; border-radius: 50%; box-shadow: 0 0 0 1.5px rgba(255,255,255,.85), 0 2px 6px rgba(0,0,0,.45); }
+.notify-manage-btn { padding: 0 16px; }
+}
+/* nothing under 11 px */
+.pill, .badge-txt, .st .pill { font-size: 11px; }
+.road-head, .past-toggle { flex-wrap: wrap; height: auto; row-gap: 4px; }
+.road-head .road-chev, .past-chev { margin-left: auto; }
+/* menu: explicit close button (the drawer only closed by tapping the dimmed page) */
+.v-close { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 10px); right: 8px; width: var(--tap); height: var(--tap); border: 0; border-radius: 50%; background: rgba(255,255,255,.07); color: #E8ECF8; font-size: 20px; line-height: 1; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.v-close:active { transform: scale(.9); background: rgba(255,255,255,.14); }
+
+/* ═════════ v2 · less on screen ═════════ */
+/* cards say "Flight 15", not "Starship Flight 15" 15 times */
+.card .title .t-word { font-size: 0; line-height: 0; }
+.card .title .t-word::before { content: "Flight"; font-size: 11px; line-height: 1.3; }
+/* a closed card shows the date and the vehicle; the pad line appears once it is opened */
+.card:not(.is-open) .card-head .sub:has(+ .sub) { display: none; }
+/* launch-day facts: the Window row repeats the date, so it is folded away (JS adds .v-fold) */
+.v-fold { display: none !important; }
+/* hero notes stay short; the full text is one tap away in the Road bar */
+.next-note, .next-upd { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* ═════════ v2 · motion layer (energy, ≤400 ms each, all off under Reduce Motion) ═════════ */
+/* 1 · staggered entrance: each batch of cards that scrolls in fans up 55 ms apart */
+html.v-ready [data-v-in] { transition: opacity .3s ease-out var(--d, 0ms), transform .38s cubic-bezier(.2,1.2,.35,1) var(--d, 0ms), background-color .2s, border-color .2s; }
+/* 2 · countdown tick: only the digit that changed rolls up (220 ms) */
+.cd { position: relative; }
+.cd-val { font-variant-numeric: tabular-nums; }
+.cd-val.v-rolling { color: transparent; }
+.v-roll { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; color: #0D111D; white-space: pre; pointer-events: none; font-variant-numeric: tabular-nums; }
+.v-ch { position: relative; display: inline-block; overflow: hidden; line-height: 1.5; height: 1.5em; vertical-align: middle; }
+.v-ch > i { display: block; font-style: normal; }
+.v-ch > i.v-prev { position: absolute; left: 0; top: 0; }
+/* 3 · Road progress: a thin line under the flight bar fills to done/total (400 ms) each time Page 2 comes into view */
+.feed-pill { position: relative; }
+.v-prog { position: absolute; left: 14px; right: 14px; bottom: 0; height: 3px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; pointer-events: none; }
+.v-prog::after { content: ""; position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(90deg, #FF6A3D, #FFB02E); transform-origin: 0 50%; transform: scaleX(0); }
+.v-prog.v-on::after { transform: scaleX(var(--p, 0)); transition: transform .4s cubic-bezier(.2,.9,.3,1) .08s; }
+@keyframes v-dot { 0% { transform: scale(.7); box-shadow: 0 0 0 0 color-mix(in srgb, var(--c) 70%, transparent); } 55% { transform: scale(1.35); } 100% { transform: scale(1); box-shadow: 0 0 0 8px transparent; } }
+.dot.v-filled { animation: v-dot .4s ease-out; }
+/* 4 · press: a warm tint joins the springy scale */
+.card-head:active { background: rgba(255,106,61,.07); }
+.post:active, .road-head:active, .past-toggle:active, .feed-pill:active { background-color: rgba(255,106,61,.07); }
+:where(a, button, [role="button"], summary):active { filter: brightness(1.25); }
+/* 5 · launch day: a soft pulse on the hero edge (only when the launch is within a day or in flight) */
+@keyframes v-edge { 0%, 100% { box-shadow: 0 30px 60px -30px rgba(255,90,50,.55), 0 0 0 0 rgba(255,106,61,0), inset 0 1px 0 rgba(255,255,255,.06); } 50% { box-shadow: 0 30px 60px -30px rgba(255,90,50,.55), 0 0 0 5px rgba(255,106,61,.16), inset 0 1px 0 rgba(255,255,255,.06); } }
+.next[data-v-live] { animation: v-edge 2.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .next::before, .next[data-v-live], .next[data-v-live]::before, .dot.v-filled, .road-head .dot, .past-toggle .dot { animation: none !important; }
+  .v-roll { display: none !important; } .cd-val.v-rolling { color: #0D111D; }
+  .v-prog.v-on::after, .v-prog::after { transition: none; } .v-prog::after { transform: scaleX(var(--p, 0)); }
+  :where(a, button, [role="button"], summary):active { filter: none; }
+}
+html.v-rm .next::before, html.v-rm .next[data-v-live], html.v-rm .next[data-v-live]::before, html.v-rm .dot.v-filled, html.v-rm .road-head .dot, html.v-rm .past-toggle .dot { animation: none !important; }
+html.v-rm .v-roll { display: none !important; } html.v-rm .cd-val.v-rolling { color: #0D111D; }
+html.v-rm .v-prog::after { transition: none; transform: scaleX(var(--p, 0)); }
+/* header labels: unscaled height 50 px so the smaller (inactive) one is still ≥ 44 px after the 0.9 scale */
+@media (max-width: 899px) { .hdr-p { min-height: 50px; display: flex; flex-direction: column; justify-content: center; } }
+.v-roll { user-select: none; -webkit-user-select: none; }
+
+/* v3 · originals restored
+   Radar: Energy v1 `.next::before` conic sweep, 7s linear infinite (variants/energy/variant.css). Always on the hero card again (v2 had limited it to launch day).
+   Dots: prototype motion.css mo-pop, 0.42s spring, 30ms stagger, plays when Road to Flight in the card is pressed open. */
+.road-head[aria-expanded="true"] .dot,
+.past-toggle.open .dot,
+.past-toggle[aria-expanded="true"] .dot { animation: mo-pop .42s cubic-bezier(.34,1.36,.64,1) both; }
+.road-dots .dot:nth-child(2){ animation-delay: .03s }
+.road-dots .dot:nth-child(3){ animation-delay: .06s }
+.road-dots .dot:nth-child(4){ animation-delay: .09s }
+.road-dots .dot:nth-child(5){ animation-delay: .12s }
+.road-dots .dot:nth-child(6){ animation-delay: .15s }
+@keyframes mo-pop{ 0%{ transform: scale(.4) } 60%{ transform: scale(1.25) } 100%{ transform: scale(1) } }
+
+/* v3 · past flight cards at 390px: shrink the big number and keep the text block aligned with the thumbnail, clear of the chevron */
+.card-head { align-items: center; }
+.title .t-num { font-size: 24px; line-height: 1.15; }
+.info { min-width: 0; padding-right: 22px; display: flex; flex-direction: column; justify-content: center; }
+/* v3 · compact carousel dots: a short row of pills, or a 3/12 counter when there are many */
+
+
+
+/* ═════════ v5 ═════════ */
+/* 1 · header. Safari tab (html.v-browser): a sticky wrapper at the top of the document + opaque cap that reaches far above the screen (rubber-band safe).
+   Home Screen app (standalone): the proven fixed header, now with the same opaque cap and an opaque band down to the pills' bottom edge. */
+@media (max-width: 899px) {
+  .hdr-wrap { --capH: calc(var(--sat) + 76px); }
+  .hdr-cap, .hdr-bar { pointer-events: none; }
+  html.v-browser .hdr-wrap { position: sticky; top: 0; height: 0; z-index: 18; }
+  html.v-browser .hdr-cap { position: absolute; left: 0; right: 0; top: -800px; height: calc(800px + var(--capH)); background: #0F1424; }
+  html.v-browser .hdr-bar { position: absolute; left: 0; right: 0; top: var(--capH); height: 24px; background: linear-gradient(180deg, #0F1424 0%, rgba(15,20,36,0) 100%); }
+  html.v-browser .hdr { position: absolute; top: calc(var(--sat) + 4px); height: 64px; z-index: 2; }
+  html:not(.v-browser) .hdr-wrap { display: contents; }
+  html:not(.v-browser) .hdr-cap { position: fixed; left: 0; right: 0; top: 0; height: var(--capH); z-index: 16; background: #0F1424; }
+  html:not(.v-browser) .hdr-bar { position: fixed; left: 0; right: 0; top: var(--capH); height: 24px; z-index: 16; background: linear-gradient(180deg, #0F1424 0%, rgba(15,20,36,0) 100%); }
+  html:not(.v-browser) .hdr { top: calc(var(--sat) + 4px); height: 64px; }
+  .hdr-left, .hdr-right { top: 10px; }
+  /* Safari: a div with overflow-x:hidden on html AND body makes body a scroll container and misplaces fixed/sticky chrome; clip does not. */
+  html.v-browser, html.v-browser body, html.v-browser .st.feed-on { overflow-x: clip; }
+  html.v-browser { background-color: #0F1424; }
+}
+/* 2 · no text-selection handles, callouts or tap flashes on the app chrome (inputs stay selectable) */
+.st, .st * { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.st input, .st textarea { -webkit-user-select: text; user-select: text; }
+/* 3 · a card clips whatever its body is doing while it opens or closes */
+.card { overflow: hidden; }
+html.v-rm .next::before { display: none !important; }
+
+
+/* ═════════ v6 ═════════ */
+/* Radar stays a top-anchored background layer. Content (including the Road to Flight pill) stacks above it.
+   The pill is an opaque slice of the hero so the beam cannot show through. */
+.next { isolation: isolate; }
+.next::before { z-index: 0; }
+.next > * { position: relative; z-index: 1; }
+.next .road-head {
+  background: #1A1E30;
+  border-color: rgba(255,106,61,.35);
+}
+.next .road-head:active { background: #241E32; background-color: #241E32; }
+
+/* Captions off the flight-log carousel; source only, tiny and faint, bottom-right. Dots unchanged. */
+.photo-wide .photo-label { display: none !important; }
+.photo-wide .photo-credit {
+  left: auto; right: 10px; bottom: 8px; z-index: 2;
+  font-size: 9px; font-weight: 500; letter-spacing: .03em; text-transform: none;
+  color: rgba(255,255,255,.42);
+  text-shadow: 0 1px 2px rgba(0,0,0,.75);
+}
+
+/* Road milestone glow: ~45% of the previous intensity, inset + a soft radial so nothing is clipped
+   into a hard line by .next or .road-list-inner overflow. Multi-stop, faded to transparent well inside the card. */
+.next .callout {
+  box-shadow:
+    inset 4px 0 0 var(--c),
+    inset 0 0 36px -8px color-mix(in srgb, var(--c) 22%, transparent),
+    inset 0 0 72px 0 color-mix(in srgb, var(--c) 8%, transparent);
+}
+.next .callout.open {
+  box-shadow:
+    inset 4px 0 0 var(--c),
+    inset 0 0 40px -6px color-mix(in srgb, var(--c) 26%, transparent),
+    inset 0 0 80px 0 color-mix(in srgb, var(--c) 10%, transparent);
+}
+.next .callout::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(90% 80% at 8% 45%,
+    color-mix(in srgb, var(--c) 14%, transparent) 0%,
+    color-mix(in srgb, var(--c) 8%, transparent) 26%,
+    color-mix(in srgb, var(--c) 3.5%, transparent) 48%,
+    color-mix(in srgb, var(--c) 1.2%, transparent) 68%,
+    transparent 86%);
+}
+.next .callout > * { position: relative; z-index: 1; }
+
+.next .callout[data-id="raptor"] {
+  box-shadow:
+    inset 4px 0 0 #0E0F11,
+    inset 5px 0 0 rgba(255,255,255,.28),
+    inset 0 0 36px -8px rgba(200,210,230,.14),
+    inset 0 0 72px 0 rgba(200,210,230,.06) !important;
+}
+.next .callout[data-id="raptor"]::after {
+  background: radial-gradient(90% 80% at 8% 45%,
+    rgba(200,210,230,.11) 0%,
+    rgba(200,210,230,.06) 26%,
+    rgba(200,210,230,.025) 48%,
+    rgba(200,210,230,.008) 68%,
+    transparent 86%);
+}
+
+/* Same softer treatment for finished vehicle sub-cards (inset, so overflow cannot cut a ring). */
+.road .mini.glow {
+  box-shadow:
+    inset 0 0 22px -4px color-mix(in srgb, var(--c) 20%, transparent),
+    0 0 14px -8px color-mix(in srgb, var(--c) 18%, transparent);
+}
+.callout[data-id="raptor"] .mini.glow {
+  box-shadow:
+    inset 0 0 22px -4px rgba(200,210,230,.12),
+    0 0 14px -8px rgba(200,210,230,.1);
+}
