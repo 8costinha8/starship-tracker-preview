@@ -76,8 +76,8 @@ a.watch-badge-live { background: linear-gradient(135deg, #FF4D4F, #FF6A3D); box-
 .story { font-size: 14.5px; color: #D3D9E8; }
 /* swipeable photo cards: one landscape frame per vehicle, snap from one to the next */
 .gallery.v-car { display: block; overflow: hidden; margin: 0 -16px; padding: 2px 0 8px; touch-action: pan-y; -webkit-user-select: none; user-select: none; cursor: grab; }
-.v-track { display: flex; gap: 10px; padding: 0 16px; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
-.v-track > .photo-wide { flex: 0 0 auto; width: var(--sw, 76vw); aspect-ratio: 16 / 9; border-radius: 16px; box-shadow: 0 14px 30px -18px rgba(0,0,0,.9); transition: var(--press); -webkit-user-drag: none; }
+.v-track { display: flex; gap: 8px; padding: 0 16px; width: max-content; will-change: transform; transform: translate3d(0,0,0); }
+.v-track > .photo-wide { flex: 0 0 auto; width: var(--sw, calc((100% - 8px) / 2)); aspect-ratio: 4 / 3; border-radius: 12px; box-shadow: 0 14px 30px -18px rgba(0,0,0,.9); transition: var(--press); -webkit-user-drag: none; }
 .v-track img { -webkit-user-drag: none; pointer-events: none; }
 .v-car.v-dragging { cursor: grabbing; }
 .v-car.v-dragging .photo-wide { transition: none; }
@@ -89,7 +89,8 @@ a.watch-badge-live { background: linear-gradient(135deg, #FF4D4F, #FF6A3D); box-
 .photo-credit { right: 12px; bottom: 10px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); }
 .highlights-link { border-radius: 14px; background: linear-gradient(135deg, rgba(255,77,79,.18), rgba(255,106,61,.12)); border-color: rgba(255,106,61,.45); color: #FFD9CB; font-weight: 800; transition: var(--press); }
 .highlights-link:active { transform: scale(.96); transition: transform .08s; }
-.highlights-soon { display: none; }
+.highlights-soon { display: flex; background: transparent; border: 1px dashed rgba(232, 210, 200, .32); color: rgba(232, 220, 214, .58); font-weight: 500; box-shadow: none; }
+.highlights-soon:active { transform: none; background: transparent; border-color: rgba(232, 210, 200, .32); }
 
 .road-head, .past-toggle { background: rgba(255,255,255,.04); border-color: rgba(255,106,61,.3); transition: var(--press); }
 .road-head:active, .past-toggle:active { transform: scale(.97); transition: transform .08s; }

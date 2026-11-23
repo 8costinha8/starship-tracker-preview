@@ -99,7 +99,19 @@ const FLIGHTS = [
   { n: 15, date: "2026-11-13T22:47:36Z", pad: "Pad 2", block: "V3", booster: "B22", ship: "S42", outcome: "success",
     headline: "Flight 15 succeeds from Pad 2",
     highlights: "",
-    story: "Booster 22 skipped the tower catch and splashed down in the Gulf, while Ship 42 pressed on to orbit, deployed 26 Starlink V3 satellites, flew the longest Starship mission ever and was caught by the tower." },
+    story: "Booster 22 skipped the tower catch and splashed down in the Gulf, while Ship 42 pressed on to orbit, deployed 26 Starlink V3 satellites, flew the longest Starship mission ever and was caught by the tower.",
+    photo: { thumb: "images/f15-story/01-hero-ship-caught.jpg", narrative: true, gallery: [
+      "images/f15-story/01-hero-ship-caught.jpg",
+      "images/f15-story/02-rollout-ship42-to-pad.jpg",
+      "images/f15-story/03-liftoff.jpg",
+      "images/f15-story/04-ascent-stack-climbing.jpg",
+      "images/f15-story/05-hot-staging.jpg",
+      "images/f15-story/06-booster-landing-burn-gulf.jpg",
+      "images/f15-story/07-orbit-over-nile.jpg",
+      "images/f15-story/08-reentry-plasma.jpg",
+      "images/f15-story/09-ship-landing-burn-at-tower.jpg",
+      "images/f15-story/10-aftermath-tower-team.jpg"
+    ] } },
 ];
 
 // Photos work automatically: any flight without a "photo" field uses
@@ -975,16 +987,19 @@ function RocketMark() {
 }
 
 // ---- v5: free-drag photo carousel (transform track, drag gain, momentum, critically damped snap, live dots) ----
+// v8: two 4:3 tiles fully visible; slow autoplay glide (ping-pong) that yields to touch and resumes after AUTOPLAY_RESUME_MS.
+const AUTOPLAY_RESUME_MS = 3000, AUTOPLAY_PX = 30, AUTOPLAY_RAMP_MS = 600;
 function PhotoCarousel({ vehicles, children }) {
   const vp = React.useRef(null), track = React.useRef(null), ind = React.useRef(null);
   const n = React.Children.count(children);
   React.useEffect(() => {
     const el = vp.current, tr = track.current, dd = ind.current;
     if (!el || !tr || n < 2) return;
-    const GAP = 10, TAU = 240, OMEGA = 13, SW = 0.86;
+    const GAP = 8, TAU = 240, OMEGA = 13;
     const dots = dd ? Array.from(dd.children) : [];
     const win = n > 5, PITCH = 13, HALF = 3.5;
-    let P = 285, maxOff = 0, snaps = [0], off = 0, gain = 1, raf = 0, drag = null, suppress = false, eager = false;
+    let P = 180, maxOff = 0, snaps = [0], off = 0, gain = 1, raf = 0, drag = null, suppress = false, eager = false;
+    let lastDir = 1, visible = true, pageVisible = !document.hidden, resumeTimer = 0, glide = null, lastTick = 0;
     const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     const lerpK = (d, xs, ys) => { if (d >= xs[xs.length - 1]) return ys[ys.length - 1]; for (let i = 1; i < xs.length; i++) if (d <= xs[i]) { const t = (d - xs[i - 1]) / (xs[i] - xs[i - 1]); return ys[i - 1] + (ys[i] - ys[i - 1]) * t; } return ys[0]; };
     const SIZE_X = [0, 1, 2, 3, 3.5], SIZE_Y = [1, 0.7, 0.58, 0.4, 0.2], OP_Y = [1, 0.6, 0.42, 0.24, 0];
@@ -1005,7 +1020,7 @@ function PhotoCarousel({ vehicles, children }) {
     const render = (x) => { off = x; tr.style.transform = `translate3d(${(-x).toFixed(2)}px,0,0)`; paintDots(idxAt(clamp(x, 0, maxOff))); };
     const measure = () => {
       const w = el.clientWidth; if (!w) return;
-      const sw = Math.round((w - 32) * SW); tr.style.setProperty("--sw", sw + "px");
+      const sw = Math.max(1, Math.round((w - 32 - GAP) / 2)); tr.style.setProperty("--sw", sw + "px");
       P = sw + GAP; const total = 32 + n * sw + (n - 1) * GAP;
       maxOff = Math.max(0, total - w);
       snaps = Array.from({ length: n }, (_, i) => Math.min(i * P, maxOff));
@@ -1019,6 +1034,37 @@ function PhotoCarousel({ vehicles, children }) {
       return raw < 0 ? -r : maxOff + r;
     };
     const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
+    const canAutoplay = () => visible && pageVisible && !reduceMotion() && n >= 2 && maxOff > 0 && !drag;
+    const clearResume = () => { if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = 0; } };
+    const stopAutoplay = () => { clearResume(); glide = null; };
+    const startGlide = (ramp) => {
+      clearResume();
+      if (!canAutoplay()) { glide = null; return; }
+      if (off >= maxOff - 0.5) lastDir = -1;
+      else if (off <= 0.5) lastDir = 1;
+      const now = performance.now();
+      glide = { dir: lastDir, ramp0: ramp ? now : now - AUTOPLAY_RAMP_MS };
+      lastTick = now;
+      if (!raf) raf = requestAnimationFrame(tickGlide);
+    };
+    const scheduleResume = () => {
+      clearResume();
+      glide = null;
+      if (!canAutoplay()) return;
+      resumeTimer = setTimeout(() => { resumeTimer = 0; startGlide(true); }, AUTOPLAY_RESUME_MS);
+    };
+    const tickGlide = (now) => {
+      if (!glide || !canAutoplay()) { raf = 0; return; }
+      const dt = Math.min(34, now - lastTick) / 1000; lastTick = now;
+      const t = Math.max(0, Math.min(1, (now - glide.ramp0) / AUTOPLAY_RAMP_MS));
+      const ramp = t * t * (3 - 2 * t);
+      let x = off + glide.dir * AUTOPLAY_PX * ramp * dt;
+      if (x >= maxOff) { x = maxOff; glide.dir = lastDir = -1; }
+      else if (x <= 0) { x = 0; glide.dir = lastDir = 1; }
+      else lastDir = glide.dir;
+      render(x);
+      raf = requestAnimationFrame(tickGlide);
+    };
     const spring = (x0, v0) => { // critically damped, never overshoots the target
       const target = nearest(x0 + v0 * 100);
       const d0 = x0 - target; let v = v0 * 1000;
@@ -1026,7 +1072,7 @@ function PhotoCarousel({ vehicles, children }) {
       const t0 = performance.now();
       const tick = (now) => {
         const t = (now - t0) / 1000, e = Math.exp(-OMEGA * t), x = target + (d0 + (v + OMEGA * d0) * t) * e;
-        if (t > 0.9 || Math.abs(x - target) < 0.15) { render(target); raf = 0; return; }
+        if (t > 0.9 || Math.abs(x - target) < 0.15) { render(target); raf = 0; scheduleResume(); return; }
         render(x); raf = requestAnimationFrame(tick);
       };
       raf = requestAnimationFrame(tick);
@@ -1044,7 +1090,7 @@ function PhotoCarousel({ vehicles, children }) {
     };
     const onDown = (e) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
-      stop(); suppress = false;
+      stop(); stopAutoplay(); suppress = false;
       if (!eager) { eager = true; tr.querySelectorAll("img").forEach((im) => { im.loading = "eager"; }); }
       drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, off0: off, st: "p", s: [[e.timeStamp, off]] };
     };
@@ -1053,7 +1099,7 @@ function PhotoCarousel({ vehicles, children }) {
       const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
       if (drag.st === "p") {
         if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) { drag.st = "h"; drag.x0 = e.clientX; drag.off0 = off; suppress = true; try { el.setPointerCapture(e.pointerId); } catch (x) {} el.classList.add("v-dragging"); }
-        else if (Math.abs(dy) > 6) { drag = null; return; }
+        else if (Math.abs(dy) > 6) { drag = null; scheduleResume(); return; }
         else return;
       }
       const raw = drag.off0 - gain * (e.clientX - drag.x0);
@@ -1063,11 +1109,11 @@ function PhotoCarousel({ vehicles, children }) {
     const onUp = (e) => {
       if (!drag || e.pointerId !== drag.id) return;
       const d = drag; drag = null; el.classList.remove("v-dragging");
-      if (d.st !== "h") return;
+      if (d.st !== "h") { scheduleResume(); return; }
       const s = d.s, a = s[0], b = s[s.length - 1];
       let v = b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0;
       if (e.timeStamp - b[0] > 70) v = 0;
-      if (reduceMotion()) { render(nearest(clamp(off + v * 150, 0, maxOff))); return; }
+      if (reduceMotion()) { render(nearest(clamp(off + v * 150, 0, maxOff))); scheduleResume(); return; }
       if (off < 0 || off > maxOff) { spring(off, 0); return; }
       if (Math.abs(v) < 0.4) spring(off, v); else coast(v);
     };
@@ -1075,9 +1121,21 @@ function PhotoCarousel({ vehicles, children }) {
     el.addEventListener("pointerdown", onDown); el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerup", onUp); el.addEventListener("pointercancel", onUp);
     el.addEventListener("click", onClick, true);
+    const onVis = () => { pageVisible = !document.hidden; if (!pageVisible) { stop(); stopAutoplay(); } else if (visible) startGlide(true); };
+    document.addEventListener("visibilitychange", onVis);
+    const io = typeof IntersectionObserver !== "undefined" ? new IntersectionObserver((ents) => {
+      const e = ents[ents.length - 1];
+      const next = !!(e && e.isIntersecting && e.intersectionRatio > 0.12);
+      if (next === visible) return;
+      visible = next;
+      if (!visible) { stop(); stopAutoplay(); }
+      else startGlide(true);
+    }, { threshold: [0, 0.12, 0.5] }) : null;
+    if (io) io.observe(el);
     const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null; if (ro) ro.observe(el);
     measure();
-    return () => { stop(); if (ro) ro.disconnect(); el.removeEventListener("pointerdown", onDown); el.removeEventListener("pointermove", onMove); el.removeEventListener("pointerup", onUp); el.removeEventListener("pointercancel", onUp); el.removeEventListener("click", onClick, true); };
+    startGlide(true);
+    return () => { stop(); stopAutoplay(); if (ro) ro.disconnect(); if (io) io.disconnect(); document.removeEventListener("visibilitychange", onVis); el.removeEventListener("pointerdown", onDown); el.removeEventListener("pointermove", onMove); el.removeEventListener("pointerup", onUp); el.removeEventListener("pointercancel", onUp); el.removeEventListener("click", onClick, true); };
   }, [n]);
   return (
     <>
@@ -1282,6 +1340,8 @@ function vehiclePhotosOf(road, f) {
 // after the hand-picked vehicle shots, so the latest photo is what you see when the
 // card opens. Pipeline should append new photos to photo.gallery (and/or add Road
 // milestone stills / vehicle_photos); this list grows on its own.
+// A photo.narrative gallery is the whole carousel, in listed order (hero first); vehicle
+// shots and Road stills stay out of it.
 function cardPhotosOf(f, past, road) {
   const seen = new Set(), out = [];
   const add = (p) => {
@@ -1289,13 +1349,17 @@ function cardPhotosOf(f, past, road) {
     seen.add(p.src);
     out.push(p);
   };
+  const own = ((f.photo && f.photo.gallery) || []).filter(Boolean);
+  const asItem = (item) => (typeof item === "string"
+    ? { src: item, credit: "SpaceX", label: null, vehicle: false }
+    : { src: item.src || item.image, credit: item.credit || item.author || "SpaceX", label: item.label || null, focus: item.focus, vehicle: false });
+  if (f.photo && f.photo.narrative && own.length) {
+    own.forEach((item) => add(asItem(item)));
+    return out.length ? out : [{ src: undefined, label: "SpaceX", vehicle: false }];
+  }
   const vp = vehiclePhotosOf(road, f);
   if (vp) vp.forEach((p) => p && add({ ...p, vehicle: true }));
-  const own = ((f.photo && f.photo.gallery) || []).filter(Boolean);
-  [...own].reverse().forEach((item) => {
-    if (typeof item === "string") add({ src: item, credit: "SpaceX", label: null, vehicle: false });
-    else add({ src: item.src || item.image, credit: item.credit || item.author || "SpaceX", label: item.label || null, focus: item.focus, vehicle: false });
-  });
+  [...own].reverse().forEach((item) => add(asItem(item)));
   (past || []).forEach((e) => {
     const ph = e.photo, img = ph && (ph.image || ph.src);
     if (!img) return;
