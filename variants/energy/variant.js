@@ -163,9 +163,13 @@ window.VARIANT = { name: "energy", hdrK: 0.9, expandMs: 300, collapseTbc: true, 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
 })();
 
-/* v7 · Road dots pop on close as well as open (mirror of mo-pop, reversed stagger).
-   React re-renders the bar while the Road list collapses, which cancels CSS/WAAPI on the
-   real dots. Play the close pop on a fixed clone of the row, outside the React tree. */
+/* v9 · Road dots pop on close as a clean uniform-scale mirror of mo-pop.
+   The v7/v8 close used a fixed flex-row clone of .road-dots on document.body.
+   Reparenting those <i class="dot"> flex items out of .road-head { all: unset }
+   let the body's font line-height strut set min-height:auto (~12px) while width
+   stayed 10px, so every close frame was a vertical oval (measured 10×12 at rest).
+   Animate one independently positioned square per dot instead: equal width/height,
+   min/max locked, line-height 0, scale() only, transform-origin 50% 50%. */
 (function () {
   var prev = new WeakMap();
   var playing = new WeakSet();
@@ -177,42 +181,82 @@ window.VARIANT = { name: "energy", hdrK: 0.9, expandMs: 300, collapseTbc: true, 
     if (!el || reduced() || playing.has(el)) return;
     var wrap = el.querySelector(".road-dots");
     if (!wrap || !wrap.children.length) return;
+    var orig = wrap.querySelectorAll(".dot");
+    if (!orig.length) return;
     playing.add(el);
-    var r = wrap.getBoundingClientRect();
-    var clone = wrap.cloneNode(true);
-    clone.setAttribute("data-v-dots-clone", "");
-    clone.style.cssText = "position:fixed;left:" + r.left + "px;top:" + r.top + "px;width:" + r.width + "px;height:" + r.height + "px;margin:0;flex:none;z-index:9999;pointer-events:none;";
-    document.body.appendChild(clone);
-    el.setAttribute("data-v-hiding-dots", "");
-    var dots = clone.querySelectorAll(".dot");
+    var host = document.createElement("div");
+    host.setAttribute("data-v-dots-clone", "");
+    host.style.cssText = "position:fixed;inset:0;pointer-events:none;z-index:9999;";
+    var clones = [];
     var last = null;
-    for (var i = 0; i < dots.length; i++) {
-      var delay = (dots.length - 1 - i) * 30;
-      if (dots[i].animate) {
-        last = dots[i].animate(
+    for (var i = 0; i < orig.length; i++) {
+      var r = orig[i].getBoundingClientRect();
+      var size = Math.min(r.width, r.height);
+      if (!size) size = 10;
+      var cs = getComputedStyle(orig[i]);
+      var d = document.createElement("i");
+      d.className = "dot";
+      d.setAttribute("aria-hidden", "true");
+      d.style.cssText = [
+        "position:fixed",
+        "left:" + (r.left + r.width / 2 - size / 2) + "px",
+        "top:" + (r.top + r.height / 2 - size / 2) + "px",
+        "width:" + size + "px",
+        "height:" + size + "px",
+        "min-width:" + size + "px",
+        "min-height:" + size + "px",
+        "max-width:" + size + "px",
+        "max-height:" + size + "px",
+        "margin:0",
+        "padding:0",
+        "box-sizing:border-box",
+        "display:block",
+        "border-radius:50%",
+        "line-height:0",
+        "font-size:0",
+        "flex:none",
+        "aspect-ratio:1/1",
+        "transform-origin:50% 50%",
+        "background:" + cs.background,
+        "border:" + cs.border,
+        "box-shadow:" + cs.boxShadow,
+        "opacity:" + cs.opacity,
+        "pointer-events:none"
+      ].join(";");
+      var cvar = cs.getPropertyValue("--c");
+      if (cvar) d.style.setProperty("--c", cvar);
+      host.appendChild(d);
+      clones.push({ el: d, orig: orig[i], size: size });
+      var delay = (orig.length - 1 - i) * 30;
+      if (d.animate) {
+        last = d.animate(
           [{ transform: "scale(1)" }, { transform: "scale(.4)", offset: 0.4 }, { transform: "scale(1)" }],
           { duration: 420, delay: delay, easing: "cubic-bezier(.34, 1.36, .64, 1)" }
         );
       }
     }
+    document.documentElement.appendChild(host);
+    el.setAttribute("data-v-hiding-dots", "");
     var moved = true;
     var tick = function () {
-      if (!moved || !clone.parentNode) return;
-      var r2 = wrap.getBoundingClientRect();
-      clone.style.left = r2.left + "px";
-      clone.style.top = r2.top + "px";
+      if (!moved || !host.parentNode) return;
+      for (var i = 0; i < clones.length; i++) {
+        var o = clones[i].orig;
+        if (!o || !o.isConnected) continue;
+        var r = o.getBoundingClientRect();
+        var size = clones[i].size;
+        clones[i].el.style.left = (r.left + r.width / 2 - size / 2) + "px";
+        clones[i].el.style.top = (r.top + r.height / 2 - size / 2) + "px";
+      }
       requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
     var done = function () {
       moved = false;
-      if (clone.parentNode) clone.parentNode.removeChild(clone);
+      if (host.parentNode) host.parentNode.removeChild(host);
       el.removeAttribute("data-v-hiding-dots");
       playing.delete(el);
     };
-    /* Ignore Animation.finished rejections (cancel) and any early done();
-       React/layout work during the collapse can cancel the Animation object
-       even though the clone is outside the React tree. */
     var t0 = Date.now();
     var finish = function () {
       if (Date.now() - t0 < 520) return;
