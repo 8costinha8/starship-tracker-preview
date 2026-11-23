@@ -5,14 +5,15 @@
    outcome: "success" | "partial" | "failure"
    status (next flight): "confirmed" | "net" | "tbc" | "inflight" | "done"
 
-   PHOTOS — optional. Add real SpaceX photos to any flight by adding
-   a "photo" field to that flight's object, e.g. for flight 10:
+   PHOTOS — optional. Add real photos to any flight by adding a "photo"
+   field to that flight's object, e.g. for flight 10:
      photo: {
-       thumb: "images/f10-thumb.jpg",       // small card image
-       gallery: ["images/f10-a.jpg", "images/f10-b.jpg"],  // expanded view, up to 2
+       thumb: "images/f10-thumb.jpg",
+       gallery: ["images/f10-a.jpg", "images/f10-b.jpg"],  // opened-card carousel; append new ones at the end
      }
-   Drop the actual image files into an "images" folder in this repo
-   (same one this file lives in). Flights with no "photo" field use
+   The opened card also picks up road.archive[n].vehicle_photos and Road
+   milestone stills. There is no cap: the carousel grows as photos are added.
+   Drop image files into the "images" folder. Flights with no "photo" field use
    images/f<N>-thumb.jpg, -a.jpg, -b.jpg automatically; missing files
    just show the placeholder — nothing breaks either way.
 
@@ -973,6 +974,121 @@ function RocketMark() {
   );
 }
 
+// ---- v5: free-drag photo carousel (transform track, drag gain, momentum, critically damped snap, live dots) ----
+function PhotoCarousel({ vehicles, children }) {
+  const vp = React.useRef(null), track = React.useRef(null), ind = React.useRef(null);
+  const n = React.Children.count(children);
+  React.useEffect(() => {
+    const el = vp.current, tr = track.current, dd = ind.current;
+    if (!el || !tr || n < 2) return;
+    const GAP = 10, TAU = 240, OMEGA = 13, SW = 0.86;
+    const dots = dd ? Array.from(dd.children) : [];
+    const win = n > 5, PITCH = 13, HALF = 3.5;
+    let P = 285, maxOff = 0, snaps = [0], off = 0, gain = 1, raf = 0, drag = null, suppress = false, eager = false;
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const lerpK = (d, xs, ys) => { if (d >= xs[xs.length - 1]) return ys[ys.length - 1]; for (let i = 1; i < xs.length; i++) if (d <= xs[i]) { const t = (d - xs[i - 1]) / (xs[i] - xs[i - 1]); return ys[i - 1] + (ys[i] - ys[i - 1]) * t; } return ys[0]; };
+    const SIZE_X = [0, 1, 2, 3, 3.5], SIZE_Y = [1, 0.7, 0.58, 0.4, 0.2], OP_Y = [1, 0.6, 0.42, 0.24, 0];
+    const idxAt = (x) => { if (x <= snaps[0]) return 0; for (let i = 1; i < snaps.length; i++) if (x <= snaps[i]) { const a = snaps[i - 1], b = snaps[i]; return i - 1 + (b === a ? 1 : (x - a) / (b - a)); } return snaps.length - 1; };
+    const paintDots = (c) => {
+      for (let k = 0; k < dots.length; k++) {
+        const d = Math.abs(k - c), s = dots[k].style;
+        if (win) {
+          if (d > HALF) { s.opacity = "0"; continue; }
+          s.opacity = String(lerpK(d, SIZE_X, OP_Y));
+          s.transform = `translate3d(${((k - c) * PITCH).toFixed(2)}px,0,0) scale(${lerpK(d, SIZE_X, SIZE_Y).toFixed(3)})`;
+        } else {
+          s.opacity = String(lerpK(Math.min(d, 1.5), [0, 1, 1.5], [1, 0.45, 0.45]));
+          s.transform = `translate3d(${((k - (n - 1) / 2) * PITCH).toFixed(2)}px,0,0) scale(${lerpK(Math.min(d, 1), [0, 1], [1, 0.6]).toFixed(3)})`;
+        }
+      }
+    };
+    const render = (x) => { off = x; tr.style.transform = `translate3d(${(-x).toFixed(2)}px,0,0)`; paintDots(idxAt(clamp(x, 0, maxOff))); };
+    const measure = () => {
+      const w = el.clientWidth; if (!w) return;
+      const sw = Math.round((w - 32) * SW); tr.style.setProperty("--sw", sw + "px");
+      P = sw + GAP; const total = 32 + n * sw + (n - 1) * GAP;
+      maxOff = Math.max(0, total - w);
+      snaps = Array.from({ length: n }, (_, i) => Math.min(i * P, maxOff));
+      gain = clamp(maxOff / (1.3 * Math.min(window.innerWidth, 430)), 1, 6); // v6: ~5.5× (was ~9×) so a full swipe covers ~5–7 of 11 photos
+      render(clamp(off, 0, maxOff));
+    };
+    const nearest = (x) => { let b = 0, bd = 1e9; for (let i = 0; i < snaps.length; i++) { const d = Math.abs(snaps[i] - x); if (d < bd) { bd = d; b = i; } } return snaps[b]; };
+    const band = (raw) => { // iOS-style rubber band past either end
+      if (raw >= 0 && raw <= maxOff) return raw;
+      const over = raw < 0 ? -raw : raw - maxOff, d = el.clientWidth, r = (1 - 1 / (over * 0.55 / d + 1)) * d;
+      return raw < 0 ? -r : maxOff + r;
+    };
+    const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
+    const spring = (x0, v0) => { // critically damped, never overshoots the target
+      const target = nearest(x0 + v0 * 100);
+      const d0 = x0 - target; let v = v0 * 1000;
+      if (d0 * (v + OMEGA * d0) < 0) v = -OMEGA * d0;
+      const t0 = performance.now();
+      const tick = (now) => {
+        const t = (now - t0) / 1000, e = Math.exp(-OMEGA * t), x = target + (d0 + (v + OMEGA * d0) * t) * e;
+        if (t > 0.9 || Math.abs(x - target) < 0.15) { render(target); raf = 0; return; }
+        render(x); raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+    const coast = (v0) => {
+      let v = clamp(v0 * 0.45, -5, 5), x = off, last = performance.now(); // v6: fling ~35% calmer (was 0.7, ±8)
+      const tick = (now) => {
+        const dt = Math.min(34, now - last); last = now;
+        x += v * dt; v *= Math.exp(-dt / TAU);
+        if (x < 0 || x > maxOff) { x = clamp(x, -40, maxOff + 40); render(x); spring(x, v * 0.3); return; }
+        if (Math.abs(v) < 0.4) { render(x); spring(x, v); return; }
+        render(x); raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    };
+    const onDown = (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      stop(); suppress = false;
+      if (!eager) { eager = true; tr.querySelectorAll("img").forEach((im) => { im.loading = "eager"; }); }
+      drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, off0: off, st: "p", s: [[e.timeStamp, off]] };
+    };
+    const onMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0;
+      if (drag.st === "p") {
+        if (Math.abs(dx) > 6 && Math.abs(dx) > Math.abs(dy)) { drag.st = "h"; drag.x0 = e.clientX; drag.off0 = off; suppress = true; try { el.setPointerCapture(e.pointerId); } catch (x) {} el.classList.add("v-dragging"); }
+        else if (Math.abs(dy) > 6) { drag = null; return; }
+        else return;
+      }
+      const raw = drag.off0 - gain * (e.clientX - drag.x0);
+      render(band(raw));
+      drag.s.push([e.timeStamp, raw]); while (drag.s.length > 2 && e.timeStamp - drag.s[0][0] > 90) drag.s.shift();
+    };
+    const onUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const d = drag; drag = null; el.classList.remove("v-dragging");
+      if (d.st !== "h") return;
+      const s = d.s, a = s[0], b = s[s.length - 1];
+      let v = b[0] > a[0] ? (b[1] - a[1]) / (b[0] - a[0]) : 0;
+      if (e.timeStamp - b[0] > 70) v = 0;
+      if (reduceMotion()) { render(nearest(clamp(off + v * 150, 0, maxOff))); return; }
+      if (off < 0 || off > maxOff) { spring(off, 0); return; }
+      if (Math.abs(v) < 0.4) spring(off, v); else coast(v);
+    };
+    const onClick = (e) => { if (suppress) { e.preventDefault(); e.stopPropagation(); suppress = false; } };
+    el.addEventListener("pointerdown", onDown); el.addEventListener("pointermove", onMove);
+    el.addEventListener("pointerup", onUp); el.addEventListener("pointercancel", onUp);
+    el.addEventListener("click", onClick, true);
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null; if (ro) ro.observe(el);
+    measure();
+    return () => { stop(); if (ro) ro.disconnect(); el.removeEventListener("pointerdown", onDown); el.removeEventListener("pointermove", onMove); el.removeEventListener("pointerup", onUp); el.removeEventListener("pointercancel", onUp); el.removeEventListener("click", onClick, true); };
+  }, [n]);
+  return (
+    <>
+      <div className="gallery v-car" ref={vp} data-vehicles={vehicles ? "" : undefined}>
+        <div className="v-track" ref={track}>{children}</div>
+      </div>
+      {n > 1 ? <div className={"v-ind" + (n > 5 ? " v-ind-win" : "")} ref={ind} aria-hidden="true">{Array.from({ length: n }, (_, k) => <i key={k} />)}</div> : null}
+    </>
+  );
+}
+
 function PhotoSlot({ size, src, alt, onClick, credit = "SpaceX", label = null, focus }) {
   const [failed, setFailed] = React.useState(false);
   React.useEffect(() => setFailed(false), [src]);
@@ -1135,13 +1251,13 @@ function NextFlightCard({ f, checkedAt, road, children }) {
   );
 }
 
-// The two gallery photos: the flight's own, else its Road milestones' real photos (newest milestones first), else one "Photo to come".
+// Gallery sources for a flight: own gallery (any length), else Road milestone stills, else a placeholder.
 function galleryOf(f, past) {
-  const own = ((f.photo && f.photo.gallery) || []).filter(Boolean);
-  if (own.length) return own.slice(0, 2).concat(own.length < 2 ? [undefined] : []).slice(0, 2);
-  const order = ["static", "pad", "raptor", "cryo"], road = (past || []).filter((e) => e.photo && e.photo.image && !/^https?:\/\/video\./.test(e.photo.image))
-    .sort((a, b) => order.indexOf(a.box) - order.indexOf(b.box)).map((e) => e.photo.image);
-  const pics = [...new Set(road)].slice(0, 2);
+  const own = ((f.photo && f.photo.gallery) || []).filter(Boolean).map((item) => typeof item === "string" ? item : (item && (item.src || item.image))).filter(Boolean);
+  if (own.length) return own;
+  const road = (past || []).filter((e) => e.photo && e.photo.image && !/^https?:\/\/video\./.test(e.photo.image) && !/amplify_video_thumb/.test(e.photo.image))
+    .map((e) => e.photo.image);
+  const pics = [...new Set(road)];
   return pics.length ? pics : [undefined];
 }
 // 15 Nov (Bernardo, every flight): an opened flight card's two pictures are one strong mission photo per vehicle, booster
@@ -1162,12 +1278,30 @@ function vehiclePhotosOf(road, f) {
   const b = one(vp.booster, "Booster", f.booster), sh = one(vp.ship, "Ship", f.ship);
   return b || sh ? [b, sh] : null;
 }
-// The opened card's two pictures: [{ src, label, vehicle }] — vehicle photos first, else the gallery (credit "SpaceX").
+// Opened-card carousel: every still for this flight, no cap. Newest gallery items first
+// after the hand-picked vehicle shots, so the latest photo is what you see when the
+// card opens. Pipeline should append new photos to photo.gallery (and/or add Road
+// milestone stills / vehicle_photos); this list grows on its own.
 function cardPhotosOf(f, past, road) {
-  const base = galleryOf(f, past).map((src) => ({ src, label: "SpaceX", vehicle: false }));
+  const seen = new Set(), out = [];
+  const add = (p) => {
+    if (!p || !p.src || seen.has(p.src) || /^https?:\/\/video\./.test(p.src) || /amplify_video_thumb/.test(p.src)) return;
+    seen.add(p.src);
+    out.push(p);
+  };
   const vp = vehiclePhotosOf(road, f);
-  if (!vp) return base;
-  return [0, 1].map((i) => (vp[i] ? { ...vp[i], vehicle: true } : base[i] || { src: undefined, label: "SpaceX", vehicle: false }));
+  if (vp) vp.forEach((p) => p && add({ ...p, vehicle: true }));
+  const own = ((f.photo && f.photo.gallery) || []).filter(Boolean);
+  [...own].reverse().forEach((item) => {
+    if (typeof item === "string") add({ src: item, credit: "SpaceX", label: null, vehicle: false });
+    else add({ src: item.src || item.image, credit: item.credit || item.author || "SpaceX", label: item.label || null, focus: item.focus, vehicle: false });
+  });
+  (past || []).forEach((e) => {
+    const ph = e.photo, img = ph && (ph.image || ph.src);
+    if (!img) return;
+    add({ src: img, credit: (ph && (ph.author || ph.credit)) || e.src || null, label: e.vehicle || e.label || null, focus: ph && ph.crop, vehicle: false });
+  });
+  return out.length ? out : [{ src: undefined, label: "SpaceX", vehicle: false }];
 }
 // Thumb: the flight's own photo, else (placeholder or none) its first Road milestone photo.
 const thumbOf = (f, past) => { const t = f.photo && f.photo.thumb; return t && t !== RTF_PLACEHOLDER ? t : galleryOf({ photo: {} }, past)[0] || t; };
@@ -1221,10 +1355,9 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road }) {
                 <svg className="past-chev" width="16" height="16" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
               <div className={"past-wrap" + (pastOpen ? " open" : "")} id={`past-${f.n}`} aria-hidden={!pastOpen}><div className="past-wrap-inner">
-              <div className="past-sum" data-photos={past.some((e) => e.photo) ? "1" : undefined} aria-label={`Road to Flight ${f.n}`}>
+              <div className="past-sum" aria-label={`Road to Flight ${f.n}`}>
                 {past.map((e, i) => (
                   <div className="past-box" key={e.id || i} data-id={e.box} data-entry={e.id} style={catVars(e.box, e.color)}>
-                    {past.some((x) => x.photo) && (e.photo ? <BoxPhoto src={e.photo.image} crop={e.photo.crop} className="past-photo" /> : <div className="past-photo past-photo-none" />)}
                     <PastTop vehicle={e.vehicle} labels={e.labels || [e.label]} />
                     <PastText tiers={(e.tiers && e.tiers.length ? e.tiers : [e.text]).map((t) => scrub(String(t || "")))} />
                   </div>
@@ -1232,14 +1365,14 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road }) {
               </div>
               </div></div>
             </>)}
-            <div className="gallery" data-vehicles={cardPhotos.some((p) => p.vehicle) ? "" : undefined}>
+            <PhotoCarousel vehicles={cardPhotos.some((p) => p.vehicle)}>
               {cardPhotos.map((p, i) => (
                 <PhotoSlot key={i}
-                  size="wide" src={p.src} credit={p.vehicle ? p.credit : p.label} label={p.vehicle ? p.label : null} focus={p.focus} alt={p.vehicle ? `${p.label} \u2014 Flight ${f.n}` : `${f.headline} \u2014 photo ${i + 1}`}
+                  size="wide" src={p.src} credit={p.credit || null} label={p.label || null} focus={p.focus} alt={p.vehicle ? `${p.label} \u2014 Flight ${f.n}` : `${f.headline} \u2014 photo ${i + 1}`}
                   onClick={p.src ? () => onPhotoTap(p.src, p.vehicle ? `${p.label} \u2014 Flight ${f.n}` : `${f.headline} \u2014 photo ${i + 1}`) : undefined}
                 />
               ))}
-            </div>
+            </PhotoCarousel>
             {f.highlights ? (
               <a className="highlights-link" href={f.highlights} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                 <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4 2.5l7 4-7 4z" fill="currentColor" /></svg>
@@ -3122,7 +3255,8 @@ function PhoneHeader({ road, feedOpen, onAbout, onFeed, onBack, onHint }) {
   // smaller and dimmer. Everything is a function of --fp (0 = tracker, 1 = Road), so
   // it follows the finger and eases on release. Tap the small pill to switch pages.
   return (
-    <>
+    <div className="hdr-wrap">
+      <div className="hdr-cap" aria-hidden="true" />
       <div className="hdr-bar" aria-hidden="true" />
       <div className={"hdr" + (ready ? " hdr-ready" : "") + (feedOpen ? " hdr-feed" : "")} ref={ref}>
         <button className="round-btn hdr-left" onClick={feedOpen ? onBack : onAbout} aria-label={feedOpen ? "Back to the flight log" : "Open about"}>
@@ -3135,9 +3269,8 @@ function PhoneHeader({ road, feedOpen, onAbout, onFeed, onBack, onHint }) {
         <button className="hdr-p hdr-b" onClick={feedOpen ? undefined : onFeed} aria-current={feedOpen ? "page" : undefined} aria-label={`Road to Flight ${road.flight}`}>
           <b>Road to</b><span>{`Flight ${road.flight}`}</span>
         </button>
-        <button className="round-btn hdr-right" onClick={onFeed} aria-label="Open updates feed" tabIndex={feedOpen ? -1 : 0}>{FEED_ICON}</button>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -3670,9 +3803,12 @@ function StarshipTracker() {
     const ms = reduceMotion() ? 0 : EXPAND_MS;
     const ease = (t) => 1 - Math.pow(1 - t, 3);
 
+    // v5: animate real pixel heights (fr tracks below 1fr don't shrink an auto-height grid on iOS: the body stayed full height and spilled over the next card)
+    const hOf = (m) => m ? m.querySelector(".more-inner").scrollHeight : 0;
+    const openH = hOf(openMore), closeH = hOf(closeMore);
     const setHeights = (e) => {
-      if (openMore) openMore.style.gridTemplateRows = `${e}fr`;
-      if (closeMore) closeMore.style.gridTemplateRows = `${1 - e}fr`;
+      if (openMore) { openMore.style.display = "block"; openMore.style.overflow = "hidden"; openMore.style.height = `${openH * e}px`; openMore.style.opacity = String(Math.min(1, e * 1.6)); }
+      if (closeMore) { closeMore.style.display = "block"; closeMore.style.overflow = "hidden"; closeMore.style.height = `${closeH * (1 - e)}px`; closeMore.style.opacity = String(Math.max(0, 1 - e * 1.8)); }
     };
     setHeights(0); // starting state, applied before the screen paints
 
@@ -3700,8 +3836,7 @@ function StarshipTracker() {
       if (targetY != null && !userTookOver) window.scrollTo(0, p.startY + (targetY - p.startY) * e);
     };
     const finish = () => {
-      if (openMore) openMore.style.gridTemplateRows = "";
-      if (closeMore) closeMore.style.gridTemplateRows = "";
+      for (const m of [openMore, closeMore]) if (m) { m.style.display = ""; m.style.overflow = ""; m.style.height = ""; m.style.opacity = ""; }
     };
 
     if (ms === 0) { frame(1); finish(); }
@@ -3897,6 +4032,7 @@ function StarshipTracker() {
   return (
     <div className={"st" + (feedOn ? " feed-on" : "") + (dragging ? " feed-drag" : "") + (feedOpen && !dragging ? " feed-open" : "") + (FX("xfade") ? " fx-xfade" : "")} ref={rootRef} style={{ "--fp": feedOpen ? 1 : 0 }}>
       <style>{css}</style>
+      {phoneHeader}
       <div className="st-layout">
       <div className="st-wrap" aria-hidden={!wide && feedOpen ? true : undefined}>
         <header className="top">
@@ -3929,7 +4065,6 @@ function StarshipTracker() {
       <UpdatesFeed road={road} wide={wide} shown={feedOn} onBack={() => setFeedOpen(false)} scrollRef={feedScroll} onPhotoTap={(src, alt) => setLightbox({ src, alt })} peekOpen={peekOpen} onTogglePeek={togglePeek} heroNet={heroNetFor(liveNext, now)} netPending={!liveNext && !nextSettled}
         heroLiftIso={liveNext && ["inflight", "done"].includes(effectiveStatus(liveNext, now)) ? liveNext.date : null} />
       </div>
-      {phoneHeader}
       <AboutPanel
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
