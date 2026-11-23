@@ -1,0 +1,695 @@
+{
+  "load": {
+    "fp": 152,
+    "fcp": 168,
+    "lcp": {
+      "t": 6252,
+      "tag": "IMG",
+      "size": 10777,
+      "id": "",
+      "text": ""
+    },
+    "long": [
+      {
+        "t": 452.5999999642372,
+        "d": 581
+      },
+      {
+        "t": 1074.699999988079,
+        "d": 3585
+      },
+      {
+        "t": 4665.899999976158,
+        "d": 201
+      },
+      {
+        "t": 4867.899999976158,
+        "d": 269
+      },
+      {
+        "t": 5151.399999976158,
+        "d": 165
+      },
+      {
+        "t": 5450.800000011921,
+        "d": 60
+      },
+      {
+        "t": 5592.800000011921,
+        "d": 51
+      },
+      {
+        "t": 5790.399999976158,
+        "d": 417
+      }
+    ],
+    "res": [
+      {
+        "name": "css2",
+        "dur": 161,
+        "start": 73,
+        "trans": 800,
+        "dec": 2610,
+        "typ": "link"
+      },
+      {
+        "name": "variant.css",
+        "dur": 21,
+        "start": 74,
+        "trans": 29068,
+        "dec": 28768,
+        "typ": "link"
+      },
+      {
+        "name": "variant.js",
+        "dur": 23,
+        "start": 74,
+        "trans": 15905,
+        "dec": 15605,
+        "typ": "script"
+      },
+      {
+        "name": "react-dom.production.min.js",
+        "dur": 231,
+        "start": 74,
+        "trans": 0,
+        "dec": 0,
+        "typ": "script"
+      },
+      {
+        "name": "react.production.min.js",
+        "dur": 261,
+        "start": 74,
+        "trans": 0,
+        "dec": 0,
+        "typ": "script"
+      },
+      {
+        "name": "notifications.js",
+        "dur": 21,
+        "start": 75,
+        "trans": 710,
+        "dec": 410,
+        "typ": "script"
+      },
+      {
+        "name": "babel.min.js",
+        "dur": 340,
+        "start": 75,
+        "trans": 0,
+        "dec": 0,
+        "typ": "script"
+      },
+      {
+        "name": "flightlog.js",
+        "dur": 22,
+        "start": 75,
+        "trans": 16503,
+        "dec": 16203,
+        "typ": "script"
+      },
+      {
+        "name": "handover.js",
+        "dur": 21,
+        "start": 75,
+        "trans": 10926,
+        "dec": 10626,
+        "typ": "script"
+      },
+      {
+        "name": "cleanup.js",
+        "dur": 21,
+        "start": 75,
+        "trans": 25870,
+        "dec": 25570,
+        "typ": "script"
+      },
+      {
+        "name": "road-pick.js",
+        "dur": 21,
+        "start": 76,
+        "trans": 7472,
+        "dec": 7172,
+        "typ": "script"
+      },
+      {
+        "name": "app.js",
+        "dur": 7,
+        "start": 1068,
+        "trans": 331109,
+        "dec": 330809,
+        "typ": "xmlhttprequest"
+      },
+      {
+        "name": "css2",
+        "dur": 87,
+        "start": 4840,
+        "trans": 1046,
+        "dec": 10895,
+        "typ": "css"
+      },
+      {
+        "name": "01-hero-ship-caught.jpg",
+        "dur": 20,
+        "start": 5130,
+        "trans": 175912,
+        "dec": 175612,
+        "typ": "img"
+      },
+      {
+        "name": "02-rollout-ship42-to-pad.jpg",
+        "dur": 20,
+        "start": 5131,
+        "trans": 250579,
+        "dec": 250279,
+        "typ": "img"
+      },
+      {
+        "name": "03-liftoff.jpg",
+        "dur": 24,
+        "start": 5131,
+        "trans": 167520,
+        "dec": 167220,
+        "typ": "img"
+      },
+      {
+        "name": "05-hot-staging.jpg",
+        "dur": 23,
+        "start": 5131,
+        "trans": 123622,
+        "dec": 123322,
+        "typ": "img"
+      },
+      {
+        "name": "04-ascent-stack-climbing.jpg",
+        "dur": 23,
+        "start": 5131,
+        "trans": 155153,
+        "dec": 154853,
+        "typ": "img"
+      },
+      {
+        "name": "06-booster-landing-burn-gulf.jpg",
+        "dur": 22,
+        "start": 5132,
+        "trans": 128357,
+        "dec": 128057,
+        "typ": "img"
+      },
+      {
+        "name": "07-orbit-over-nile.jpg",
+        "dur": 35,
+        "start": 5132,
+        "trans": 137802,
+        "dec": 137502,
+        "typ": "img"
+      },
+      {
+        "name": "08-reentry-plasma.jpg",
+        "dur": 26,
+        "start": 5132,
+        "trans": 88650,
+        "dec": 88350,
+        "typ": "img"
+      },
+      {
+        "name": "09-ship-landing-burn-at-tower.jpg",
+        "dur": 26,
+        "start": 5132,
+        "trans": 76846,
+        "dec": 76546,
+        "typ": "img"
+      },
+      {
+        "name": "10-aftermath-tower-team.jpg",
+        "dur": 29,
+        "start": 5132,
+        "trans": 331118,
+        "dec": 330818,
+        "typ": "img"
+      },
+      {
+        "name": "f14-thumb.jpg",
+        "dur": 35,
+        "start": 5132,
+        "trans": 259643,
+        "dec": 259343,
+        "typ": "img"
+      },
+      {
+        "name": "f14-b.jpg",
+        "dur": 33,
+        "start": 5133,
+        "trans": 132044,
+        "dec": 131744,
+        "typ": "img"
+      },
+      {
+        "name": "f14-a.jpg",
+        "dur": 33,
+        "start": 5133,
+        "trans": 134006,
+        "dec": 133706,
+        "typ": "img"
+      },
+      {
+        "name": "f13-thumb.jpg",
+        "dur": 34,
+        "start": 5133,
+        "trans": 184041,
+        "dec": 183741,
+        "typ": "img"
+      },
+      {
+        "name": "f13-b.jpg",
+        "dur": 36,
+        "start": 5133,
+        "trans": 100105,
+        "dec": 99805,
+        "typ": "img"
+      },
+      {
+        "name": "f13-a.jpg",
+        "dur": 41,
+        "start": 5134,
+        "trans": 291153,
+        "dec": 290853,
+        "typ": "img"
+      },
+      {
+        "name": "f12-thumb.jpg",
+        "dur": 40,
+        "start": 5134,
+        "trans": 92759,
+        "dec": 92459,
+        "typ": "img"
+      },
+      {
+        "name": "f12-b.jpg",
+        "dur": 37,
+        "start": 5134,
+        "trans": 130582,
+        "dec": 130282,
+        "typ": "img"
+      },
+      {
+        "name": "f12-a.jpg",
+        "dur": 46,
+        "start": 5134,
+        "trans": 141937,
+        "dec": 141637,
+        "typ": "img"
+      },
+      {
+        "name": "f11-thumb.jpg",
+        "dur": 43,
+        "start": 5134,
+        "trans": 79180,
+        "dec": 78880,
+        "typ": "img"
+      },
+      {
+        "name": "f11-b.jpg",
+        "dur": 52,
+        "start": 5134,
+        "trans": 618891,
+        "dec": 618591,
+        "typ": "img"
+      },
+      {
+        "name": "f11-a.jpg",
+        "dur": 47,
+        "start": 5134,
+        "trans": 299800,
+        "dec": 299500,
+        "typ": "img"
+      },
+      {
+        "name": "f10-thumb.jpg",
+        "dur": 51,
+        "start": 5134,
+        "trans": 259109,
+        "dec": 258809,
+        "typ": "img"
+      },
+      {
+        "name": "f10-b.jpg",
+        "dur": 414,
+        "start": 5135,
+        "trans": 3826551,
+        "dec": 3826251,
+        "typ": "img"
+      },
+      {
+        "name": "f10-a.jpg",
+        "dur": 52,
+        "start": 5135,
+        "trans": 128508,
+        "dec": 128208,
+        "typ": "img"
+      },
+      {
+        "name": "f9-thumb.jpg",
+        "dur": 241,
+        "start": 5136,
+        "trans": 2877416,
+        "dec": 2877116,
+        "typ": "img"
+      },
+      {
+        "name": "f9-b.jpg",
+        "dur": 76,
+        "start": 5136,
+        "trans": 768908,
+        "dec": 768608,
+        "typ": "img"
+      },
+      {
+        "name": "f9-a.jpg",
+        "dur": 87,
+        "start": 5136,
+        "trans": 1132312,
+        "dec": 1132012,
+        "typ": "img"
+      },
+      {
+        "name": "f8-thumb.jpg",
+        "dur": 65,
+        "start": 5136,
+        "trans": 304951,
+        "dec": 304651,
+        "typ": "img"
+      },
+      {
+        "name": "f8-b.jpg",
+        "dur": 96,
+        "start": 5136,
+        "trans": 1369185,
+        "dec": 1368885,
+        "typ": "img"
+      },
+      {
+        "name": "f8-a.jpg",
+        "dur": 79,
+        "start": 5136,
+        "trans": 188765,
+        "dec": 188465,
+        "typ": "img"
+      },
+      {
+        "name": "f7-a.jpg",
+        "dur": 377,
+        "start": 5137,
+        "trans": 2444712,
+        "dec": 2444412,
+        "typ": "img"
+      },
+      {
+        "name": "f5-thumb.jpg",
+        "dur": 106,
+        "start": 5137,
+        "trans": 714238,
+        "dec": 713938,
+        "typ": "img"
+      },
+      {
+        "name": "road.json",
+        "dur": 11,
+        "start": 5311,
+        "trans": 79438,
+        "dec": 79138,
+        "typ": "fetch"
+      },
+      {
+        "name": "amplify_video_thumb_2114755310996901888_img_xXXdVirUtQa3phNk.jpg",
+        "dur": 7,
+        "start": 6245,
+        "trans": 66011,
+        "dec": 65711,
+        "typ": "img"
+      },
+      {
+        "name": "amplify_video_thumb_2115312114298654720_img_45WwvTRmJ8YoB0Fq.jpg",
+        "dur": 7,
+        "start": 6245,
+        "trans": 115678,
+        "dec": 115378,
+        "typ": "img"
+      },
+      {
+        "name": "media_HVsYHvSaQAAzZ3c.jpg",
+        "dur": 7,
+        "start": 6245,
+        "trans": 74035,
+        "dec": 73735,
+        "typ": "img"
+      }
+    ],
+    "nav": {
+      "dcl": 1068.800000011921,
+      "load": 1069,
+      "resp": 11.899999976158142,
+      "ds": 1061.3999999761581
+    },
+    "inter": true,
+    "readyClass": "v-browser v-energy fx-nopinch v-ready",
+    "title": "Starship Tracker \u00b7 Energy v9 (sandbox)",
+    "flag": "SANDBOX \u00b7 ENERGY v9",
+    "nav_to_next_ms": 6287.317338981666,
+    "cdp": {
+      "Documents": 1,
+      "Nodes": 2078,
+      "LayoutCount": 58,
+      "RecalcStyleCount": 85,
+      "TaskDuration": 6.18053,
+      "JSHeapUsedSize": 69768888
+    }
+  },
+  "inter": {
+    "idle_raf": {
+      "frames": 119,
+      "avg": 16.95,
+      "max": 50,
+      "drop20": 1,
+      "drop33": 1,
+      "expected": 120,
+      "fps": 59
+    },
+    "tap_card_ms": {
+      "ms": 82,
+      "cls": "card is-open",
+      "tr": "none"
+    },
+    "tap_road_ms": {
+      "ms": 9.2
+    },
+    "close_raf": {
+      "frames": 53,
+      "avg": 17.29,
+      "max": 33.3,
+      "drop20": 2,
+      "drop33": 2,
+      "fps": 57.8
+    }
+  },
+  "glue": [
+    [
+      0,
+      {
+        "headBottom": 374.19,
+        "listH": 477.28,
+        "listY": 374.19,
+        "innerH": 477.28,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "477.281px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 69.55
+        },
+        "open": false
+      }
+    ],
+    [
+      40,
+      {
+        "headBottom": 374.19,
+        "listH": 0.05,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      80,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      120,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      180,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      260,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      360,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      480,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ],
+    [
+      600,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "listY": 374.19,
+        "innerH": 0,
+        "innerY": 374.19,
+        "padTop": "0px",
+        "opacity": "1",
+        "transform": "none",
+        "rows": "0px",
+        "cryo": {
+          "y": 374.19,
+          "h": 69.55,
+          "top": 374.19,
+          "gapToPill": 0,
+          "visibleH": 0
+        },
+        "open": false
+      }
+    ]
+  ]
+}

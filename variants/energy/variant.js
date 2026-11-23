@@ -283,3 +283,27 @@ window.VARIANT = { name: "energy", hdrK: 0.9, expandMs: 300, collapseTbc: true, 
     muts.forEach(function (m) { check(m.target); });
   }).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ["aria-expanded", "class"] });
 })();
+
+
+/* v10 · instant press feedback (pointerdown, not delayed :active) */
+(function () {
+  var SEL = "a, button, [role='button'], .card-head, .road-head, .past-toggle, .hdr-p, .round-btn, .highlights-link, .feed-pill, .callout-head, .v-close, .post";
+  var cur = null;
+  function press(e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    var t = e.target && e.target.closest && e.target.closest(SEL);
+    if (!t || t.classList.contains("highlights-soon")) return;
+    if (cur && cur !== t) cur.classList.remove("is-pressed");
+    t.classList.add("is-pressed");
+    cur = t;
+  }
+  function release() {
+    if (cur) { cur.classList.remove("is-pressed"); cur = null; }
+  }
+  document.addEventListener("pointerdown", press, { passive: true });
+  document.addEventListener("pointerup", release, { passive: true });
+  document.addEventListener("pointercancel", release, { passive: true });
+  document.addEventListener("pointerout", function (e) {
+    if (cur && e.target === cur) release();
+  }, { passive: true });
+})();

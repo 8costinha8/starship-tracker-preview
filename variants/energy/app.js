@@ -989,7 +989,9 @@ function RocketMark() {
 // ---- v5: free-drag photo carousel (transform track, drag gain, momentum, critically damped snap, live dots) ----
 // v8: two 4:3 tiles fully visible; slow autoplay glide (ping-pong) that yields to touch and resumes after AUTOPLAY_RESUME_MS.
 const AUTOPLAY_RESUME_MS = 3000, AUTOPLAY_PX = 30, AUTOPLAY_RAMP_MS = 600;
-function PhotoCarousel({ vehicles, children }) {
+// v10: hide dots under past-flight photo carousels. Set true to restore.
+const SHOW_PAST_CAROUSEL_DOTS = false;
+function PhotoCarousel({ vehicles, children, showDots = true }) {
   const vp = React.useRef(null), track = React.useRef(null), ind = React.useRef(null);
   const n = React.Children.count(children);
   React.useEffect(() => {
@@ -1024,7 +1026,7 @@ function PhotoCarousel({ vehicles, children }) {
       P = sw + GAP; const total = 32 + n * sw + (n - 1) * GAP;
       maxOff = Math.max(0, total - w);
       snaps = Array.from({ length: n }, (_, i) => Math.min(i * P, maxOff));
-      gain = clamp(maxOff / (1.3 * Math.min(window.innerWidth, 430)), 1, 6); // v6: ~5.5× (was ~9×) so a full swipe covers ~5–7 of 11 photos
+      gain = clamp(maxOff / (1.3 * Math.min(window.innerWidth, 430)) * 0.75, 1, 4.5); // v10: ~25% calmer than v9 (cap 4.5, was 6)
       render(clamp(off, 0, maxOff));
     };
     const nearest = (x) => { let b = 0, bd = 1e9; for (let i = 0; i < snaps.length; i++) { const d = Math.abs(snaps[i] - x); if (d < bd) { bd = d; b = i; } } return snaps[b]; };
@@ -1033,7 +1035,7 @@ function PhotoCarousel({ vehicles, children }) {
       const over = raw < 0 ? -raw : raw - maxOff, d = el.clientWidth, r = (1 - 1 / (over * 0.55 / d + 1)) * d;
       return raw < 0 ? -r : maxOff + r;
     };
-    const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; };
+    const stop = () => { if (raf) cancelAnimationFrame(raf); raf = 0; el.classList.remove("v-animating"); };
     const canAutoplay = () => visible && pageVisible && !reduceMotion() && n >= 2 && maxOff > 0 && !drag;
     const clearResume = () => { if (resumeTimer) { clearTimeout(resumeTimer); resumeTimer = 0; } };
     const stopAutoplay = () => { clearResume(); glide = null; };
@@ -1045,6 +1047,7 @@ function PhotoCarousel({ vehicles, children }) {
       const now = performance.now();
       glide = { dir: lastDir, ramp0: ramp ? now : now - AUTOPLAY_RAMP_MS };
       lastTick = now;
+      el.classList.add("v-animating");
       if (!raf) raf = requestAnimationFrame(tickGlide);
     };
     const scheduleResume = () => {
@@ -1072,13 +1075,14 @@ function PhotoCarousel({ vehicles, children }) {
       const t0 = performance.now();
       const tick = (now) => {
         const t = (now - t0) / 1000, e = Math.exp(-OMEGA * t), x = target + (d0 + (v + OMEGA * d0) * t) * e;
-        if (t > 0.9 || Math.abs(x - target) < 0.15) { render(target); raf = 0; scheduleResume(); return; }
+        if (t > 0.9 || Math.abs(x - target) < 0.15) { render(target); raf = 0; el.classList.remove("v-animating"); scheduleResume(); return; }
         render(x); raf = requestAnimationFrame(tick);
       };
+      el.classList.add("v-animating");
       raf = requestAnimationFrame(tick);
     };
     const coast = (v0) => {
-      let v = clamp(v0 * 0.45, -5, 5), x = off, last = performance.now(); // v6: fling ~35% calmer (was 0.7, ±8)
+      let v = clamp(v0 * 0.35, -4, 4), x = off, last = performance.now(); // v10: fling 0.35 / ±4 (was 0.45 / ±5)
       const tick = (now) => {
         const dt = Math.min(34, now - last); last = now;
         x += v * dt; v *= Math.exp(-dt / TAU);
@@ -1086,6 +1090,7 @@ function PhotoCarousel({ vehicles, children }) {
         if (Math.abs(v) < 0.4) { render(x); spring(x, v); return; }
         render(x); raf = requestAnimationFrame(tick);
       };
+      el.classList.add("v-animating");
       raf = requestAnimationFrame(tick);
     };
     const onDown = (e) => {
@@ -1118,8 +1123,8 @@ function PhotoCarousel({ vehicles, children }) {
       if (Math.abs(v) < 0.4) spring(off, v); else coast(v);
     };
     const onClick = (e) => { if (suppress) { e.preventDefault(); e.stopPropagation(); suppress = false; } };
-    el.addEventListener("pointerdown", onDown); el.addEventListener("pointermove", onMove);
-    el.addEventListener("pointerup", onUp); el.addEventListener("pointercancel", onUp);
+    el.addEventListener("pointerdown", onDown, { passive: true }); el.addEventListener("pointermove", onMove, { passive: true });
+    el.addEventListener("pointerup", onUp, { passive: true }); el.addEventListener("pointercancel", onUp, { passive: true });
     el.addEventListener("click", onClick, true);
     const onVis = () => { pageVisible = !document.hidden; if (!pageVisible) { stop(); stopAutoplay(); } else if (visible) startGlide(true); };
     document.addEventListener("visibilitychange", onVis);
@@ -1142,18 +1147,19 @@ function PhotoCarousel({ vehicles, children }) {
       <div className="gallery v-car" ref={vp} data-vehicles={vehicles ? "" : undefined}>
         <div className="v-track" ref={track}>{children}</div>
       </div>
-      {n > 1 ? <div className={"v-ind" + (n > 5 ? " v-ind-win" : "")} ref={ind} aria-hidden="true">{Array.from({ length: n }, (_, k) => <i key={k} />)}</div> : null}
+      {showDots && n > 1 ? <div className={"v-ind" + (n > 5 ? " v-ind-win" : "")} ref={ind} aria-hidden="true">{Array.from({ length: n }, (_, k) => <i key={k} />)}</div> : null}
     </>
   );
 }
 
-function PhotoSlot({ size, src, alt, onClick, credit = "SpaceX", label = null, focus }) {
+function PhotoSlot({ size, src, alt, onClick, credit = "SpaceX", label = null, focus, eager = false }) {
   const [failed, setFailed] = React.useState(false);
   React.useEffect(() => setFailed(false), [src]);
   if (src && !failed) {
+    const sizes = size === "thumb" ? "72px" : "(max-width: 899px) 48vw, 220px";
     return (
       <div className={`photo photo-${size} has-img${onClick ? " tappable" : ""}`} onClick={onClick}>
-        <img src={src} alt={alt || ""} loading="lazy" onError={() => setFailed(true)} style={focus ? { objectPosition: focus } : undefined} />
+        <img src={src} alt={alt || ""} loading={eager ? "eager" : "lazy"} decoding="async" fetchPriority={eager ? "high" : "low"} sizes={sizes} onError={() => setFailed(true)} style={focus ? { objectPosition: focus } : undefined} />
         {label && <span className="photo-label">{label}</span>}
         {credit && <span className="photo-credit">{credit}</span>}
       </div>
@@ -1369,7 +1375,7 @@ function cardPhotosOf(f, past, road) {
 }
 // Thumb: the flight's own photo, else (placeholder or none) its first Road milestone photo.
 const thumbOf = (f, past) => { const t = f.photo && f.photo.thumb; return t && t !== RTF_PLACEHOLDER ? t : galleryOf({ photo: {} }, past)[0] || t; };
-function FlightCard({ f, open, onTap, onPhotoTap, register, road }) {
+function FlightCard({ f, open, onTap, onPhotoTap, register, road, listIndex = 0 }) {
   // Page 1's Road to Flight N: the flight's road.archive summary through pastRoadGroup (ids, text,
   // photos), minus the Launch date card (the date is already in this card's header). Launched flights only.
   const group = React.useMemo(() => ((isLaunched(f.n) ? pastSummary(road, f.n) : []).length ? pastRoadGroup(road, f.n, FLIGHTS, ROAD_HIDDEN) : null), [road, f.n]); // launched flights with an archive only, never the next flight
@@ -1391,7 +1397,7 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road }) {
   return (
     <article ref={(el) => register(f.n, el)} className={`card${open ? " is-open" : ""}`}>
       <div className="card-head" role="button" tabIndex={0} aria-expanded={open} onClick={() => onTap(f.n)} onKeyDown={onKey}>
-        <PhotoSlot size="thumb" src={thumbOf(f, past)} alt={`Starship Flight ${f.n}`} onClick={thumbTap} />
+        <PhotoSlot size="thumb" src={thumbOf(f, past)} alt={`Starship Flight ${f.n}`} onClick={thumbTap} eager={listIndex < 2} />
         <div className="info">
           <div className="info-top">
             <div className="title"><span className="t-word">Starship Flight</span> <span className="t-num">{f.n}</span></div>
@@ -1429,14 +1435,16 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road }) {
               </div>
               </div></div>
             </>)}
-            <PhotoCarousel vehicles={cardPhotos.some((p) => p.vehicle)}>
+            {open ? (
+            <PhotoCarousel vehicles={cardPhotos.some((p) => p.vehicle)} showDots={SHOW_PAST_CAROUSEL_DOTS}>
               {cardPhotos.map((p, i) => (
                 <PhotoSlot key={i}
-                  size="wide" src={p.src} credit={p.credit || null} label={p.label || null} focus={p.focus} alt={p.vehicle ? `${p.label} \u2014 Flight ${f.n}` : `${f.headline} \u2014 photo ${i + 1}`}
+                  size="wide" src={p.src} credit={p.credit || null} label={p.label || null} focus={p.focus} eager={i < 2} alt={p.vehicle ? `${p.label} \u2014 Flight ${f.n}` : `${f.headline} \u2014 photo ${i + 1}`}
                   onClick={p.src ? () => onPhotoTap(p.src, p.vehicle ? `${p.label} \u2014 Flight ${f.n}` : `${f.headline} \u2014 photo ${i + 1}`) : undefined}
                 />
               ))}
             </PhotoCarousel>
+            ) : null}
             {f.highlights ? (
               <a className="highlights-link" href={f.highlights} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                 <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M4 2.5l7 4-7 4z" fill="currentColor" /></svg>
@@ -1703,7 +1711,7 @@ function Lightbox({ src, alt, onClose }) {
 
   return (
     <div className={`lightbox${src ? " show" : ""}`} onClick={onClose} role={src ? "dialog" : undefined} aria-modal={src ? "true" : undefined} aria-label={shown?.alt}>
-      {shown && <img src={shown.src} alt={shown.alt || ""} />}
+      {shown && <img src={shown.src} alt={shown.alt || ""} decoding="async" fetchPriority="high" />}
     </div>
   );
 }
@@ -2049,7 +2057,7 @@ function RoadCard({ road, onEntryTap, openReq, heroNet, netPending, heroFlight }
 function BoxPhoto({ src, crop, className }) {
   const [bad, setBad] = React.useState(false);
   if (bad || !src) return null;
-  return <img className={(className || "box-photo") + " " + cropClass({ crop })} src={localImg(src)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(src, () => setBad(true))} />;
+  return <img decoding="async" className={(className || "box-photo") + " " + cropClass({ crop })} src={localImg(src)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(src, () => setBad(true))} />;
 }
 function ParityCard({ e, onTap, open }) {
   return (
@@ -2072,7 +2080,7 @@ const flogWhen = (l) => (l.time ? `${l.day} · ${l.time}` : l.day);
 // Category icon: Raptor engines uses a custom engine image instead of its data emoji (push text keeps the emoji).
 const isRaptorCat = (c) => !!c && (c.id === "raptor" || c.name === "Raptor engines");
 function CatIcon({ c }) {
-  return isRaptorCat(c) ? <img className="cat-img" src="icons/raptor-icon.png" alt="" aria-hidden="true" /> : (c && c.icon) || null;
+  return isRaptorCat(c) ? <img decoding="async" className="cat-img" src="icons/raptor-icon.png" alt="" aria-hidden="true" /> : (c && c.icon) || null;
 }
 function FlogCard({ c }) {
   const [top, ...rest] = c.lines;
@@ -2140,7 +2148,7 @@ function SrcBadge({ author, url, image, keep }) {
   const rec = av && av[h.toLowerCase()];
   return (
     <a className="src-badge" href={url || `https://x.com/${h}`} target="_blank" rel="noopener noreferrer" title={`@${h} on X`} aria-label={`Photo by @${h}: open the post on X`} onClick={(e) => e.stopPropagation()}>
-      {rec && !bad ? <img src={rec.file} alt="" loading="lazy" onError={() => setBad(true)} /> : <span aria-hidden="true">{h[0].toUpperCase()}</span>}
+      {rec && !bad ? <img decoding="async" src={rec.file} alt="" loading="lazy" onError={() => setBad(true)} /> : <span aria-hidden="true">{h[0].toUpperCase()}</span>}
     </a>
   );
 }
@@ -2151,7 +2159,7 @@ function ContextMedia({ mc }) {
   return (
     <div className="xm xm-context">
       <div className="xm-grid n1"><a href={mc.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-        <img src={localImg(mc.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mc.image, () => setBad(true))} /></a>
+        <img decoding="async" src={localImg(mc.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mc.image, () => setBad(true))} /></a>
         <SrcBadge author={mc.author} url={mc.post_url} image={mc.image} keep={!!mc.keep_image} /></div>
       <div className="xm-foot">
         <a href={mc.post_url} target="_blank" rel="noopener noreferrer" aria-label="View on X" onClick={(e) => e.stopPropagation()}>View on X {LINK_ICON}</a></div>
@@ -3079,7 +3087,7 @@ function XVideo({ m, url }) {
     v.controls = true; setState("on");
     const pr = v.play(); if (pr && pr.catch) pr.catch(() => {});
   };
-  if (state === "failed") return <a href={url} target="_blank" rel="noopener noreferrer" onClick={stop}><img src={m.poster} alt="" loading="lazy" referrerPolicy="no-referrer" />{PLAY_ICON}</a>;
+  if (state === "failed") return <a href={url} target="_blank" rel="noopener noreferrer" onClick={stop}><img decoding="async" src={m.poster} alt="" loading="lazy" referrerPolicy="no-referrer" />{PLAY_ICON}</a>;
   return (
     <div className="xm-video" onClick={stop} onTouchEnd={stop}>
       <video ref={ref} poster={m.poster} playsInline webkit-playsinline="true" preload="none" muted={false}
@@ -3105,7 +3113,7 @@ function SplitMedia({ pair, onPhotoTap, alt }) {
         {pair.map((m, i) => (
           <a key={i} href={m.image} target="_blank" rel="noopener noreferrer" aria-label={`${alt} \u2014 photo ${i + 1}`}
             onClick={(e) => { e.stopPropagation(); if (onPhotoTap) { e.preventDefault(); onPhotoTap(m.image, `${alt} \u2014 photo ${i + 1}`); } }}>
-            <img className={cropClass(m)} src={localImg(m.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(m.image, () => setBad((b) => ({ ...b, [i]: true })))} /></a>))}
+            <img decoding="async" className={cropClass(m)} src={localImg(m.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(m.image, () => setBad((b) => ({ ...b, [i]: true })))} /></a>))}
         <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} />
       </div>
     </div>
@@ -3123,7 +3131,7 @@ function OneMedia({ mo }) {
   return (
     <div className="xm">
       <div className="xm-grid n1"><a href={mo.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-        <img className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</a>
+        <img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</a>
         <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} /></div>
       {/* credit-only photo: the photo and its badge already open the photo's post; the card keeps one View on X (its own post) */}
       {mo.credit_only && <div className="xm-foot"><span className="xm-ctx">{`Photo · @${mo.author}`}</span></div>}
@@ -3139,10 +3147,10 @@ function XMedia({ x }) {
     <div className="xm">
       <div className={"xm-grid n" + Math.min(media.length, 4)}>
         {media.slice(0, 4).map((m) => m.type === "photo"
-          ? <a key={m.i} href={x.url} target="_blank" rel="noopener noreferrer"><img src={m.url} alt="" loading="lazy" referrerPolicy="no-referrer" onError={off(m.i)} /></a>
+          ? <a key={m.i} href={x.url} target="_blank" rel="noopener noreferrer"><img decoding="async" src={m.url} alt="" loading="lazy" referrerPolicy="no-referrer" onError={off(m.i)} /></a>
           : m.video_url
           ? <XVideo key={m.i} m={m} url={x.url} />
-          : <a key={m.i} href={x.url} target="_blank" rel="noopener noreferrer"><img src={m.poster} alt="" loading="lazy" referrerPolicy="no-referrer" onError={off(m.i)} />{PLAY_ICON}</a>)}
+          : <a key={m.i} href={x.url} target="_blank" rel="noopener noreferrer"><img decoding="async" src={m.poster} alt="" loading="lazy" referrerPolicy="no-referrer" onError={off(m.i)} />{PLAY_ICON}</a>)}
         <SrcBadge author={(x.x_post && x.x_post.author && x.x_post.author.username) || x.author} url={x.url} />
       </div>
     </div>
@@ -4119,7 +4127,7 @@ function StarshipTracker() {
 
         {flights.map((f, i) => (
           <div key={f.n}>
-            <ErrorBoundary where={"past:" + f.n}><FlightCard f={f} open={openId === f.n} onTap={handleTap} onPhotoTap={(src, alt) => setLightbox({ src, alt })} register={register} road={road} /></ErrorBoundary>
+            <ErrorBoundary where={"past:" + f.n}><FlightCard f={f} open={openId === f.n} onTap={handleTap} onPhotoTap={(src, alt) => setLightbox({ src, alt })} register={register} road={road} listIndex={i} /></ErrorBoundary>
             {i < flights.length - 1 && <Connector label={daysLabel(daysBetween(flights[i + 1].date, f.date))} />}
           </div>
         ))}

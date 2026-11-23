@@ -391,3 +391,49 @@ body, #root { background-color: #0D111D; background-image: none; }
 html.v-browser, html.v-standalone, html.v-browser body, html.v-standalone body {
   background-color: #0D111D;
 }
+
+
+/* ═════════ v10 ═════════ */
+/* Instant press (is-pressed is set on pointerdown so iOS doesn't wait on :active). */
+.card-head.is-pressed { transform: scale(.965); }
+.road-head.is-pressed, .past-toggle.is-pressed { transform: scale(.97); }
+.round-btn.is-pressed, .hdr-p.is-pressed { transform: scale(.9); }
+.highlights-link.is-pressed { transform: scale(.96); }
+.post.is-pressed { transform: scale(.985); }
+.callout-head.is-pressed { transform: scale(.99); }
+
+/* Remove 300ms-style tap delay on tappable chrome. Carousel keeps pan-y. */
+.card-head, .road-head, .past-toggle, .round-btn, .hdr-p, .hdr-left, .highlights-link,
+.feed-pill, .callout-head, .v-close, button, a, [role="button"] { touch-action: manipulation; }
+.gallery.v-car { touch-action: pan-y; }
+
+/* will-change only while a carousel is actually moving */
+.v-track { will-change: auto; }
+.v-car.v-dragging .v-track, .v-car.v-animating .v-track { will-change: transform; }
+
+/* Road close: transition padding (it used to snap 10px→0 and glue Cryo to the pill)
+   and fade/slide the stack down as a unit so overflow-clip no longer pins the first card. */
+.next .road-list {
+  transition: grid-template-rows .5s cubic-bezier(.2,.8,.2,1);
+}
+.next .road-list-inner {
+  padding-top: 0;
+  opacity: 0;
+  transform: translate3d(0, 12px, 0);
+  transition:
+    padding-top .5s cubic-bezier(.2,.8,.2,1),
+    opacity .36s cubic-bezier(.2,.8,.2,1),
+    transform .5s cubic-bezier(.2,.8,.2,1);
+}
+.next.main-open .road-list-inner,
+section.road.main-open .road-list-inner,
+.main-open .road-list-inner {
+  padding-top: 10px;
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .next .road-list, .next .road-list-inner, .road-list, .road-list-inner { transition: none !important; }
+  .road-list-inner { transform: none !important; opacity: 1; }
+}
+html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !important; transition: none !important; opacity: 1; }

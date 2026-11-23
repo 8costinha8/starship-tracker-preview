@@ -1,0 +1,412 @@
+{
+  "load": {
+    "fp": 60,
+    "fcp": 60,
+    "lcp": {
+      "t": 1716,
+      "tag": "IMG",
+      "text": "Starship Flight 13"
+    },
+    "long": [
+      {
+        "t": 677.7000000476837,
+        "d": 138
+      },
+      {
+        "t": 816.1000000238419,
+        "d": 131
+      },
+      {
+        "t": 1271.2000000476837,
+        "d": 337
+      }
+    ],
+    "imgs": [
+      {
+        "name": "01-hero-ship-caught.jpg",
+        "dur": 20,
+        "start": 28,
+        "trans": 175912,
+        "typ": "link"
+      },
+      {
+        "name": "f14-thumb.jpg",
+        "dur": 7,
+        "start": 815,
+        "trans": 259643,
+        "typ": "img"
+      },
+      {
+        "name": "f13-thumb.jpg",
+        "dur": 13,
+        "start": 946,
+        "trans": 184041,
+        "typ": "img"
+      },
+      {
+        "name": "f12-thumb.jpg",
+        "dur": 13,
+        "start": 946,
+        "trans": 92759,
+        "typ": "img"
+      },
+      {
+        "name": "f11-thumb.jpg",
+        "dur": 13,
+        "start": 947,
+        "trans": 79180,
+        "typ": "img"
+      },
+      {
+        "name": "f10-thumb.jpg",
+        "dur": 16,
+        "start": 947,
+        "trans": 259109,
+        "typ": "img"
+      },
+      {
+        "name": "f8-thumb.jpg",
+        "dur": 18,
+        "start": 947,
+        "trans": 304951,
+        "typ": "img"
+      },
+      {
+        "name": "f9-thumb.jpg",
+        "dur": 33,
+        "start": 947,
+        "trans": 2877416,
+        "typ": "img"
+      },
+      {
+        "name": "f6-thumb.jpg",
+        "dur": 17,
+        "start": 948,
+        "trans": 49114,
+        "typ": "img"
+      },
+      {
+        "name": "f7-thumb.jpg",
+        "dur": 17,
+        "start": 948,
+        "trans": 32820,
+        "typ": "img"
+      },
+      {
+        "name": "f5-thumb.jpg",
+        "dur": 22,
+        "start": 948,
+        "trans": 714238,
+        "typ": "img"
+      },
+      {
+        "name": "icon-v20261114c-32.png",
+        "dur": 4,
+        "start": 1156,
+        "trans": 2022,
+        "typ": "other"
+      },
+      {
+        "name": "raptor-icon.png",
+        "dur": 5,
+        "start": 1608,
+        "trans": 4725,
+        "typ": "img"
+      },
+      {
+        "name": "amplify_video_thumb_2114755310996901888_img_xXXdVirUtQa3phNk.jpg",
+        "dur": 12,
+        "start": 1632,
+        "trans": 66011,
+        "typ": "img"
+      },
+      {
+        "name": "amplify_video_thumb_2115312114298654720_img_45WwvTRmJ8YoB0Fq.jpg",
+        "dur": 8,
+        "start": 1632,
+        "trans": 115678,
+        "typ": "img"
+      },
+      {
+        "name": "labpadre.jpg",
+        "dur": 11,
+        "start": 1632,
+        "trans": 1813,
+        "typ": "img"
+      },
+      {
+        "name": "media_HVsYHvSaQAAzZ3c.jpg",
+        "dur": 11,
+        "start": 1632,
+        "trans": 74035,
+        "typ": "img"
+      },
+      {
+        "name": "rgvaerialphotos.jpg",
+        "dur": 12,
+        "start": 1632,
+        "trans": 3104,
+        "typ": "img"
+      },
+      {
+        "name": "trackingthesb.jpg",
+        "dur": 13,
+        "start": 1632,
+        "trans": 2034,
+        "typ": "img"
+      }
+    ],
+    "scripts": [
+      {
+        "name": "react.production.min.js",
+        "dur": 568,
+        "start": 28,
+        "trans": 0,
+        "typ": "link"
+      },
+      {
+        "name": "react-dom.production.min.js",
+        "dur": 593,
+        "start": 28,
+        "trans": 0,
+        "typ": "link"
+      },
+      {
+        "name": "app.compiled.js",
+        "dur": 17,
+        "start": 28,
+        "trans": 356673,
+        "typ": "link"
+      },
+      {
+        "name": "notifications.js",
+        "dur": 20,
+        "start": 28,
+        "trans": 710,
+        "typ": "script"
+      },
+      {
+        "name": "variant.js",
+        "dur": 19,
+        "start": 28,
+        "trans": 16938,
+        "typ": "script"
+      },
+      {
+        "name": "cleanup.js",
+        "dur": 18,
+        "start": 29,
+        "trans": 25870,
+        "typ": "script"
+      },
+      {
+        "name": "flightlog.js",
+        "dur": 18,
+        "start": 29,
+        "trans": 16503,
+        "typ": "script"
+      },
+      {
+        "name": "road-pick.js",
+        "dur": 21,
+        "start": 29,
+        "trans": 7472,
+        "typ": "script"
+      },
+      {
+        "name": "handover.js",
+        "dur": 20,
+        "start": 29,
+        "trans": 10926,
+        "typ": "script"
+      }
+    ],
+    "imgCount": 19,
+    "imgBytes": 5298605,
+    "nav_to_next_ms": 1641.0910389968194,
+    "cdp": {}
+  },
+  "inter": {
+    "idle_raf": {
+      "frames": 120,
+      "avg": 16.81,
+      "max": 33.3,
+      "drop20": 1,
+      "drop33": 1,
+      "fps": 59.5
+    },
+    "tap_card_ms": {
+      "ms": 102.8,
+      "cls": "card is-open",
+      "pressed": false
+    },
+    "tap_road_ms": {
+      "ms": 10.2
+    },
+    "close_raf": {
+      "frames": 55,
+      "avg": 16.66,
+      "max": 16.8,
+      "drop20": 0,
+      "drop33": 0,
+      "fps": 60
+    }
+  },
+  "glue": [
+    [
+      0,
+      {
+        "headBottom": 374.19,
+        "listH": 487.28,
+        "padTop": "10px",
+        "opacity": 1,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "cryo": {
+          "y": 384.19,
+          "h": 69.55,
+          "gapToPill": 10,
+          "visibleH": 69.55
+        }
+      }
+    ],
+    [
+      50,
+      {
+        "headBottom": 374.19,
+        "listH": 291.58,
+        "padTop": "6.03306px",
+        "opacity": 0.472,
+        "transform": "matrix(1, 0, 0, 1, 0, 4.76032)",
+        "cryo": {
+          "y": 384.98,
+          "h": 69.55,
+          "gapToPill": 10.79,
+          "visibleH": 69.55
+        }
+      }
+    ],
+    [
+      100,
+      {
+        "headBottom": 374.19,
+        "listH": 152.88,
+        "padTop": "3.18208px",
+        "opacity": 0.197,
+        "transform": "matrix(1, 0, 0, 1, 0, 8.18151)",
+        "cryo": {
+          "y": 385.54,
+          "h": 69.55,
+          "gapToPill": 11.35,
+          "visibleH": 45.47
+        }
+      }
+    ],
+    [
+      160,
+      {
+        "headBottom": 374.19,
+        "listH": 73.39,
+        "padTop": "1.53291px",
+        "opacity": 0.075,
+        "transform": "matrix(1, 0, 0, 1, 0, 10.1605)",
+        "cryo": {
+          "y": 385.88,
+          "h": 69.55,
+          "gapToPill": 11.69,
+          "visibleH": 9.72
+        }
+      }
+    ],
+    [
+      220,
+      {
+        "headBottom": 374.19,
+        "listH": 36.67,
+        "padTop": "0.767372px",
+        "opacity": 0.027,
+        "transform": "matrix(1, 0, 0, 1, 0, 11.0792)",
+        "cryo": {
+          "y": 386.03,
+          "h": 69.55,
+          "gapToPill": 11.84,
+          "visibleH": 2.05
+        }
+      }
+    ],
+    [
+      300,
+      {
+        "headBottom": 374.19,
+        "listH": 13.7,
+        "padTop": "0.287082px",
+        "opacity": 0.004,
+        "transform": "matrix(1, 0, 0, 1, 0, 11.6555)",
+        "cryo": {
+          "y": 386.12,
+          "h": 69.55,
+          "gapToPill": 11.94,
+          "visibleH": 0.11
+        }
+      }
+    ],
+    [
+      400,
+      {
+        "headBottom": 374.19,
+        "listH": 2.53,
+        "padTop": "0.0531334px",
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 11.9362)",
+        "cryo": {
+          "y": 386.17,
+          "h": 69.55,
+          "gapToPill": 11.98,
+          "visibleH": 0
+        }
+      }
+    ],
+    [
+      500,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "padTop": "0px",
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "cryo": {
+          "y": 386.19,
+          "h": 69.55,
+          "gapToPill": 12,
+          "visibleH": 0
+        }
+      }
+    ],
+    [
+      600,
+      {
+        "headBottom": 374.19,
+        "listH": 0,
+        "padTop": "0px",
+        "opacity": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 12)",
+        "cryo": {
+          "y": 386.19,
+          "h": 69.55,
+          "gapToPill": 12,
+          "visibleH": 0
+        }
+      }
+    ]
+  ],
+  "swipe": {
+    "held": 785,
+    "after": 820,
+    "finger": 320,
+    "gain": 2.453125,
+    "photos_held": 4.786585365853658,
+    "photos_after": 5.0,
+    "n": 10,
+    "sw": 156,
+    "pitch": 164
+  }
+}

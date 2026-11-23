@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0F1424" />
+<title>Starship Tracker · Energy v10 (sandbox)</title>
+<meta name="description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+
+<!-- Link preview: what X, Reddit, WhatsApp, iMessage etc. show when someone shares the link -->
+<meta property="og:title" content="Starship Tracker">
+<meta property="og:description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://8costinha8.github.io/starship-tracker/">
+<meta property="og:image" content="https://8costinha8.github.io/starship-tracker/images/og-image-v20261114c.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Starship Tracker: next flight countdown and every flight so far">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Starship Tracker">
+<meta name="twitter:description" content="Countdown to the next Starship flight, plus the story of every flight so far. Free, no ads.">
+<meta name="twitter:image" content="https://8costinha8.github.io/starship-tracker/images/og-image-v20261114c.png">
+<meta name="twitter:image:alt" content="Starship Tracker: next flight countdown and every flight so far">
+
+<!-- PWA: makes the app installable with its own icon and name -->
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-v20261114c-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="icons/icon-v20261114c-16.png" type="image/png" sizes="16x16">
+<link rel="icon" href="icons/icon-v20261114c-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="icons/icon-v20261114c-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Starship">
+
+<script>/* v5: tell the CSS whether this is the Home Screen app (standalone) or the Safari browser */
+(function(){var de=document.documentElement,mq=window.matchMedia&&matchMedia("(display-mode: standalone)");
+function f(){var st=!!(navigator.standalone||(mq&&mq.matches));de.classList.toggle("v-standalone",st);de.classList.toggle("v-browser",!st);}
+f();if(mq&&mq.addEventListener)mq.addEventListener("change",f);window.__vStandaloneSync=f;})();</script>
+<style>html { margin:0; background-color:#0D111D; background-image:linear-gradient(#0F1424,#0F1424); background-repeat:no-repeat; background-size:100% 50vh; } body { margin:0; background-color:#0D111D; }</style>
+</head>
+<body><div id="sbx-flag" style="position:fixed;top:env(safe-area-inset-top,0);left:50%;transform:translateX(-50%);z-index:9999;background:#f5a623;color:#111;font:600 10px/1 system-ui;padding:3px 8px;border-radius:0 0 6px 6px;pointer-events:none">SANDBOX · ENERGY v10</div>
+<div id="root"></div>
+<!-- VARIANT: loads after #root so it wins over the in-app styles; variant.js sets window.VARIANT before app.js -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" as="style">
+<link rel="preload" href="variant.css?v=10" as="style">
+<link rel="preload" href="https://unpkg.com/react@18/umd/react.production.min.js" as="script">
+<link rel="preload" href="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" as="script">
+<link rel="preload" href="app.compiled.js?v=10" as="script">
+<link rel="preload" href="images/f15-story/01-hero-ship-caught.jpg" as="image">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="variant.css?v=10">
+<!-- v10: scripts are deferred (order preserved) so first paint isn't blocked. app.compiled.js is
+     pre-transformed JSX — Babel no longer runs in the browser. Source remains app.js. -->
+<script defer src="variant.js?v=10"></script>
+<script defer src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script defer src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script defer src="notifications.js"></script>
+<script defer src="scripts/cleanup.js"></script>
+<script defer src="scripts/flightlog.js"></script>
+<script defer src="scripts/handover.js"></script>
+<script defer src="scripts/road-pick.js"></script>
+
+<!-- Bug A fix (flag "noPinch"): the iOS elastic pinch-zoom-out shrinks the whole page (header included) to ~70% and springs back.
+     touch-action stops the pinch on modern iOS; the gesture* listeners cover Safari/home-screen mode. Zoom for accessibility stays available through iOS Accessibility Zoom. -->
+<style>html.fx-nopinch { touch-action: pan-x pan-y; }</style>
+<script>
+(function () {
+  function on() { try { return window.SBX && typeof window.SBX.flag === "function" ? !!window.SBX.flag("noPinch") : true; } catch (e) { return true; } }
+  function sync() { document.documentElement.classList.toggle("fx-nopinch", on()); }
+  sync(); window.addEventListener("sbx-flags", sync); window.addEventListener("load", sync);
+  ["gesturestart", "gesturechange", "gesturend"].forEach(function (t) {
+    document.addEventListener(t, function (e) { if (on()) e.preventDefault(); }, { passive: false });
+  });
+})();
+</script>
+<script defer src="app.compiled.js?v=10"></script>
+</body>
+</html>
