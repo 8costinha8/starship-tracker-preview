@@ -1,0 +1,97 @@
+name: Flight change checker
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes
+  workflow_dispatch:          # adds a "Run workflow" button for manual testing
+    inputs:
+      test_mode:
+        description: "Dry-run both checkers (real sources + Claude, but no commit, no push, no notifications sent)"
+        type: boolean
+        default: false
+      stale_hours:
+        description: "Test mode only: how many hours back the road checker looks (blank = normal 72h + last road.json update)"
+        type: string
+        default: ""
+      writer:
+        description: "Which AI writes (Road lines, dates, news, flight stories). Grok falls back to Claude on any error."
+        type: choice
+        options:
+          - grok
+          - claude
+        default: grok
+      test_push:
+        description: "Send ONE test notification to every subscribed device, then stop (skips both checkers, changes nothing)"
+        type: boolean
+        default: false
+      test_title:
+        description: "test_push only: optional title (blank = the standard test text)"
+        type: string
+        default: ""
+      test_body:
+        description: "test_push only: optional body"
+        type: string
+        default: ""
+      test_link:
+        description: "test_push only: optional link opened on tap (e.g. https://8costinha8.github.io/starship-tracker/?feed=1)"
+        type: string
+        default: ""
+      send_push:
+        description: "One-off: send ONE existing Updates feed item (its id from road.json feed_items) as a real push, log it, then stop (skips both checkers)"
+        type: string
+        default: ""
+
+permissions:
+  contents: write   # needed so the checkers can commit + push app.js / road.json
+  actions: write    # needed so check-flights can dispatch mission-alert.yml
+
+# never let two runs overlap (both could try to push at once)
+concurrency:
+  group: flight-checker
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install firebase-admin
+      - run: node scripts/check-flights.js
+        if: ${{ !inputs.test_push && !inputs.send_push }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          WRITER: ${{ inputs.writer || 'grok' }}
+          TEST_MODE: ${{ inputs.test_mode }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # Road to Flight N card. Runs even if the step above failed.
+      - run: node scripts/check-road.js
+        if: ${{ !cancelled() && !inputs.test_push && !inputs.send_push }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          WRITER: ${{ inputs.writer || 'grok' }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}   # optional: leave unset to skip X
+          TEST_MODE: ${{ inputs.test_mode }}
+          ROAD_STALE_HOURS: ${{ inputs.stale_hours }}
+          ROAD_MIX_PREVIEW: ${{ github.ref_name == 'road-mix' && inputs.test_mode && '1' || '' }}
+      # One-off test notification (manual runs only, never on schedule)
+      - run: node scripts/test-push.js
+        if: ${{ inputs.test_push }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          TEST_PUSH_TITLE: ${{ inputs.test_title }}
+          TEST_PUSH_BODY: ${{ inputs.test_body }}
+          TEST_PUSH_LINK: ${{ inputs.test_link }}
+      # One-off push of an existing feed item (manual runs only, never on schedule)
+      - run: node scripts/send-oneoff.js "$SEND_PUSH_ID"
+        if: ${{ inputs.send_push && !inputs.test_push }}
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SEND_PUSH_ID: ${{ inputs.send_push }}
