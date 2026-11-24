@@ -2530,21 +2530,7 @@ let AVATARS = null; const avatarSubs = new Set();
 fetch("icons/avatars/index.json").then((r) => r.json()).then((j) => { AVATARS = (j && j.avatars) || {}; avatarSubs.forEach((f) => f(AVATARS)); }).catch(() => { AVATARS = {}; avatarSubs.forEach((f) => f(AVATARS)); });
 const badgeHandleOf = (author, url) => String(author || (String(url || "").match(/x\.com\/([A-Za-z0-9_]{1,15})\/status\//) || [])[1] || "").replace(/^@/, "");
 const NO_BADGE_IMAGES = () => [SHIP_CRYO_IMAGE, RTF_PLACEHOLDER];
-// Road card photo credit (24 Nov footer): a small labelled badge in the image corner, "📷 @handle" (own photo)
-// or "📷 @handle · 28 Oct" (fallback photo from an earlier post). It opens the PHOTO's post; the card's
-// footer link opens the headline post. Standing/placeholder pictures get no badge (same rule as SrcBadge).
-const CAM_ICON = <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.25 5.25c0-.55.45-1 1-1h1.9l1.1-1.5h3.5l1.1 1.5h1.9c.55 0 1 .45 1 1v6.75c0 .55-.45 1-1 1h-9.5c-.55 0-1-.45-1-1z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" /><circle cx="8" cy="8.5" r="2.4" fill="none" stroke="currentColor" strokeWidth="1.4" /></svg>;
-function PhotoBadge({ author, url, image, keep, date }) {
-  const h = badgeHandleOf(author, url);
-  if (!h || (image && NO_BADGE_IMAGES().includes(image) && !keep)) return null;
-  return (
-    <a className="photo-badge" href={url || `https://x.com/${h}`} target="_blank" rel="noopener noreferrer"
-      aria-label={`Photo by @${h}${date ? ", " + date : ""}: open the photo's post on X`} onClick={(e) => e.stopPropagation()}>
-      {CAM_ICON}<span className="pb-h">@{h}</span>{date && <span className="pb-d">· {date}</span>}
-    </a>
-  );
-}
-function SrcBadge({ author, url, image, keep }) {
+function SrcBadge({ author, url, image, keep, date }) {
   const [av, setAv] = React.useState(AVATARS);
   const [bad, setBad] = React.useState(false);
   React.useEffect(() => { if (AVATARS) return; avatarSubs.add(setAv); return () => avatarSubs.delete(setAv); }, []);
@@ -2552,11 +2538,14 @@ function SrcBadge({ author, url, image, keep }) {
   if (!h || (image && NO_BADGE_IMAGES().includes(image) && !keep)) return null;
   const rec = av && av[h.toLowerCase()];
   return (
-    <a className="src-badge" href={url || `https://x.com/${h}`} target="_blank" rel="noopener noreferrer" title={`@${h} on X`} aria-label={`Photo by @${h}: open the post on X`} onClick={(e) => e.stopPropagation()}>
+    <a className="src-badge" href={url || `https://x.com/${h}`} target="_blank" rel="noopener noreferrer" title={`@${h} on X${date ? " · photo " + date : ""}`} aria-label={`Photo by @${h}${date ? ", " + date : ""}: open the post on X`} onClick={(e) => e.stopPropagation()}>
       {rec && !bad ? <img decoding="async" src={rec.file} alt="" loading="lazy" onError={() => setBad(true)} /> : <span aria-hidden="true">{h[0].toUpperCase()}</span>}
     </a>
   );
 }
+// 24 Nov footer: the handle a card's round photo badge shows (null = no badge), so the footer never names it again.
+const badgeShownFor = (mo) => { const m = mo && (mo.pair ? mo.pair[1] : mo); if (!m || !m.image) return null;
+  const h = badgeHandleOf(m.author, m.post_url); return h && !(NO_BADGE_IMAGES().includes(m.image) && !m.keep_image) ? h.toLowerCase() : null; };
 // Context picture for a milestone that hasn't happened yet: an earlier trusted post's photo of the same hardware.
 function ContextMedia({ mc }) {
   const [bad, setBad] = React.useState(false);
@@ -3520,7 +3509,7 @@ function SplitMedia({ pair, onPhotoTap, alt, road, date }) {
           <a key={i} href={m.image} target="_blank" rel="noopener noreferrer" aria-label={`${alt} \u2014 photo ${i + 1}`}
             onClick={(e) => { e.stopPropagation(); if (onPhotoTap) { e.preventDefault(); onPhotoTap(m.image, `${alt} \u2014 photo ${i + 1}`); } }}>
             <img decoding="async" className={cropClass(m)} src={localImg(m.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(m.image, () => setBad((b) => ({ ...b, [i]: true })))} /></a>))}
-        {road ? <PhotoBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} date={date} /> : <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} />}
+        <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} date={road ? date : undefined} />
       </div>
     </div>
   );
@@ -3538,7 +3527,7 @@ function OneMedia({ mo }) {
     <div className="xm">
       <div className="xm-grid n1"><a href={mo.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
         <img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</a>
-        {mo.road ? <PhotoBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.photo_date} /> : <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} />}</div>
+        <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.road ? mo.photo_date : undefined} /></div>
       {/* credit-only photo: the photo and its badge already open the photo's post; the card keeps one View on X (its own post) */}
       {!mo.road && (mo.photo_date || mo.credit_only) && <div className="xm-foot"><span className="xm-ctx">{mo.photo_date ? `Photo · ${mo.photo_date}` : `Photo · @${mo.author}`}</span></div>}
     </div>
@@ -3570,19 +3559,20 @@ const openUrl = (u) => window.open(u, "_blank", "noopener,noreferrer");
 const linkProps = (h) => { const u = urlOf(h); return u ? { role: "link", tabIndex: 0, "aria-label": `${h.x_text || h.text} — open ${h.x_post ? "the post on X" : "the source"}`,
   onClick: (e) => { if (!e.target.closest("a, video, button, .xm-video")) openUrl(u); }, onKeyDown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) openUrl(u); } } : {}; };
 // One small right-aligned "View on X ↗" line per post (the link is the attribution; the handle stays in its aria-label). No separate chip/icon row.
-const X_ICON = <svg className="x-glyph" width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z" /></svg>;
-// 24 Nov footer: the card's one source link. X post → "𝕏 @handle ↗"; other sources → "NSF · View article ↗".
-function SourceLink({ href, handle, label }) {
+// 24 Nov footer: the card's one link, always the headline post. A source is never named twice on a card:
+// when the round photo badge already shows the same handle the link is just "View on X ↗"; otherwise
+// "@handle · View on X ↗" (the story credit). Other sources: "NSF · View article ↗".
+function SourceLink({ href, handle, label, photoBy }) {
   const x = rtfIsX(href), hd = handle ? String(handle).replace(/^@?/, "@") : "";
-  const text = x ? (hd || "View on X") : label;
+  const named = x && hd && hd.slice(1).toLowerCase() !== photoBy;
   return (<div className="xm-foot post-credit src-link">
-    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={x ? `Source post${hd ? " by " + hd : ""}: open it on X` : `Source: ${label}`} onClick={(e) => e.stopPropagation()}>
-      {x && X_ICON}<span className="sl-t">{text}</span>{LINK_ICON}</a></div>);
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={x ? `View the post${hd ? " by " + hd : ""} on X` : `Source: ${label}`} onClick={(e) => e.stopPropagation()}>
+      {named && <span className="sl-h">{hd}</span>}{named && <span className="sl-sep">·</span>}<span className="sl-t">{x ? "View on X" : label}</span>{LINK_ICON}</a></div>);
 }
-function CreditLine({ h }) {
+function CreditLine({ h, photoBy }) {
   const u = urlOf(h), who = srcOf(h), isX = /^https?:\/\/(x|twitter)\.com\//i.test(u || "");
   if (!u) return null; // no post, no line (no standalone credit)
-  if (FOOTER_V2) return <SourceLink href={u} handle={isX && /^@/.test(who || "") ? who : handleOf({ url: u })} label={`${who ? who + " · " : ""}View source`} />;
+  if (FOOTER_V2) return <SourceLink href={u} handle={isX && /^@/.test(who || "") ? who : handleOf({ url: u })} label={`${who ? who + " · " : ""}View source`} photoBy={photoBy} />;
   return (<div className="xm-foot post-credit">
     {u && <a href={u} target="_blank" rel="noopener noreferrer" aria-label={`${isX ? "View on X" : "View source"}${who ? ": " + who : ""}`} onClick={(e) => e.stopPropagation()}>{isX ? "View on X" : "View source"} {LINK_ICON}</a>}</div>);
 }
@@ -3666,9 +3656,9 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
       </div>
       <p className="post-text">{scrub(h.card_text || h.x_text || h.text)}</p>
       {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
-      {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one source link (the headline post, "@handle ↗") right */}
+      {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
       <div className="card-foot">
-        {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} /> : <CreditLine h={h} />}
+        {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} photoBy={badgeShownFor(mo)} /> : <CreditLine h={h} photoBy={badgeShownFor(mo)} />}
         {String(h.id || "").startsWith("rtf-") ? <RtfBuildUp h={h} /> : <FeedBuildUp h={h} idx={idx} />}
       </div>
     </article>
@@ -3680,15 +3670,15 @@ const rtfIsX = (u) => /^https?:\/\/(x|twitter)\.com\//i.test(u || "");
 const rtfLinkText = (u) => (rtfIsX(u) ? "View on X" : isYouTube(u) ? "View video" : "View article");
 const rtfWho = (u, hd) => { const w = rtfIsX(u.url) ? (hd ? String(hd).replace(/^@?/, "@") : "") : String(u.src || "").replace(/^@/, "").trim() || hostOf(u.url); return w ? `${w} · ` : ""; };
 // Main post of a two-cards card: same View on X line; a source CreditLine can't link (YouTube) still opens its stored url.
-const FOOTER_V2 = true; // 24 Nov Road card footer (photo badge + one source link)
-function RtfCredit({ h }) {
+const FOOTER_V2 = true; // 24 Nov Road card footer (round photo badge only; one tidy row, one link)
+function RtfCredit({ h, photoBy }) {
   const headUrl = h && h.url, photoUrl = urlOf(h);
   if (FOOTER_V2) {
     // The headline post only: a fallback photo's own post lives in the image badge, never a second "View on X".
     const u = headUrl || photoUrl;
     if (!u) return null;
     const hd = h.handle || (String(h.src || "").startsWith("@") ? h.src : handleOf({ url: u }));
-    return <SourceLink href={u} handle={hd} label={`${rtfWho({ url: u, src: h.src }, null)}${rtfLinkText(u)}`} />;
+    return <SourceLink href={u} handle={hd} label={`${rtfWho({ url: u, src: h.src }, null)}${rtfLinkText(u)}`} photoBy={photoBy} />;
   }
   const line = (href, label) => <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} onClick={(e) => e.stopPropagation()}>{label} {LINK_ICON}</a>;
   // Fallback photo: one existing .post-credit box (still shares the Earlier updates row) holds
@@ -5859,23 +5849,15 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 
 
 /* ═════════ 24 Nov · Road card footer (preview) ═════════ */
-/* photo credit: a small labelled badge in the image corner (opens the photo's post) */
-.xm-grid > a.photo-badge, .xm-split > a.photo-badge { position: absolute; left: 8px; bottom: 8px; right: auto; z-index: 2; display: inline-flex; align-items: center; gap: 5px;
-  box-sizing: border-box; max-width: calc(100% - 16px); height: 24px; min-height: 0; min-width: 0; padding: 0 9px 0 7px; border-radius: 999px;
-  background: rgba(10,14,24,.66); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 2px 8px rgba(0,0,0,.35);
-  color: #E8EDFA; font-size: 11px; font-weight: 600; line-height: 1; letter-spacing: .01em; text-decoration: none; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
-.xm-grid > a.photo-badge::before, .xm-split > a.photo-badge::before { content: ""; position: absolute; left: -8px; right: -8px; top: -10px; bottom: -10px; } /* 44px tap area */
-.photo-badge svg { flex: none; width: 12px; height: 12px; opacity: .9; }
-.photo-badge .pb-h { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.photo-badge .pb-d { flex: none; color: #B9C3DD; font-weight: 500; }
-.photo-badge:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 2px; }
 /* footer: one row under the photo (or text): Earlier updates toggle left, source link right; the list opens full width below */
 .post > .card-foot { display: flow-root; margin-top: 6px; }
 .post > .card-foot:empty { display: none; }
 .card-foot > .post-credit.src-link { float: right; position: relative; z-index: 1; margin: 0 0 0 12px; max-width: calc(100% - 116px); min-height: var(--tap); line-height: 1; display: flex; align-items: center; } /* never pushes the toggle onto a second row (320px) */
 .card-foot > .post-credit.src-link a { display: inline-flex; align-items: center; gap: 5px; min-height: var(--tap); max-width: 100%; min-width: 0; font-size: 12.5px; font-weight: 600; color: #A9BDF0; text-decoration: none; }
-.card-foot > .post-credit.src-link .sl-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card-foot > .post-credit.src-link .x-glyph { width: 11px; height: 11px; flex: none; opacity: .85; }
+.card-foot > .post-credit.src-link .sl-h { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* a long handle shortens, "View on X" never does */
+.card-foot > .post-credit.src-link .sl-sep { flex: none; opacity: .7; }
+.card-foot > .post-credit.src-link .sl-t { flex: none; white-space: nowrap; }
+@media (max-width: 340px) { .card-foot > .post-credit.src-link .sl-h, .card-foot > .post-credit.src-link .sl-sep { display: none; } } /* 320px: just "View on X ↗" (the handle stays in the aria-label) */
 .card-foot > .post-credit.src-link a > svg:last-child { width: 12px; height: 12px; flex: none; opacity: .8; }
 .card-foot > .buildup.feed-bu { margin-top: 0; }
 .card-foot > .buildup.feed-bu > summary { display: inline-flex; align-items: center; gap: 7px; min-height: var(--tap); line-height: 1; padding: 0; font-size: 12.5px; font-weight: 600; color: var(--muted, #AAB6D6); -webkit-tap-highlight-color: transparent; }
@@ -5884,7 +5866,6 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 .card-foot > .buildup.feed-bu[open] > summary::after { content: ""; transform: translateY(2px) rotate(-135deg); }
 .card-foot > .buildup.feed-bu > summary:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 2px; border-radius: 6px; }
 .card-foot > .buildup.feed-bu > ul { clear: both; margin-top: 0; }
-@media (max-width: 340px) { .card-foot > .post-credit.src-link .x-glyph { display: none; } }
 
 `;
 
