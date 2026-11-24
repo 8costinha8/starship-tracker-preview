@@ -1775,7 +1775,7 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road, listIndex = 0 
               <button type="button" ref={pastBarRef} className={"past-toggle" + (pastOpen ? " open" : "")} aria-expanded={pastOpen} aria-controls={`past-${f.n}`}
                 tabIndex={open ? 0 : -1} onClick={(e) => { e.stopPropagation(); setPastOpen((v) => !v); }} onKeyDown={(e) => e.stopPropagation()}>
                 <span className="past-toggle-title">{`Road to Flight ${f.n}`}</span>
-                <span className="road-dots">{pastDots.map((m) => <i key={m.id} className="dot dot-done" style={catVars(m.id, m.color)} title={m.name + ": " + (ROAD_DONE_LABEL[m.id] || "Complete")} aria-label={m.name + ": " + (ROAD_DONE_LABEL[m.id] || "Complete")} role="img" />)}</span>
+                <span className="road-dots">{pastDots.map((m) => <i key={m.id} className="dot dot-done" data-cat={m.id} style={catVars(m.id, m.color)} title={m.name + ": " + (ROAD_DONE_LABEL[m.id] || "Complete")} aria-label={m.name + ": " + (ROAD_DONE_LABEL[m.id] || "Complete")} role="img" />)}</span>
                 <span className="road-count"><span className="rc-full">{pastDots.length} of {pastDots.length} done</span><span className="rc-slash">{pastDots.length}/{pastDots.length}</span></span>
                 <svg className="past-chev" width="16" height="16" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5.5l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>
               </button>
@@ -2354,7 +2354,7 @@ const ROAD_BOX_IDS = ["cryo", "raptor", "static", "pad", "faa", "date"];
 const parityText = (h) => scrub(String((h && (h.card_text || h.x_text || h.text)) || ""));
 function parityEarlier(h) {
   if (String(h.id || "").startsWith("rtf-")) // RtfBuildUp
-    return (h.updates || []).slice().sort((a, b) => (Date.parse(upIso(b)) || 0) - (Date.parse(upIso(a)) || 0))
+    return (h.updates || []).slice().sort((a, b) => (tripChrono(h) ? -1 : 1) * ((Date.parse(upIso(b)) || 0) - (Date.parse(upIso(a)) || 0)))
       .map((u) => { const iso = upIso(u); return { date: iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date), text: scrub(cardT(u)).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "") }; });
   return roadUpdates(h).map(({ u, when }) => ({ date: when || entryDate(u), text: scrub(cardT(u)) })); // FeedBuildUp
 }
@@ -2409,7 +2409,7 @@ function RoadCard({ road, onEntryTap, openReq, heroNet, netPending, heroFlight }
       <button ref={barRef} className="road-head" aria-expanded={main} onClick={() => { setMain(!main); setOpen(null); }}>
         <span className="road-title"><h2>{title}</h2></span>
         <span className="road-sum">
-          <span className="road-dots">{items.map((m) => <i key={m.id} className={"dot dot-" + m.status} style={catVars(m.id, m.color)} title={m.name + ": " + label(m)} aria-label={m.name + ": " + label(m)} role="img" />)}</span>
+          <span className="road-dots">{items.map((m) => <i key={m.id} className={"dot dot-" + m.status} data-cat={m.id} style={catVars(m.id, m.color)} title={m.name + ": " + label(m)} aria-label={m.name + ": " + label(m)} role="img" />)}</span>
           <span className="road-count"><span className="rc-full">{done} of {items.length} done</span><span className="rc-slash">{done}/{items.length}</span></span>
           {stale.stale && <span className="road-xoff road-stale" title={`Data may be out of date: ${stale.why}. Last check ${ageWords(stale.ageMin)} ago.`}>Not updated for {ageWords(stale.ageMin)}</span>}
           {xOff && <span className="road-xoff" title="The checker cannot read X right now (X API credits). Cards from other sources still update.">X feed offline</span>}
@@ -2543,10 +2543,6 @@ function SrcBadge({ author, url, image, keep, date }) {
     </a>
   );
 }
-// 24 Nov footer: the handle a card's round photo badge shows (null = no badge), so the footer never names it again.
-const PhotoByCtx = React.createContext(null); // FeedPost → its footer link: the handle already on the photo badge
-const badgeShownFor = (mo) => { const m = mo && (mo.pair ? mo.pair[1] : mo); if (!m || !m.image) return null;
-  const h = badgeHandleOf(m.author, m.post_url); return h && !(NO_BADGE_IMAGES().includes(m.image) && !m.keep_image) ? h.toLowerCase() : null; };
 // Context picture for a milestone that hasn't happened yet: an earlier trusted post's photo of the same hardware.
 function ContextMedia({ mc }) {
   const [bad, setBad] = React.useState(false);
@@ -2699,13 +2695,10 @@ function pastTiers(box, text, vehicle) {
   });
   return out.slice(0, 3);
 }
-// Category CSS vars. 24 Nov (preview): Raptor engines is rose #FF6B8B ("Raptor flame"), 6.7:1 on the card (#10151F) and
-// 6.3:1 on the section (#161C2C); the old near-black #0E0F11 was 1.05:1 and invisible on navy. scripts/test-contrast.js
-// keeps every category colour at 3:1 or more. RAPTOR_COLOR wins over a stale road.json colour until the data catches up.
-const RAPTOR_COLOR = "#FF6B8B";
-const CAT_FILL = {}; // no per-category fill overrides: ring, fill and accent all use --c
-const catVars = (id, c) => Object.assign({ "--c": id === "raptor" ? RAPTOR_COLOR : c }, CAT_FILL[id] || {});
-const PAST_COLOR = { cryo: "#BFE6FF", raptor: "#FF6B8B", static: "#FF9A3D", pad: "#A88BFF", faa: "#2FD3B0", date: "#FFC93D" };
+// Category CSS vars. Raptor engines is near-black #0E0F11 (option A2): ring and fill identical, light rims and a graphite halo keep it visible on navy.
+const CAT_FILL = { raptor: { "--bg": "#0E0F11", "--on": "#E8EAEE", "--t": "#0E0F11" } }; // Raptor (A2): near-black #0E0F11 ring, fill, accent and connector; white title, see-through pill (CSS below)
+const catVars = (id, c) => Object.assign({ "--c": c }, CAT_FILL[id] || {});
+const PAST_COLOR = { cryo: "#BFE6FF", raptor: "#0E0F11", static: "#FF9A3D", pad: "#A88BFF", faa: "#2FD3B0", date: "#FFC93D" };
 const PAST_DAY = /(\d{1,2}\s+[A-Z][a-z]{2})/;
 const pastDay = (s) => { const m = String(s || "").match(PAST_DAY); return m ? m[1] : ""; };
 // Dates and lines for the Full stack / Licence cards: archive items, archive entries, and
@@ -3563,21 +3556,18 @@ const openUrl = (u) => window.open(u, "_blank", "noopener,noreferrer");
 const linkProps = (h) => { const u = urlOf(h); return u ? { role: "link", tabIndex: 0, "aria-label": `${h.x_text || h.text} — open ${h.x_post ? "the post on X" : "the source"}`,
   onClick: (e) => { if (!e.target.closest("a, video, button, .xm-video")) openUrl(u); }, onKeyDown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) openUrl(u); } } : {}; };
 // One small right-aligned "View on X ↗" line per post (the link is the attribution; the handle stays in its aria-label). No separate chip/icon row.
-// 24 Nov footer: the card's one link, always the headline post. A source is never named twice on a card:
-// when the round photo badge already shows the same handle the link is just "View on X ↗"; otherwise
-// "@handle · View on X ↗" (the story credit). Other sources: "NSF · View article ↗".
-function SourceLink({ href, handle, label, photoBy }) {
-  const x = rtfIsX(href), hd = handle ? String(handle).replace(/^@?/, "@") : "";
-  const named = x && hd && hd.slice(1).toLowerCase() !== photoBy;
+// 24 Nov footer (v3): the card's one link, always the headline post, and never a handle: "View on X ↗"
+// ("View article ↗" / "View video ↗" for other sources). The photo's source is credited only by the round badge.
+function SourceLink({ href }) {
+  const x = rtfIsX(href), t = rtfLinkText(href);
   return (<div className="xm-foot post-credit src-link">
-    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={x ? `View the post${hd ? " by " + hd : ""} on X` : `Source: ${label}`} onClick={(e) => e.stopPropagation()}>
-      {named && <span className="sl-h">{hd}</span>}{named && <span className="sl-sep">·</span>}<span className="sl-t">{x ? "View on X" : label}</span>{LINK_ICON}</a></div>);
+    <a href={href} target="_blank" rel="noopener noreferrer" aria-label={x ? "View the post on X" : t} onClick={(e) => e.stopPropagation()}>
+      <span className="sl-t">{t}</span>{LINK_ICON}</a></div>);
 }
 function CreditLine({ h }) {
-  const photoBy = React.useContext(PhotoByCtx);
   const u = urlOf(h), who = srcOf(h), isX = /^https?:\/\/(x|twitter)\.com\//i.test(u || "");
   if (!u) return null; // no post, no line (no standalone credit)
-  if (FOOTER_V2) return <SourceLink href={u} handle={isX && /^@/.test(who || "") ? who : handleOf({ url: u })} label={`${who ? who + " · " : ""}View source`} photoBy={photoBy} />;
+  if (FOOTER_V2) return <SourceLink href={u} />;
   return (<div className="xm-foot post-credit">
     {u && <a href={u} target="_blank" rel="noopener noreferrer" aria-label={`${isX ? "View on X" : "View source"}${who ? ": " + who : ""}`} onClick={(e) => e.stopPropagation()}>{isX ? "View on X" : "View source"} {LINK_ICON}</a>}</div>);
 }
@@ -3662,10 +3652,10 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
       <p className="post-text">{scrub(h.card_text || h.x_text || h.text)}</p>
       {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
       {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
-      <PhotoByCtx.Provider value={badgeShownFor(mo)}><div className="card-foot">
+      <div className="card-foot">
         {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} /> : <CreditLine h={h} />}
         {String(h.id || "").startsWith("rtf-") ? <RtfBuildUp h={h} /> : <FeedBuildUp h={h} idx={idx} />}
-      </div></PhotoByCtx.Provider>
+      </div>
     </article>
   );
 }
@@ -3675,16 +3665,14 @@ const rtfIsX = (u) => /^https?:\/\/(x|twitter)\.com\//i.test(u || "");
 const rtfLinkText = (u) => (rtfIsX(u) ? "View on X" : isYouTube(u) ? "View video" : "View article");
 const rtfWho = (u, hd) => { const w = rtfIsX(u.url) ? (hd ? String(hd).replace(/^@?/, "@") : "") : String(u.src || "").replace(/^@/, "").trim() || hostOf(u.url); return w ? `${w} · ` : ""; };
 // Main post of a two-cards card: same View on X line; a source CreditLine can't link (YouTube) still opens its stored url.
-const FOOTER_V2 = true; // 24 Nov Road card footer (round photo badge only; one tidy row, one link)
+const FOOTER_V2 = true; // 24 Nov Road card footer (round photo badge only; one tidy row: Earlier updates + View on X)
 function RtfCredit({ h }) {
-  const photoBy = React.useContext(PhotoByCtx);
   const headUrl = h && h.url, photoUrl = urlOf(h);
   if (FOOTER_V2) {
     // The headline post only: a fallback photo's own post lives in the image badge, never a second "View on X".
     const u = headUrl || photoUrl;
     if (!u) return null;
-    const hd = h.handle || (String(h.src || "").startsWith("@") ? h.src : handleOf({ url: u }));
-    return <SourceLink href={u} handle={hd} label={`${rtfWho({ url: u, src: h.src }, null)}${rtfLinkText(u)}`} photoBy={photoBy} />;
+    return <SourceLink href={u} />;
   }
   const line = (href, label) => <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label} onClick={(e) => e.stopPropagation()}>{label} {LINK_ICON}</a>;
   // Fallback photo: one existing .post-credit box (still shares the Earlier updates row) holds
@@ -3700,6 +3688,7 @@ function RtfCredit({ h }) {
 // Two-cards layout: every post of this vehicle + category, newest first, no pictures; date · time + text, the whole pill opens the post.
 function RtfBuildUp({ h }) {
   const rows = (h.updates || []).slice().sort((a, b) => (Date.parse(upIso(b)) || 0) - (Date.parse(upIso(a)) || 0));
+  if (tripChrono(h)) rows.reverse();
   if (!rows.length) return null;
   const stop = (e) => e.stopPropagation();
   return (
@@ -3846,7 +3835,11 @@ function cardFaceOrFallback(own, list, cid, done) {
   }
   return { pic: null, fallback: false, ev: own, date: null };
 }
+// 24 Nov: a vehicle's trip to the pad, its work there and its return form ONE Pad card (scripts/pad-trip.js, pure; display copy only).
+const padTripsOf = (road) => { const P = (typeof window !== "undefined" && window.PadTrip) || (typeof globalThis !== "undefined" && globalThis.PadTrip); return P && P.applyToRoad ? P.applyToRoad(road) : road; };
+const tripChrono = (h) => !!(h && h.trip_order === "chrono"); // pad-trip cards: Earlier updates oldest first (the trip's story)
 function rtfCards(road) {
+  road = padTripsOf(road);
   const cats = Object.fromEntries((road.categories || []).map((c) => [c.id, c]));
   const vs = roadVehicles(road);
   const ship = vs.find((v) => /^S/i.test(v)), boo = vs.find((v) => /^B/i.test(v));
@@ -3916,7 +3909,7 @@ function rtfCards(road) {
     // the card stays complete (doneOne). The picture then follows the leading post's event (road-pick, newest event).
     const rowT = (u) => Date.parse(u.at || "") || 0, byNew = (a, b) => rowT(b) - rowT(a);
     const mainT = Date.parse(cardIso(main)) || Date.parse(main.at || "") || 0;
-    const newer = main.date && /^Stacked\s/.test(main.text || "") ? null : rows.filter((u) => rowT(u) > mainT).sort(byNew)[0];
+    const newer = (main.date && /^Stacked\s/.test(main.text || "")) || main.pad_trip ? null : rows.filter((u) => rowT(u) > mainT).sort(byNew)[0];
     if (newer) {
       rows.splice(rows.indexOf(newer), 1);
       // the demoted post is now a row itself, so its event_row copy (guards.js completion row, same post or same minute) goes
@@ -4166,7 +4159,7 @@ function RoadFlightPill({ flight, items, action, open, onClick, shortCount, clas
   const inner = (
     <>
       <span className="feed-pill-title">{`Flight ${flight}`}</span>
-      <span className="road-dots">{items.map((m) => <i key={m.id} className={"dot dot-" + m.status} style={catVars(m.id, m.color)} title={m.name + ": " + roadDotLabel(m)} aria-label={m.name + ": " + roadDotLabel(m)} role="img" />)}</span>
+      <span className="road-dots">{items.map((m) => <i key={m.id} className={"dot dot-" + m.status} data-cat={m.id} style={catVars(m.id, m.color)} title={m.name + ": " + roadDotLabel(m)} aria-label={m.name + ": " + roadDotLabel(m)} role="img" />)}</span>
       <span className="road-count">{shortCount ? count : <><span className="rc-full">{count}</span><span className="rc-short">{`${done} of ${n}`}</span></>}</span>
       {action && <span className="feed-pill-action">{action}{chevron}</span>}
     </>
@@ -4863,6 +4856,7 @@ a.watch-badge-live:active { transform: scale(.96); }
 .past-photo { display: block; width: 100%; height: var(--past-ph, 64px); object-fit: cover; border-radius: 8px; margin: 0 0 6px; background: #121A2B; }
 .past-photo.crop-top, .box-photo.crop-top { object-position: center top; } .past-photo.crop-bottom, .box-photo.crop-bottom { object-position: center bottom; } /* same crop as the Page 2 picture */
 .box-photo { display: block; width: 100%; aspect-ratio: 16 / 9; max-height: 132px; object-fit: cover; border-radius: 8px; margin: 7px 0 0; background: #121A2B; }
+.past-box[data-id="raptor"] .past-pill { color: #F2F4F8; background: rgba(14,15,17,.35); border: 1.5px solid #0E0F11; box-shadow: 0 0 0 1px rgba(255,255,255,.35); } /* same as .chip.chip-raptor: readable label on the near-black fill */
 .highlights-link {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   margin-top: 12px; padding: 9px 14px; border-radius: 11px;
@@ -5032,6 +5026,14 @@ section.road .callout-latest { grid-row: 2; grid-column: 2 / -1; margin-top: 0; 
 .road .mini.glow { border-color: color-mix(in srgb, var(--c) 45%, transparent); box-shadow: 0 0 12px -2px color-mix(in srgb, var(--c) 45%, transparent); } /* Flight Log only: finished vehicle box, soft glow in the section colour */
 .mini::before { content: ""; position: absolute; left: -12px; top: 14px; width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%; background: transparent; border: 1.5px solid var(--c); } /* hollow = this vehicle has not completed the category */
 .mini.done::before { background: var(--c); } /* filled = completed; ring and fill always the same colour */
+/* Raptor (A2): near-black #0E0F11 accent bar with a light rim, graphite halo, white title, see-through pill with a dark border + light rim, solid black connector line */
+.callout[data-id="raptor"] { border-color: rgba(255,255,255,.22) !important; box-shadow: inset 4px 0 0 #0E0F11, inset 5px 0 0 rgba(255,255,255,.4), 0 0 22px 1px rgba(200,210,230,.32) !important; }
+.callout[data-id="raptor"] .callout-name { color: #F2F4F8; }
+.callout[data-id="raptor"] .mini-date { color: #C9CDD6; }
+.callout[data-id="raptor"] .badge { color: #E8EAEE; background: rgba(14,15,17,.35); border: 1.5px solid #0E0F11; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.callout[data-id="raptor"] .mini::before { box-shadow: 0 0 0 1px rgba(255,255,255,.5); }
+.callout[data-id="raptor"] .mini.glow { border-color: rgba(255,255,255,.18); box-shadow: 0 0 12px -2px rgba(200,210,230,.25); }
+.callout[data-id="raptor"] .callout-hist-inner::before { background: #0E0F11; } /* main connector line: solid black */
 .flog-name { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #8E9AB8; margin-bottom: 3px; }
 .mini-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .mini-date { font-size: 12px; font-weight: 700; color: var(--t, var(--c)); }
@@ -5235,6 +5237,7 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
   border-radius: 999px; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; color: var(--t, var(--c));
   background: var(--bg, color-mix(in srgb, var(--c) 13%, transparent)); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
 }
+.chip.chip-raptor { color: #F2F4F8; background: rgba(14,15,17,.35); border: 1.5px solid #0E0F11; box-shadow: 0 0 0 1px rgba(255,255,255,.35); } /* Raptor (A2): same as the In progress pill, white label */
 .cat-img { height: 1.2em; width: auto; vertical-align: middle; display: inline-block; }
 .chip-i { font-size: 12px; line-height: 1; letter-spacing: 0; }
 .post-sep { color: var(--faint); font-size: 12.5px; }
@@ -5759,12 +5762,32 @@ html.v-rm .next::before { display: none !important; }
 }
 .next .callout > * { position: relative; z-index: 1; }
 
+.next .callout[data-id="raptor"] {
+  box-shadow:
+    inset 4px 0 0 #0E0F11,
+    inset 5px 0 0 rgba(255,255,255,.28),
+    inset 0 0 36px -8px rgba(200,210,230,.14),
+    inset 0 0 72px 0 rgba(200,210,230,.06) !important;
+}
+.next .callout[data-id="raptor"]::after {
+  background: radial-gradient(90% 80% at 8% 45%,
+    rgba(200,210,230,.11) 0%,
+    rgba(200,210,230,.06) 26%,
+    rgba(200,210,230,.025) 48%,
+    rgba(200,210,230,.008) 68%,
+    transparent 86%);
+}
 
 /* Same softer treatment for finished vehicle sub-cards (inset, so overflow cannot cut a ring). */
 .road .mini.glow {
   box-shadow:
     inset 0 0 22px -4px color-mix(in srgb, var(--c) 20%, transparent),
     0 0 14px -8px color-mix(in srgb, var(--c) 18%, transparent);
+}
+.callout[data-id="raptor"] .mini.glow {
+  box-shadow:
+    inset 0 0 22px -4px rgba(200,210,230,.12),
+    0 0 14px -8px rgba(200,210,230,.1);
 }
 
 
@@ -5842,10 +5865,7 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 .post > .card-foot:empty { display: none; }
 .card-foot > .post-credit.src-link { float: right; position: relative; z-index: 1; margin: 0 0 0 12px; max-width: calc(100% - 116px); min-height: var(--tap); line-height: 1; display: flex; align-items: center; } /* never pushes the toggle onto a second row (320px) */
 .card-foot > .post-credit.src-link a { display: inline-flex; align-items: center; gap: 5px; min-height: var(--tap); max-width: 100%; min-width: 0; font-size: 12.5px; font-weight: 600; color: #A9BDF0; text-decoration: none; }
-.card-foot > .post-credit.src-link .sl-h { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } /* a long handle shortens, "View on X" never does */
-.card-foot > .post-credit.src-link .sl-sep { flex: none; opacity: .7; }
 .card-foot > .post-credit.src-link .sl-t { flex: none; white-space: nowrap; }
-@media (max-width: 340px) { .card-foot > .post-credit.src-link .sl-h, .card-foot > .post-credit.src-link .sl-sep { display: none; } } /* 320px: just "View on X ↗" (the handle stays in the aria-label) */
 .card-foot > .post-credit.src-link a > svg:last-child { width: 12px; height: 12px; flex: none; opacity: .8; }
 .card-foot > .buildup.feed-bu { margin-top: 0; }
 .card-foot > .buildup.feed-bu > summary { display: inline-flex; align-items: center; gap: 7px; min-height: var(--tap); line-height: 1; padding: 0; font-size: 12.5px; font-weight: 600; color: var(--muted, #AAB6D6); -webkit-tap-highlight-color: transparent; }
@@ -5864,6 +5884,11 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 .st .buildup:not(.feed-bu) > ul { list-style: none; padding: 0; margin: 0; }
 .st .buildup:not(.feed-bu) > ul > li { margin: 6px 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; background: rgba(255,255,255,.035); font-size: 12.5px; color: var(--muted, #AAB6D6); }
 .st .buildup:not(.feed-bu) > ul > li .bu-text { margin-top: 2px; }
+
+
+/* 24 Nov · Raptor stays near-black #0E0F11 (A2, 25 Oct); its progress dot gets a 1px light outline so it shows on navy
+   (outline rgba(255,255,255,.4) is 3.5:1 or more against every dark surface; scripts/test-contrast.js) */
+.dot[data-cat="raptor"], .dot-done[data-cat="raptor"], .dot-complete[data-cat="raptor"] { box-shadow: 0 0 0 1px rgba(255,255,255,.4) !important; }
 
 `;
 
