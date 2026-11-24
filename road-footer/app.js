@@ -2544,6 +2544,7 @@ function SrcBadge({ author, url, image, keep, date }) {
   );
 }
 // 24 Nov footer: the handle a card's round photo badge shows (null = no badge), so the footer never names it again.
+const PhotoByCtx = React.createContext(null); // FeedPost → its footer link: the handle already on the photo badge
 const badgeShownFor = (mo) => { const m = mo && (mo.pair ? mo.pair[1] : mo); if (!m || !m.image) return null;
   const h = badgeHandleOf(m.author, m.post_url); return h && !(NO_BADGE_IMAGES().includes(m.image) && !m.keep_image) ? h.toLowerCase() : null; };
 // Context picture for a milestone that hasn't happened yet: an earlier trusted post's photo of the same hardware.
@@ -3569,7 +3570,8 @@ function SourceLink({ href, handle, label, photoBy }) {
     <a href={href} target="_blank" rel="noopener noreferrer" aria-label={x ? `View the post${hd ? " by " + hd : ""} on X` : `Source: ${label}`} onClick={(e) => e.stopPropagation()}>
       {named && <span className="sl-h">{hd}</span>}{named && <span className="sl-sep">·</span>}<span className="sl-t">{x ? "View on X" : label}</span>{LINK_ICON}</a></div>);
 }
-function CreditLine({ h, photoBy }) {
+function CreditLine({ h }) {
+  const photoBy = React.useContext(PhotoByCtx);
   const u = urlOf(h), who = srcOf(h), isX = /^https?:\/\/(x|twitter)\.com\//i.test(u || "");
   if (!u) return null; // no post, no line (no standalone credit)
   if (FOOTER_V2) return <SourceLink href={u} handle={isX && /^@/.test(who || "") ? who : handleOf({ url: u })} label={`${who ? who + " · " : ""}View source`} photoBy={photoBy} />;
@@ -3657,10 +3659,10 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
       <p className="post-text">{scrub(h.card_text || h.x_text || h.text)}</p>
       {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
       {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
-      <div className="card-foot">
-        {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} photoBy={badgeShownFor(mo)} /> : <CreditLine h={h} photoBy={badgeShownFor(mo)} />}
+      <PhotoByCtx.Provider value={badgeShownFor(mo)}><div className="card-foot">
+        {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} /> : <CreditLine h={h} />}
         {String(h.id || "").startsWith("rtf-") ? <RtfBuildUp h={h} /> : <FeedBuildUp h={h} idx={idx} />}
-      </div>
+      </div></PhotoByCtx.Provider>
     </article>
   );
 }
@@ -3671,7 +3673,8 @@ const rtfLinkText = (u) => (rtfIsX(u) ? "View on X" : isYouTube(u) ? "View video
 const rtfWho = (u, hd) => { const w = rtfIsX(u.url) ? (hd ? String(hd).replace(/^@?/, "@") : "") : String(u.src || "").replace(/^@/, "").trim() || hostOf(u.url); return w ? `${w} · ` : ""; };
 // Main post of a two-cards card: same View on X line; a source CreditLine can't link (YouTube) still opens its stored url.
 const FOOTER_V2 = true; // 24 Nov Road card footer (round photo badge only; one tidy row, one link)
-function RtfCredit({ h, photoBy }) {
+function RtfCredit({ h }) {
+  const photoBy = React.useContext(PhotoByCtx);
   const headUrl = h && h.url, photoUrl = urlOf(h);
   if (FOOTER_V2) {
     // The headline post only: a fallback photo's own post lives in the image badge, never a second "View on X".
