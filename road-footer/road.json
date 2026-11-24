@@ -5,7 +5,7 @@
     "S43"
   ],
   "updated": "24 Nov",
-  "updatedAt": "2026-11-24T07:00:58.991Z",
+  "updatedAt": "2026-11-24T14:01:32.311Z",
   "categories": [
     {
       "id": "cryo",
@@ -80,7 +80,7 @@
               "url": "https://x.com/TrackingTheSB/status/2115353615561064723",
               "src": "@TrackingTheSB",
               "handle": "TrackingTheSB",
-              "phase": "completed",
+              "phase": "progress",
               "tier": 2,
               "unverified": true,
               "note": "single source"
@@ -463,7 +463,7 @@
               "url": "https://x.com/Blobifie/status/2109946789524857269",
               "src": "@Blobifie",
               "handle": "Blobifie",
-              "phase": "completed",
+              "phase": "progress",
               "tier": 2
             }
           ],
@@ -851,13 +851,14 @@
             }
           ],
           "media_override": {
-            "post_url": "https://x.com/Blobifie/status/2114880263264346277",
-            "post_id": "2114880263264346277",
-            "author": "Blobifie",
+            "post_url": "https://x.com/mymatrixplug/status/2114815133700731141",
+            "post_id": "2114815133700731141",
+            "author": "mymatrixplug",
             "type": "photo",
-            "image": "https://pbs.twimg.com/media/HVmQW1fbIAA2hgT.jpg",
+            "image": "images/s43-pad-mymatrixplug-clean.jpg",
             "keep_image": true,
-            "crop": "top"
+            "picked_by": "Bernardo",
+            "note": "Manual (Bernardo, 24 Nov 13:56 UK, option 5): Ship 43 on the Pad 2 chopsticks, photo by Amy Doehring / WAI Media, posted by @mymatrixplug; WAI watermark cropped out (bottom 166 px of 926, vehicle untouched)."
           }
         },
         {
@@ -1648,6 +1649,15 @@
   },
   "feed_items": [
     {
+      "id": "news-mwuqnzaw-f71937",
+      "kind": "news",
+      "title": "🚀 Starship",
+      "body": "Ship 44 and Booster 24 returned to Megabay 2 and 1.",
+      "url": "https://x.com/Blobifie/status/2125222150252675155",
+      "at": "2026-11-24T13:36:59.000Z",
+      "date": "24 Nov"
+    },
+    {
       "id": "news-mwubrtls-a0fff6",
       "kind": "news",
       "title": "🚀 Starship",
@@ -2085,19 +2095,6 @@
       "later_flight": true,
       "hidden": true,
       "why": "C1 cap"
-    },
-    {
-      "id": "news-mwdv1ilc-0c30dd",
-      "kind": "news",
-      "title": "🚀 Starship",
-      "body": "A batch of NOTAMs was released ahead of Flight 15.",
-      "url": "https://x.com/LabPadre/status/2120941544416944336",
-      "at": "2026-11-12T18:07:24.000Z",
-      "date": "12 Nov",
-      "flight": 15,
-      "src": "@LabPadre",
-      "hidden": true,
-      "why": "C1 cap"
     }
   ],
   "hardware_flights": {
@@ -2226,6 +2223,19 @@
     }
   ],
   "feed_archive": [
+    {
+      "id": "news-mwdv1ilc-0c30dd",
+      "kind": "news",
+      "title": "🚀 Starship",
+      "body": "A batch of NOTAMs was released ahead of Flight 15.",
+      "url": "https://x.com/LabPadre/status/2120941544416944336",
+      "at": "2026-11-12T18:07:24.000Z",
+      "date": "12 Nov",
+      "flight": 15,
+      "src": "@LabPadre",
+      "hidden": true,
+      "why": "C1 cap"
+    },
     {
       "id": "news-mwdtbrlk-dc662f",
       "kind": "news",

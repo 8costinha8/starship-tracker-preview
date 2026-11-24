@@ -3862,7 +3862,8 @@ function cardFaceOrFallback(own, list, cid, done) {
   }
   return { pic: null, fallback: false, ev: own, date: null };
 }
-// 24 Nov: a vehicle's trip to the pad, its work there and its return form ONE Pad card (scripts/pad-trip.js, pure; display copy only).
+// 24 Nov: a vehicle's trip to a test site (Massey's or a pad), the test there and its return form ONE card on that test's
+// section (scripts/pad-trip.js = PadTrip / TestTrip, pure; display copy only, road.json and the registry are untouched).
 const padTripsOf = (road) => { const P = (typeof window !== "undefined" && window.PadTrip) || (typeof globalThis !== "undefined" && globalThis.PadTrip); return P && P.applyToRoad ? P.applyToRoad(road) : road; };
 const tripChrono = (h) => !!(h && h.trip_order === "chrono"); // pad-trip cards: Earlier updates oldest first (the trip's story)
 function rtfCards(road) {
@@ -3934,7 +3935,7 @@ function rtfCards(road) {
     const add = (u) => { const k = u.url || u.text; if (!u.text || (seen.has(k) && !u.event_row)) return; seen.add(k); rows.push(u); }; // event_row: the completion row (guards.js) shows even when it is the main post
     for (const h of list) {
       if (h !== main) add({ id: h.id, text: h.text, ...(h.card_text ? { card_text: h.card_text } : {}), at: cardIso(h) || h.at, date: h.date, url: h.url || urlOf(h), /* 24 Nov: the post that states the text */ unverified: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).unverified(h) : false, src: h.src, handle: (h.x_post && h.x_post.author && h.x_post.author.username) || (h.media_override && h.media_override.author) || (String(h.src || "").startsWith("@") ? h.src : null) });
-      for (const u of h.updates || []) { if (typeof isRoadFlightEvent === "function" && isRoadFlightEvent(u, road)) continue; const uv = rtfVeh(u.text, road); if (v === "pad" ? !otherVehOnly(u.text, road) : uv.length ? uv.includes(v) : !otherVehOnly(u.text, road)) add({ text: u.text, ...(u.card_text ? { card_text: u.card_text } : {}), at: u.at, date: u.date, url: u.url, src: u.src, event_row: u.event_row, phase: u.phase, unverified: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).unverified(u) : false, handle: u.handle || (String(u.src || "").startsWith("@") ? u.src : null) }); }
+      for (const u of h.updates || []) { if (typeof isRoadFlightEvent === "function" && isRoadFlightEvent(u, road)) continue; const uv = rtfVeh(u.text, road); if (v === "pad" ? !otherVehOnly(u.text, road) : uv.length ? uv.includes(v) : !otherVehOnly(u.text, road)) add({ text: u.text, ...(u.card_text ? { card_text: u.card_text } : {}), at: u.at, date: u.date, url: u.url, src: u.src, event_row: u.event_row, ...(u.merged ? { merged: u.merged } : {}) /* test-site trip: same-move posts */, phase: u.phase, unverified: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).unverified(u) : false, handle: u.handle || (String(u.src || "").startsWith("@") ? u.src : null) }); }
     }
     if (cid === "pad") { for (const u of padPins[v] || []) { if (typeof isRoadFlightEvent === "function" && isRoadFlightEvent(u, road)) continue; add(u); } rows.sort((a, b) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0)); } // Flight Log pins: drawer rows
     // 15 Nov (every flight, every box): the newest post leads the card and Earlier updates are strictly older. A completing
@@ -3944,7 +3945,9 @@ function rtfCards(road) {
     // 24 Nov (scripts/road-rules.js #6): the same action within 2 h (or the same move within 3 days) is one row, strict time order
     if ((globalThis.RoadRules || null)) { const mr = (globalThis.RoadRules || null).mergeRows(rows); rows.splice(0, rows.length, ...mr.rows); }
     const mainT = Date.parse(cardIso(main)) || Date.parse(main.at || "") || 0;
-    const newer = (main.date && /^Stacked\s/.test(main.text || "")) || main.pad_trip ? null : rows.filter((u) => rowT(u) > mainT && (!(globalThis.RoadRules || null) || (globalThis.RoadRules || null).headlineEligible(u))).sort(byNew)[0]; // 24 Nov #1: an unverified / single-source update never leads the card
+    // a test-site trip card keeps its test as the headline over its own trip posts; a newer post outside the trip still leads
+    const tripUrls = main.test_trip ? new Set((main.updates || []).flatMap((u) => [u.url, ...(u.merged || []).map((m) => m.url)]).filter(Boolean)) : null;
+    const newer = (main.date && /^Stacked\s/.test(main.text || "")) ? null : rows.filter((u) => rowT(u) > mainT && !(tripUrls && tripUrls.has(u.url)) && (!(globalThis.RoadRules || null) || (globalThis.RoadRules || null).headlineEligible(u))).sort(byNew)[0]; // 24 Nov #1: an unverified / single-source update never leads the card
     if (newer) {
       rows.splice(rows.indexOf(newer), 1);
       // the demoted post is now a row itself, so its event_row copy (guards.js completion row, same post or same minute) goes
@@ -3952,7 +3955,7 @@ function rtfCards(road) {
       for (let i = rows.length - 1; i >= 0; i--) { const u = rows[i]; if (u.event_row && ((mUrl && u.url === mUrl) || rowT(u) === mainT || String(u.card_text || u.text || "") === mText)) rows.splice(i, 1); }
       rows.push({ ...(main === doneOne ? { done_row: true } : {}), text: main.text, ...(main.card_text ? { card_text: main.card_text } : {}), at: cardIso(main) || main.at, date: main.date, url: main.url || urlOf(main), src: main.src, handle: (main.x_post && main.x_post.author && main.x_post.author.username) || (main.media_override && main.media_override.author) || (String(main.src || "").startsWith("@") ? main.src : null) });
       const shown = newer.card_text || newer.text;
-      main = { ...main, text: newer.text, card_text: shown, x_text: shown, log_text: undefined, at: newer.at, completed_at: undefined, time_known: undefined, publishedAt: undefined, date: newer.date, url: newer.url, src: newer.src, handle: newer.handle, x_post: undefined, media_override: undefined };
+      main = { ...main, text: newer.text, card_text: shown, x_text: shown, log_text: undefined, trip_order: undefined, test_trip: undefined, pad_trip: undefined, at: newer.at, completed_at: undefined, time_known: undefined, publishedAt: undefined, date: newer.date, url: newer.url, src: newer.src, handle: newer.handle, x_post: undefined, media_override: undefined };
     }
     rows.sort(byNew);
     const own = headlineOwn(main);
@@ -4280,7 +4283,7 @@ function fleetRoad(r, fleet, n) {
     const rr = route[e.id]; if (rr && rr.dupOf) continue;
     const box = e.type === "move" && rr && rr.box ? rr.box : FLEET_ROAD_BOX[e.type]; if (!box || !e.id || !e.text || seen.has(e.url)) continue;
     const done = FLEET_DONE.includes(e.type);
-    (add[box] = add[box] || []).push({ id: e.id, date: e.date, at: e.at, text: e.text, x_text: e.text, src: e.src, url: e.url, trust: "trusted", flight: n, hardware: v.id, kind: "fleet", no_push: true,
+    (add[box] = add[box] || []).push({ id: e.id, date: e.date, at: e.at, text: e.text, x_text: e.text, src: e.src, url: e.url, trust: "trusted", ...(Array.isArray(e.sources) && e.sources.length ? { sources: e.sources } : {}), /* same-event posts: merged rows in a test-site trip */ flight: n, hardware: v.id, kind: "fleet", no_push: true,
       ...(e.x_post && (e.x_post.media || []).length && (!(globalThis.RoadRules || null) || (globalThis.RoadRules || null).photoFits(e, v.events, e.x_post.url)) ? { x_post: e.x_post, photo_date: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).photoIso(e.x_post.url) : null } : {}), /* the picture keeps its own post (credit + link); 24 Nov #2: only a post within 36 h of the event and before the next milestone, dated by its own post */
       ...(e.photo_gate ? { photo_gate: e.photo_gate } : {}),
       milestone: { hardware: v.id, event: e.type, phase: done ? "completed" : "started" }, ...(done ? { complete: true } : {}) });
@@ -4300,8 +4303,9 @@ function useFleet() {
 // (Cryo, Raptor, Static, Pad, then FAA licence, then Launch date); a section with nothing yet has no card, exactly as
 // on the current flight. Returns the Road (for the stage ticks) and the posts for this flight's group.
 function upcomingFlight(road, n, fleet) {
-  const base = road && Number.isInteger(n) ? roadForFlight(road, n) : null;
-  if (!base) return { road: null, posts: [] };
+  const base0 = road && Number.isInteger(n) ? roadForFlight(road, n) : null;
+  if (!base0) return { road: null, posts: [] };
+  const base = { ...base0, trip_feed: (road && road.feed_items) || [] }; // test-site trips: news posts naming this flight's vehicles (combined posts too)
   const fr = fleetRoad(base, fleet, n), posts = []; let on = false;
   for (const r of rtfRows(fr).rows) { if (r.section) { on = r.section.n === n; continue; } if (on && r.post) posts.push(r.post); }
   return { road: fr, posts };
@@ -5365,8 +5369,9 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
     -webkit-transform: translate3d(calc(var(--fp) * -24px), 0, 0); transform: translate3d(calc(var(--fp) * -24px), 0, 0);
     transition: opacity var(--slide), transform var(--slide); }
   .hdr-ic { position: absolute; inset: 0; display: grid; place-items: center; transition: opacity var(--slide); }
-  .hdr-ic-a { opacity: calc(1 - var(--fp) * 2); }
-  .hdr-ic-b { opacity: calc(var(--fp) * 2 - 1); }
+  /* crossfade overlaps (each icon at .5 when --fp = .5) so mid-swipe the button never shows an empty circle */
+  .hdr-ic-a { opacity: calc(1.5 - var(--fp) * 2); }
+  .hdr-ic-b { opacity: calc(var(--fp) * 2 - .5); }
   .hdr-feed .hdr-right { pointer-events: none; }
   /* pills: --act 1 = active page. Width T of the pair is linear in --fp, so the pair stays centred */
   .hdr-p { position: absolute; left: 0; top: 10px; display: block; width: max-content; white-space: nowrap; text-align: center;
@@ -5476,7 +5481,10 @@ const VARIANT_CSS = `
   .hdr-pill { background: linear-gradient(135deg, #FF6A3D 0%, #F04E6A 100%); border: 0; box-shadow: 0 8px 22px -8px rgba(255,106,61,.7); border-radius: 16px; }
   .hdr-p b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
   .hdr-p span { font-size: 11px; font-weight: 700; color: #fff; opacity: calc(.55 + .45 * var(--act)); }
-  .hdr-p:active, .round-btn:active { transform: scale(.9) !important; transition: transform .08s !important; }
+  .round-btn:active { transform: scale(.9) !important; transition: transform .08s !important; }
+  /* 24 Nov: the header titles are positioned BY their transform (translate3d(...) scale(var(--s))); a press must never replace it
+     (scale(.9) alone sent the tapped title to x=0 over the menu button, then slid it back). Press feedback goes on the label lines. */
+  .hdr-p:active > b, .hdr-p:active > span { transform: scale(.92); transition: transform .08s, opacity var(--hdr-ease); }
 }
 .round-btn { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.1); color: #D5DBEA; transition: var(--press); }
 
@@ -5865,7 +5873,8 @@ html.v-browser, html.v-standalone, html.v-browser body, html.v-standalone body {
 /* Instant press (is-pressed is set on pointerdown so iOS doesn't wait on :active). */
 .card-head.is-pressed { transform: scale(.965); }
 .road-head.is-pressed, .past-toggle.is-pressed { transform: scale(.97); }
-.round-btn.is-pressed, .hdr-p.is-pressed { transform: scale(.9); }
+.round-btn.is-pressed { transform: scale(.9); }
+.hdr-p.is-pressed > b, .hdr-p.is-pressed > span { transform: scale(.92); } /* never on .hdr-p itself: its transform is its position */
 .highlights-link.is-pressed { transform: scale(.96); }
 .post.is-pressed { transform: scale(.985); }
 .callout-head.is-pressed { transform: scale(.99); }
@@ -5936,7 +5945,9 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 
 /* 24 Nov · Raptor stays near-black #0E0F11 (A2, 25 Oct); its progress dot gets a 1px light outline so it shows on navy
    (outline rgba(255,255,255,.4) is 3.5:1 or more against every dark surface; scripts/test-contrast.js) */
-.dot[data-cat="raptor"], .dot-done[data-cat="raptor"], .dot-complete[data-cat="raptor"] { box-shadow: 0 0 0 1px rgba(255,255,255,.4) !important; }
+/* Raptor's near-black #0E0F11 (A2) gets a light ring INSIDE the dot: its own border is the ring, so the dot keeps exactly the
+   same outer size as every other dot (no outer box-shadow); the fill stays #0E0F11 */
+.dot[data-cat="raptor"], .dot-done[data-cat="raptor"], .dot-complete[data-cat="raptor"] { border-color: rgba(255,255,255,.4) !important; }
 
 `;
 
