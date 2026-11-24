@@ -4,11 +4,11 @@
    Marks are recorded per image (handle + the mark's box as fractions of the full image, x0 y0 x1 y1): no automatic logo
    detection, a new marked photo needs its entry here (scripts/test-photo-marks.js checks each entry against its crop). */
 (function (root, factory) { if (typeof module === "object" && module.exports) module.exports = factory(); else root.PhotoMarks = factory(); })(typeof self !== "undefined" ? self : this, function () {
-  const MARKS = [
-    // RGV Aerial Photography livestream thumb (B24 cryo, post 2124765411627643131): RGV logo top right
-    { match: "amplify_video_thumb/2124764895292133376/img/OZnACetsr9Q5nFho", handle: "RGVaerialphotos", w: 1200, h: 675, box: [0.895, 0.03, 0.98, 0.184] },
-  ];
-  const markOf = (image) => (image ? MARKS.find((m) => String(image).includes(m.match)) || null : null);
+  // 24 Nov v6: empty. The RGV livestream thumb (B24 cryo, RGV logo top right) is no longer on any card: Bernardo's pick
+  // (images/b24-cryo-blobifie-nsf-clean.jpg) replaced it, and that crop has no NSF mark left (timestamp bar and ticker cut).
+  // Entry shape: { match: "<part of the image url>", handle: "<X handle of the mark>", w, h, box: [x0, y0, x1, y1] }
+  const MARKS = [];
+  const markOf = (image, marks = MARKS) => (image ? marks.find((m) => String(image).includes(m.match)) || null : null);
   // visible window of a cover-cropped image, in fractions of the image: centred across, top / bottom / centre down
   function windowOf(w, h, aspect, crop) {
     const ia = w / h; let x0 = 0, x1 = 1, y0 = 0, y1 = 1;
@@ -24,6 +24,40 @@
   }
   // hide the round badge when at least a third of the source's mark is on screen (a cut logo still reads as a logo)
   const SHOWN_MIN = 1 / 3;
-  const hideBadge = (image, aspect = 16 / 9, crop = "top") => { const m = markOf(image); return !!m && shown(m, aspect, crop) >= SHOWN_MIN; };
-  return { MARKS, markOf, windowOf, shown, hideBadge, SHOWN_MIN };
+  const hideBadge = (image, aspect = 16 / 9, crop = "top", marks = MARKS) => { const m = markOf(image, marks); return !!m && shown(m, aspect, crop) >= SHOWN_MIN; };
+
+  /* 24 Nov v6 credit rule (Bernardo): the round badge is the photo's CREDITED ORIGINAL SOURCE when the post names one, and
+     the posting account only when there is none. Credited = (1) a burned-in mark recorded above that is in the crop, else
+     (2) the post's own credit: "📸 / 📷 / 🎥 X", "photo(s) by X", "photo: X", "credit: X", "via @X", or a line "For X".
+     In a credit, a named agency with a known account wins (the logo is the agency's: "For WAI Media @FelixSchlang",
+     "📷 Oct 23. @Jordanguidry6 - WAI Media" → @FelixSchlang; "📷NSF | Starbase Live" → @NASASpaceflight), then the first
+     @handle; a name with no known account ("📸Avidspace") falls back to the poster (reported, not guessed). */
+  const ORGS = [
+    [/\bWAI\s*Media\b/i, "FelixSchlang"],
+    [/\b(?:NSF|NASA\s?Spaceflight|Starbase\s+Live)\b/i, "NASASpaceflight"],
+    [/\bStarship\s+Tracking\b/i, "TrackingTheSB"],
+    [/\bLabPadre\b/i, "LabPadre"],
+    [/\bRGV\s+Aerial\b/i, "RGVaerialphotos"],
+  ];
+  const unesc = (t) => String(t || "").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+  function creditLines(text) {
+    const t = unesc(text), out = [];
+    for (const m of t.matchAll(/(?:📸|📷|🎥)\s*:?\s*([^\n]*)/gu)) out.push(m[1]);
+    for (const m of t.matchAll(/\b(?:photos?\s+by|photo\s*:|credit\s*:|image\s+by)\s*([^\n]*)/giu)) out.push(m[1]);
+    for (const m of t.matchAll(/\bvia\s+(@\w{1,15})/giu)) out.push(m[1]);
+    for (const m of t.matchAll(/(?:^|\n)\s*for\s+([^\n]{1,60})/giu)) if (/@\w|\b[A-Z][\w]*\s+Media\b/.test(m[1]) || ORGS.some(([re]) => re.test(m[1]))) out.push(m[1]);
+    return out.map((l) => l.replace(/https?:\/\/\S+/g, " ").replace(/#\w+/g, " ").trim()).filter(Boolean);
+  }
+  // → { handle, via: "mark" | "credit" | "poster", name? } (handle without "@")
+  function creditOf(text, { poster = "", image = null, aspect = 16 / 9, crop = "top", marks = MARKS } = {}) {
+    const p = String(poster || "").replace(/^@/, "");
+    const m = markOf(image, marks); if (m && shown(m, aspect, crop) >= SHOWN_MIN) return { handle: m.handle, via: "mark" };
+    for (const line of creditLines(text)) {
+      const org = ORGS.find(([re]) => re.test(line)); if (org) return { handle: org[1], via: "credit", name: (line.match(org[0]) || [])[0] };
+      const h = line.match(/@(\w{1,15})/); if (h) return { handle: h[1], via: "credit" };
+      return { handle: p, via: "poster", name: line.split(/\s*\|\s*/)[0].trim(), unresolved: true }; // named, no known account
+    }
+    return { handle: p, via: "poster" };
+  }
+  return { MARKS, markOf, windowOf, shown, hideBadge, SHOWN_MIN, ORGS, creditLines, creditOf };
 });
