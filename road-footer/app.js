@@ -2699,10 +2699,13 @@ function pastTiers(box, text, vehicle) {
   });
   return out.slice(0, 3);
 }
-// Category CSS vars. Raptor engines is near-black #0E0F11 (option A2): ring and fill identical, light rims and a graphite halo keep it visible on navy.
-const CAT_FILL = { raptor: { "--bg": "#0E0F11", "--on": "#E8EAEE", "--t": "#0E0F11" } }; // Raptor (A2): near-black #0E0F11 ring, fill, accent and connector; white title, see-through pill (CSS below)
-const catVars = (id, c) => Object.assign({ "--c": c }, CAT_FILL[id] || {});
-const PAST_COLOR = { cryo: "#BFE6FF", raptor: "#0E0F11", static: "#FF9A3D", pad: "#A88BFF", faa: "#2FD3B0", date: "#FFC93D" };
+// Category CSS vars. 24 Nov (preview): Raptor engines is rose #FF6B8B ("Raptor flame"), 6.7:1 on the card (#10151F) and
+// 6.3:1 on the section (#161C2C); the old near-black #0E0F11 was 1.05:1 and invisible on navy. scripts/test-contrast.js
+// keeps every category colour at 3:1 or more. RAPTOR_COLOR wins over a stale road.json colour until the data catches up.
+const RAPTOR_COLOR = "#FF6B8B";
+const CAT_FILL = {}; // no per-category fill overrides: ring, fill and accent all use --c
+const catVars = (id, c) => Object.assign({ "--c": id === "raptor" ? RAPTOR_COLOR : c }, CAT_FILL[id] || {});
+const PAST_COLOR = { cryo: "#BFE6FF", raptor: "#FF6B8B", static: "#FF9A3D", pad: "#A88BFF", faa: "#2FD3B0", date: "#FFC93D" };
 const PAST_DAY = /(\d{1,2}\s+[A-Z][a-z]{2})/;
 const pastDay = (s) => { const m = String(s || "").match(PAST_DAY); return m ? m[1] : ""; };
 // Dates and lines for the Full stack / Licence cards: archive items, archive entries, and
@@ -3895,6 +3898,11 @@ function rtfCards(road) {
       if (stacked) main = { ...(main || {}), text: stacked, card_text: stacked, date: stacked.replace(/^Stacked\s+/, "") };
     }
     if (!main) { out.push({ empty: true, cat, v, name: vname(v) }); continue; }
+    // 24 Nov: Bernardo's recorded manual pick (keep_image + a note naming him) on any entry of this card (vehicle + box) is the
+    // card's picture, whichever post leads the card; the newest such pick wins.
+    const isPin = (h) => !!(h && h.media_override && h.media_override.keep_image && h.media_override.image && /\bBernardo\b/.test(String(h.media_override.note || "")));
+    const pinnedEv = [main, ...list].filter(isPin).sort((a, b) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0))[0] || null;
+    const pinned = pinnedEv ? pinnedEv.media_override : null;
     // every post for this vehicle + category except the milestone's own, newest first; text + time + credit only
     const rows = [], seen = new Set([urlOf(main), main.url].filter(Boolean));
     const add = (u) => { const k = u.url || u.text; if (!u.text || (seen.has(k) && !u.event_row)) return; seen.add(k); rows.push(u); }; // event_row: the completion row (guards.js) shows even when it is the main post
@@ -3920,7 +3928,11 @@ function rtfCards(road) {
     }
     rows.sort(byNew);
     const own = headlineOwn(main);
-    const face = cardFaceOrFallback(own, list, cid, doneOne ? own : null);
+    // 24 Nov: Bernardo's manual pick is the card's picture even when the photo is from another post: photo, credit and
+    // View on X stay on that photo's post; the headline post stays on the second credit line (two-link layout). Never a placeholder.
+    const man = pinned;
+    const face = man ? { pic: { image: man.image, type: man.type || "photo", post_url: man.post_url || own.url, author: man.author, crop: man.crop, manual: true }, fallback: !samePost(man.post_url || own.url, own.url), ev: pinnedEv, date: man.photo_date || null }
+      : cardFaceOrFallback(own, list, cid, doneOne ? own : null);
     const pic = face.pic;
     const h = { ...own, id: `rtf-${cid}-${v}`, updates: rows, alt_media: null, complete: !!doneOne, milestone: doneOne ? own.milestone : { phase: "progress" } };
     // picture, credit and View on X: headline post if it has a photo, else the newest earlier
@@ -4697,6 +4709,7 @@ const css = `
   -webkit-font-smoothing: antialiased;
 }
 .st *, .st *::before, .st *::after { box-sizing: border-box; }
+button, input, textarea, select { font: inherit; } /* 24 Nov: buttons and fields use the app font (Manrope), never the browser default */
 html, body, .st { overflow-anchor: none; } /* we handle scroll position ourselves */
 .title { min-width: 0; } /* 15 Nov: "Starship Flight 15" wraps as text so the status pill stays whole and top-right */
 .t-word { overflow-wrap: break-word; }
@@ -4850,7 +4863,6 @@ a.watch-badge-live:active { transform: scale(.96); }
 .past-photo { display: block; width: 100%; height: var(--past-ph, 64px); object-fit: cover; border-radius: 8px; margin: 0 0 6px; background: #121A2B; }
 .past-photo.crop-top, .box-photo.crop-top { object-position: center top; } .past-photo.crop-bottom, .box-photo.crop-bottom { object-position: center bottom; } /* same crop as the Page 2 picture */
 .box-photo { display: block; width: 100%; aspect-ratio: 16 / 9; max-height: 132px; object-fit: cover; border-radius: 8px; margin: 7px 0 0; background: #121A2B; }
-.past-box[data-id="raptor"] .past-pill { color: #F2F4F8; background: rgba(14,15,17,.35); border: 1.5px solid #0E0F11; box-shadow: 0 0 0 1px rgba(255,255,255,.35); } /* same as .chip.chip-raptor: readable label on the near-black fill */
 .highlights-link {
   display: flex; align-items: center; justify-content: center; gap: 7px;
   margin-top: 12px; padding: 9px 14px; border-radius: 11px;
@@ -4899,7 +4911,9 @@ a.watch-badge-live:active { transform: scale(.96); }
 .notify-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .notify-btn { font-size: 13.5px; font-weight: 600; padding: 8px 14px; border-radius: 10px; border: none; cursor: pointer; }
 .notify-btn-quiet { background: transparent; color: #AAB6D6; }
-.notify-btn-primary { background: #4A63A8; color: white; }
+.notify-btn-primary { background: linear-gradient(135deg, #D93A12, #CC2F45); color: #fff; font-weight: 800; border-radius: 999px; padding: 9px 18px; box-shadow: 0 6px 16px -8px rgba(217,58,18,.8); } /* 24 Nov: on-brand Enable (same red gradient as Manage notifications) */
+.notify-btn-primary:active { transform: scale(.97); }
+.notify-btn-quiet { border-radius: 999px; }
 .notify-btn:disabled { opacity: .6; }
 
 /* feedback: the "What would you add?" box at the bottom of the About menu */
@@ -5018,14 +5032,6 @@ section.road .callout-latest { grid-row: 2; grid-column: 2 / -1; margin-top: 0; 
 .road .mini.glow { border-color: color-mix(in srgb, var(--c) 45%, transparent); box-shadow: 0 0 12px -2px color-mix(in srgb, var(--c) 45%, transparent); } /* Flight Log only: finished vehicle box, soft glow in the section colour */
 .mini::before { content: ""; position: absolute; left: -12px; top: 14px; width: 8px; height: 8px; box-sizing: border-box; border-radius: 50%; background: transparent; border: 1.5px solid var(--c); } /* hollow = this vehicle has not completed the category */
 .mini.done::before { background: var(--c); } /* filled = completed; ring and fill always the same colour */
-/* Raptor (A2): near-black #0E0F11 accent bar with a light rim, graphite halo, white title, see-through pill with a dark border + light rim, solid black connector line */
-.callout[data-id="raptor"] { border-color: rgba(255,255,255,.22) !important; box-shadow: inset 4px 0 0 #0E0F11, inset 5px 0 0 rgba(255,255,255,.4), 0 0 22px 1px rgba(200,210,230,.32) !important; }
-.callout[data-id="raptor"] .callout-name { color: #F2F4F8; }
-.callout[data-id="raptor"] .mini-date { color: #C9CDD6; }
-.callout[data-id="raptor"] .badge { color: #E8EAEE; background: rgba(14,15,17,.35); border: 1.5px solid #0E0F11; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
-.callout[data-id="raptor"] .mini::before { box-shadow: 0 0 0 1px rgba(255,255,255,.5); }
-.callout[data-id="raptor"] .mini.glow { border-color: rgba(255,255,255,.18); box-shadow: 0 0 12px -2px rgba(200,210,230,.25); }
-.callout[data-id="raptor"] .callout-hist-inner::before { background: #0E0F11; } /* main connector line: solid black */
 .flog-name { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #8E9AB8; margin-bottom: 3px; }
 .mini-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .mini-date { font-size: 12px; font-weight: 700; color: var(--t, var(--c)); }
@@ -5229,7 +5235,6 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
   border-radius: 999px; font-size: 11.5px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; color: var(--t, var(--c));
   background: var(--bg, color-mix(in srgb, var(--c) 13%, transparent)); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
 }
-.chip.chip-raptor { color: #F2F4F8; background: rgba(14,15,17,.35); border: 1.5px solid #0E0F11; box-shadow: 0 0 0 1px rgba(255,255,255,.35); } /* Raptor (A2): same as the In progress pill, white label */
 .cat-img { height: 1.2em; width: auto; vertical-align: middle; display: inline-block; }
 .chip-i { font-size: 12px; line-height: 1; letter-spacing: 0; }
 .post-sep { color: var(--faint); font-size: 12.5px; }
@@ -5754,32 +5759,12 @@ html.v-rm .next::before { display: none !important; }
 }
 .next .callout > * { position: relative; z-index: 1; }
 
-.next .callout[data-id="raptor"] {
-  box-shadow:
-    inset 4px 0 0 #0E0F11,
-    inset 5px 0 0 rgba(255,255,255,.28),
-    inset 0 0 36px -8px rgba(200,210,230,.14),
-    inset 0 0 72px 0 rgba(200,210,230,.06) !important;
-}
-.next .callout[data-id="raptor"]::after {
-  background: radial-gradient(90% 80% at 8% 45%,
-    rgba(200,210,230,.11) 0%,
-    rgba(200,210,230,.06) 26%,
-    rgba(200,210,230,.025) 48%,
-    rgba(200,210,230,.008) 68%,
-    transparent 86%);
-}
 
 /* Same softer treatment for finished vehicle sub-cards (inset, so overflow cannot cut a ring). */
 .road .mini.glow {
   box-shadow:
     inset 0 0 22px -4px color-mix(in srgb, var(--c) 20%, transparent),
     0 0 14px -8px color-mix(in srgb, var(--c) 18%, transparent);
-}
-.callout[data-id="raptor"] .mini.glow {
-  box-shadow:
-    inset 0 0 22px -4px rgba(200,210,230,.12),
-    0 0 14px -8px rgba(200,210,230,.1);
 }
 
 
@@ -5869,6 +5854,16 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 .card-foot > .buildup.feed-bu[open] > summary::after { content: ""; transform: translateY(2px) rotate(-135deg); }
 .card-foot > .buildup.feed-bu > summary:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 2px; border-radius: 6px; }
 .card-foot > .buildup.feed-bu > ul { clear: both; margin-top: 0; }
+
+
+/* ═════════ 24 Nov · one "Earlier updates" style (Page 1 and Page 2) ═════════ */
+.st .buildup > summary { display: inline-flex; align-items: center; gap: 7px; min-height: var(--tap); line-height: 1; padding: 0; font-size: 12.5px; font-weight: 600; color: var(--muted, #AAB6D6); -webkit-tap-highlight-color: transparent; }
+.st .buildup > summary::after { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .2s ease; }
+.st .buildup[open] > summary::after { content: ""; transform: translateY(2px) rotate(-135deg); }
+.st .buildup > summary:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 2px; border-radius: 6px; }
+.st .buildup:not(.feed-bu) > ul { list-style: none; padding: 0; margin: 0; }
+.st .buildup:not(.feed-bu) > ul > li { margin: 6px 0; padding: 10px 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; background: rgba(255,255,255,.035); font-size: 12.5px; color: var(--muted, #AAB6D6); }
+.st .buildup:not(.feed-bu) > ul > li .bu-text { margin-top: 2px; }
 
 `;
 

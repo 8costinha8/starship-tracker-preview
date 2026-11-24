@@ -67,6 +67,7 @@ f();if(mq&&mq.addEventListener)mq.addEventListener("change",f);window.__vStandal
 
 <!-- Firebase + notification logic: must load BEFORE app.js, since app.js
      checks window.STNotify as soon as it starts up -->
+<script defer src="notifications.js"></script><!-- preview stub: no Firebase -->
 <script defer src="scripts/cleanup.js"></script>
 <script defer src="scripts/flightlog.js"></script>
 <script defer src="scripts/handover.js"></script>
