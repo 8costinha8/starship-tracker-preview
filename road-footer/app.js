@@ -2564,8 +2564,8 @@ function SrcBadge({ author, url, image, keep, date, aspect = 16 / 9, crop = "top
   const rec = av && av[h.toLowerCase()];
   return (
     <a className="src-badge" href={url || `https://x.com/${h}`} target="_blank" rel="noopener noreferrer" data-credit={cred.via} data-poster={cred.poster || undefined}
-      title={`@${h}${cred.name && cred.name.toLowerCase() !== h.toLowerCase() ? ` (${cred.name})` : ""} on X${cred.via === "credit" && cred.poster && cred.poster.toLowerCase() !== h.toLowerCase() ? ` · posted by @${cred.poster}` : ""}${date ? " · photo " + date : ""}`}
-      aria-label={`Photo by @${h}${cred.via === "credit" && cred.poster && cred.poster.toLowerCase() !== h.toLowerCase() ? `, posted by @${cred.poster}` : ""}${date ? ", " + date : ""}: open the post on X`} onClick={(e) => e.stopPropagation()}>
+      title={`@${h}${cred.name && cred.name.toLowerCase() !== h.toLowerCase() ? ` (${cred.name})` : ""} on X${cred.via !== "poster" && cred.poster && cred.poster.toLowerCase() !== h.toLowerCase() ? ` · posted by @${cred.poster}` : ""}${date ? " · photo " + date : ""}`}
+      aria-label={`Photo by @${h}${cred.via !== "poster" && cred.poster && cred.poster.toLowerCase() !== h.toLowerCase() ? `, posted by @${cred.poster}` : ""}${date ? ", " + date : ""}: open the post on X`} onClick={(e) => e.stopPropagation()}>
       {rec && !bad ? <img decoding="async" src={rec.file} alt="" loading="lazy" onError={() => setBad(true)} /> : <span aria-hidden="true">{h[0].toUpperCase()}</span>}
     </a>
   );
@@ -5976,7 +5976,7 @@ html.v-rm .road-list-inner, html.v-rm .next .road-list-inner { transform: none !
 /* 24 Nov v6: a complete dot glows in its own colour (0 0 8px var(--c)); Raptor's own colour is near-black, so its glow was
    invisible. It gets the same soft glow in a light neutral that reads on navy; still a blur-only glow (no ring, so the dot
    keeps its 10x10 size) and the inset outline stays */
-.dot-done[data-cat="raptor"], .dot-complete[data-cat="raptor"] { box-shadow: 0 0 8px rgba(226,232,240,.6); }
+.dot-done[data-cat="raptor"], .dot-complete[data-cat="raptor"] { box-shadow: 0 0 8px #E2E8F0; } /* same 0 0 8px glow as every other complete dot, light grey, opaque */
 
 `;
 
