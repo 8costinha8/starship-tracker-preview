@@ -1781,7 +1781,19 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road, listIndex = 0 
               </button>
               <div className={"past-wrap" + (pastOpen ? " open" : "")} id={`past-${f.n}`} aria-hidden={!pastOpen}><div className="past-wrap-inner">
               <div className="past-sum" data-photos={past.some((e) => e.photo) ? "1" : undefined} aria-label={`Road to Flight ${f.n}`}>
-                {past.map((e, i) => (
+                {road.review ? (
+                  <div className="past-review">
+                    <ReviewPills road={road} box="cryo" vehicles={[f.ship, f.booster, ...(typeof vehiclesForFlight === "function" ? vehiclesForFlight(road, f.n) : [])].filter(Boolean)} />
+                    <ReviewPills road={road} box="raptor" vehicles={[f.ship, f.booster, ...(typeof vehiclesForFlight === "function" ? vehiclesForFlight(road, f.n) : [])].filter(Boolean)} />
+                    {past.filter((e) => e.box !== "cryo" && e.box !== "raptor").map((e, i) => (
+                      <div className="past-box" key={e.id || i} data-id={e.box} data-entry={e.id} style={catVars(e.box, e.color)}>
+                        {past.some((x) => x.photo) && (e.photo ? <BoxPhoto src={e.photo.image} crop={e.photo.crop} className="past-photo" /> : <div className="past-photo past-photo-none" />)}
+                        <PastTop vehicle={e.vehicle} labels={e.labels || [e.label]} />
+                        <PastText tiers={(e.tiers && e.tiers.length ? e.tiers : [e.text]).map((t) => scrub(String(t || "")))} />
+                      </div>
+                    ))}
+                  </div>
+                ) : past.map((e, i) => (
                   <div className="past-box" key={e.id || i} data-id={e.box} data-entry={e.id} style={catVars(e.box, e.color)}>
                     {past.some((x) => x.photo) && (e.photo ? <BoxPhoto src={e.photo.image} crop={e.photo.crop} className="past-photo" /> : <div className="past-photo past-photo-none" />)}
                     <PastTop vehicle={e.vehicle} labels={e.labels || [e.label]} />
@@ -2380,8 +2392,10 @@ function roadBoxEntries(road, rows) {
 const roadBoxLatest = (list) => { const e = (list || []).slice().sort((a, b) => (Date.parse(b.iso) || 0) - (Date.parse(a.iso) || 0))[0]; return e ? e.text : null; };
 // --- end road-parity helpers ---
 
-function ReviewPills({ road, box }) {
-  const pills = ((road.review && road.review.pills) || []).filter((p) => p.box === box);
+function ReviewPills({ road, box, vehicles }) {
+  const scoped = Array.isArray(vehicles);
+  const allow = scoped ? new Set(vehicles) : null;
+  const pills = ((road.review && road.review.pills) || []).filter((p) => p.box === box && (!scoped || allow.has(p.vehicleId) || allow.has(p.vehicle)));
   const order = (a, b) => {
     const va = /^Ship/.test(a.vehicle) ? 0 : /^Booster/.test(a.vehicle) ? 1 : 2;
     const vb = /^Ship/.test(b.vehicle) ? 0 : /^Booster/.test(b.vehicle) ? 1 : 2;
@@ -2472,7 +2486,7 @@ function RoadCard({ road, onEntryTap, openReq, heroNet, netPending, heroFlight }
             </Head>
             {canOpen && <div className="callout-hist"><div className="callout-hist-inner">
               {road.review && (m.id === "cryo" || m.id === "raptor")
-                ? <ReviewPills road={road} box={m.id} />
+                ? <ReviewPills road={road} box={m.id} vehicles={road.vehicles || []} />
                 : parity[m.id].map((e) => <ParityCard key={e.id} e={e} onTap={onEntryTap ? () => onEntryTap(m.id, null, e.id) : null} open={isOpen} />)}
             </div></div>}
           </div>
@@ -3683,7 +3697,7 @@ function FeedBuildUp({ h, plain, idx }) {
     <details className="buildup feed-bu" onClick={stop}>
       <summary>Earlier updates</summary>
       <ul>{rows.map(({ u, when }, i) => { const to = updateTarget(u, idx, h.id);
-        const body = <><div className="bu-top"><span className="bu-date">{when || (plain ? logDay(u) : entryDate(u))}</span></div><div className="bu-text">{scrub(plain ? logLine(u) : cardT(u))}</div></>;
+        const body = <><div className="bu-top"><span className="bu-date">{when || (plain ? logDay(u) : entryDate(u))}</span></div><div className="bu-text">{(u.review_source ? (plain ? logLine(u) : cardT(u)) : scrub(plain ? logLine(u) : cardT(u)))}</div></>;
         return to ? <li key={i} className="bu-pill" role="link" tabIndex={0} data-to={to} aria-label={`${u.text} — show its card`}
             onClick={(e) => { e.stopPropagation(); goToEntry(to); }} onKeyDown={(e) => { if (e.key === "Enter" && e.target === e.currentTarget) goToEntry(to); }}>{body}</li>
           : extOf(u) ? <li key={i} className="bu-pill bu-ext"><a href={extOf(u)} target="_blank" rel="noopener noreferrer" aria-label={`${u.text} — open its source`} onClick={stop}>{body}</a></li>
@@ -3718,7 +3732,7 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
         {st && <span className={"badge badge-" + st.status + " post-status"}>{st.text}</span>}
         <span className="post-date">{cardDate(h)}</span>
       </div>
-      <p className="post-text">{scrub(h.card_text || h.x_text || h.text)}</p>
+      <p className="post-text">{h.review_source ? (h.card_text || h.x_text || h.text) : scrub(h.card_text || h.x_text || h.text)}</p>
       {h.review_source ? <span className="rev-src">{h.review_source}</span> : null}
       {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
       {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
@@ -3765,7 +3779,7 @@ function RtfBuildUp({ h }) {
       <summary>Earlier updates</summary>
       <ul>{rows.map((u, i) => {
       const iso = upIso(u);
-      const body = <><div className="bu-top"><span className="bu-date">{iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date)}</span></div><div className="bu-text">{scrub(cardT(u)).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "")}</div></>;
+      const body = <><div className="bu-top"><span className="bu-date">{iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date)}</span></div><div className="bu-text">{(u.review_source ? cardT(u) : scrub(cardT(u))).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "")}</div></>;
       return extOf(u) ? <li key={i} className="bu-pill bu-ext"><a href={extOf(u)} target="_blank" rel="noopener noreferrer" aria-label={`${u.text} — ${rtfLinkText(u.url).toLowerCase()}${rtfHandle(u) ? " (" + rtfHandle(u) + ")" : ""}`} onClick={stop}>{body}</a></li>
         : <li key={i} className="bu-pill bu-nolink">{body}</li>;
       })}</ul>
@@ -3999,7 +4013,7 @@ function rtfCards(road) {
     const rows = [], seen = new Set([urlOf(main), main.url].filter(Boolean));
     const add = (u) => { const k = u.url || u.text; if (!u.text || (seen.has(k) && !u.event_row)) return; seen.add(k); rows.push(u); }; // event_row: the completion row (guards.js) shows even when it is the main post
     for (const h of list) {
-      if (h !== main) add({ id: h.id, text: h.text, ...(h.card_text ? { card_text: h.card_text } : {}), at: cardIso(h) || h.at, date: h.date, url: h.url || urlOf(h), /* 24 Nov: the post that states the text */ unverified: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).unverified(h) : false, src: h.src, handle: (h.x_post && h.x_post.author && h.x_post.author.username) || (h.media_override && h.media_override.author) || (String(h.src || "").startsWith("@") ? h.src : null) });
+      if (h !== main) add({ id: h.id, text: h.text, ...(h.card_text ? { card_text: h.card_text } : {}), at: cardIso(h) || h.at, date: h.date, url: h.url || urlOf(h), /* 24 Nov: the post that states the text */ unverified: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).unverified(h) : false, src: h.src, review_source: h.review_source, handle: (h.x_post && h.x_post.author && h.x_post.author.username) || (h.media_override && h.media_override.author) || (String(h.src || "").startsWith("@") ? h.src : null) });
       for (const u of h.updates || []) { if (typeof isRoadFlightEvent === "function" && isRoadFlightEvent(u, road)) continue; const uv = rtfVeh(u.text, road); if (v === "pad" ? !otherVehOnly(u.text, road) : uv.length ? uv.includes(v) : !otherVehOnly(u.text, road)) add({ text: u.text, ...(u.card_text ? { card_text: u.card_text } : {}), at: u.at, date: u.date, url: u.url, src: u.src, event_row: u.event_row, ...(u.merged ? { merged: u.merged } : {}) /* test-site trip: same-move posts */, phase: u.phase, unverified: (globalThis.RoadRules || null) ? (globalThis.RoadRules || null).unverified(u) : false, handle: u.handle || (String(u.src || "").startsWith("@") ? u.src : null) }); }
     }
     if (cid === "pad") { for (const u of padPins[v] || []) { if (typeof isRoadFlightEvent === "function" && isRoadFlightEvent(u, road)) continue; add(u); } rows.sort((a, b) => (Date.parse(b.at || "") || 0) - (Date.parse(a.at || "") || 0)); } // Flight Log pins: drawer rows
