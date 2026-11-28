@@ -1,0 +1,53 @@
+{
+  "scripts": {
+    "check-flights": {
+      "at": "2026-11-28T12:15:24.207Z",
+      "status": "ok",
+      "error": null,
+      "consecutive_failures": 0,
+      "last_ok": "2026-11-28T12:15:24.207Z"
+    },
+    "check-road": {
+      "at": "2026-11-28T13:15:24.545Z",
+      "status": "ok",
+      "error": null,
+      "consecutive_failures": 0,
+      "last_ok": "2026-11-28T13:15:24.545Z"
+    }
+  },
+  "updated": "2026-11-28T13:15:24.545Z",
+  "status": "ok",
+  "consecutive_failures": 0,
+  "alert": false,
+  "last_error": {
+    "at": "2026-11-14T21:31:42.993Z",
+    "error": "Value for argument \"data\" is not a valid Firestore document. Cannot use \"undefined\" as a Firestore value (found in field \"pendingPush.url\"). If you want to ignore undefined values, enable `ignoreUndefinedProperties`."
+  },
+  "committed_at": "2026-11-28T13:15:24.545Z",
+  "render_check": {
+    "at": "2026-11-28T06:01:12.936Z",
+    "status": "failed",
+    "failures": 1,
+    "items": [
+      "[render-tense] Flight Log raptor Booster 23 26 Nov: \"Booster 23 ready with all 33 Raptors.\" has no verb (fragment)"
+    ]
+  },
+  "sources": {
+    "ll2": {
+      "at": "2026-11-28T12:15:24.207Z",
+      "status": "ok",
+      "error": null,
+      "consecutive_failures": 0,
+      "last_ok": "2026-11-28T12:15:24.207Z"
+    }
+  },
+  "missed_runs_24h": 0,
+  "alert_reasons": [],
+  "coverage": {
+    "at": "2026-11-28T12:15:28.996Z",
+    "ok": true,
+    "error": null,
+    "gaps": 0,
+    "items": []
+  }
+}
