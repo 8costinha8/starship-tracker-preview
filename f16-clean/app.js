@@ -2084,7 +2084,7 @@ function Lightbox({ src, alt, onClose }) {
 // An entry with trust: "unconfirmed" gets a small "Unconfirmed" tag.
 // Every box is shown, the Launch date box included (it sends pushes, so it must be visible too).
 const ROAD_HIDDEN = [];
-const ROAD_URL = SIM ? `sim/${SIM}/road.json` : "road.json";
+const ROAD_URL = SIM ? `sim/${SIM}/road.json` : "road.json?r3.2";
 const ROAD_CACHE_KEY = "starship-road-cache-v1";
 const ROAD_STATUS_TEXT = { none: "Not yet", pending: "Not yet", progress: "In progress", done: "Complete", complete: "Complete" }; // finished boxes use ROAD_DONE_LABEL
 // finished-status label per category (box pills, Road page chips, Flight Log pills); "Complete" for an unknown box. "Done" is never shown.
@@ -2421,7 +2421,7 @@ function ReviewPills({ road, box, vehicles, flight, empty, onJump }) {
     else groups.push({ vehicle: p.vehicle, items: [p] });
   }
   if (!groups.length) return empty ? <div className="rev-pills"><div className="rev-empty">Nothing reported yet.</div></div> : null;
-  const jump = (p) => { if (onJump && p.beatId) onJump(p.box, null, p.beatId); };
+  const jump = (p) => { if (onJump && (p.beatId || p.cardId)) onJump(p.box, null, p.beatId || p.cardId, p); };
   return (
     <div className="rev-pills">
       {groups.map((g) => (
@@ -3743,7 +3743,7 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
   const crop = mo1 && (mo1.crop || (window.RoadPick ? window.RoadPick.cropOf(cat.id, `${h.text || ""} ${h.card_text || ""}`) : "top"));
   const mo = mo1 ? (pair ? { ...mo1, crop, road: true, pair: pair.map((m) => ({ ...m, crop })), onPhotoTap, alt: scrub(h.card_text || h.x_text || h.text) } : { ...mo1, crop, road: true }) : mo1; // two-photo split rides on the picked picture
   return (
-    <article className={"post" + (urlOf(h) ? " post-tap" : "")} id={`post-${p.id}`} data-id={p.id} data-entry={h.id || undefined} data-xposts={(h.x_posts || []).join(" ") || undefined} style={catVars(cat.id, cat.color)}
+    <article className={"post" + (urlOf(h) ? " post-tap" : "")} id={`post-${p.id}`} data-id={p.id} data-entry={h.id || undefined} data-beat={h.beatId || undefined} data-xposts={(h.x_posts || []).join(" ") || undefined} style={catVars(cat.id, cat.color)}
       {...linkProps(h)}>
       <div className="post-top">
         {pillParts(cat.name).map((t, i) => <span key={i} className={"chip chip-" + cat.id + (i ? " chip-2" : "")}>{!i && <span className="chip-i"><CatIcon c={cat} /></span>}{t}</span>)}
@@ -3797,9 +3797,11 @@ function RtfBuildUp({ h }) {
       <summary>Earlier updates</summary>
       <ul>{rows.map((u, i) => {
       const iso = upIso(u);
-      const body = <><div className="bu-top"><span className="bu-date">{iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date)}</span></div><div className="bu-text">{(u.review_source ? cardT(u) : scrub(cardT(u))).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "")}</div></>;
-      return extOf(u) ? <li key={i} className="bu-pill bu-ext"><a href={extOf(u)} target="_blank" rel="noopener noreferrer" aria-label={`${u.text} — ${rtfLinkText(u.url).toLowerCase()}${rtfHandle(u) ? " (" + rtfHandle(u) + ")" : ""}`} onClick={stop}>{body}</a></li>
-        : <li key={i} className="bu-pill bu-nolink">{body}</li>;
+      const single = !!(u.single_source || u.trust === "unconfirmed");
+      const body = <><div className="bu-top"><span className="bu-date">{iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date)}</span></div><div className="bu-text">{(u.review_source || single ? cardT(u) : scrub(cardT(u))).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "")}{single ? <span className="rev-src">Single source</span> : null}</div></>;
+      const rowId = u.id ? `post-${h.id}__${u.id}` : undefined;
+      return extOf(u) ? <li key={u.id || i} id={rowId} className="bu-pill bu-ext" data-beat={u.id || undefined} data-entry={u.id || undefined} data-date={u.date || undefined}><a href={extOf(u)} target="_blank" rel="noopener noreferrer" aria-label={`${u.text} — ${rtfLinkText(u.url).toLowerCase()}${rtfHandle(u) ? " (" + rtfHandle(u) + ")" : ""}`} onClick={stop}>{body}</a></li>
+        : <li key={u.id || i} id={rowId} className="bu-pill bu-nolink" data-beat={u.id || undefined} data-entry={u.id || undefined} data-date={u.date || undefined}>{body}</li>;
       })}</ul>
     </details>
   );
@@ -4007,6 +4009,20 @@ function rtfCards(road) {
   for (const [cid, h] of loose) { const t = Date.parse(cardIso(h)) || 0; let best = null;
     for (const v of vs) for (const e of bucket[cid + "|" + v] || []) { const d = Math.abs((Date.parse(cardIso(e)) || 0) - t); if (!best || d < best.d) best = { d, v }; }
     if (best) put(cid, best.v, h); }
+  // r3.2: unconfirmed single-source beats stay out of `mine` (they never lead a card or change
+  // grouping). They are attached later as Earlier updates on the already-chosen vehicle card.
+  const uncBucket = {};
+  const putUnc = (cid, v, h) => { (uncBucket[cid + "|" + v] = uncBucket[cid + "|" + v] || []).push(h); };
+  for (const cid of ["cryo", "raptor", "static", "pad"]) for (const h of ((cats[cid] && cats[cid].history) || [])) {
+    if (!(isRealEntry(h) && !h.feed_hide && !(h.flight > road.flight) && flightOf(h, road) === road.flight && h.trust === "unconfirmed")) continue;
+    if (typeof isRoadFlightEvent === "function" && isRoadFlightEvent(h, road)) continue;
+    if (dupMove.has(h.id)) continue;
+    const padHw = /^\s*pad/i.test(h.hardware || ""), hw = logHw(h), tv = rtfVeh(h.text, road), vv = padHw ? [] : tv.length ? tv : hw && vs.map(String).includes(hw) ? [hw] : [];
+    const otherPad = /\bpad[- ]?(\d)\b/i.test(`${h.hardware || ""} ${h.text || ""}`) && !rtfPad(h, road);
+    if (vv.length) vv.forEach((v) => putUnc(cid, v, h));
+    else if (otherPad || otherVehOnly(h.text, road)) continue;
+    else if (rtfPad(h, road) || cid === "pad") putUnc("pad", "pad", h);
+  }
   const out = [];
   const cols = [ship, boo].filter(isVehId);
   for (const cid of ["cryo", "raptor", "static", "pad"]) for (const v of rtfCategoryVehicles(cid, cols)) {
@@ -4064,7 +4080,13 @@ function rtfCards(road) {
       for (let i = rows.length - 1; i >= 0; i--) { const u = rows[i]; if (u.event_row && ((mUrl && u.url === mUrl) || rowT(u) === mainT || String(u.card_text || u.text || "") === mText)) rows.splice(i, 1); }
       rows.push({ ...(main === doneOne ? { done_row: true } : {}), text: main.text, ...(main.card_text ? { card_text: main.card_text } : {}), at: cardIso(main) || main.at, date: main.date, url: main.url || urlOf(main), src: main.src, handle: (main.x_post && main.x_post.author && main.x_post.author.username) || (main.media_override && main.media_override.author) || (String(main.src || "").startsWith("@") ? main.src : null) });
       const shown = newer.card_text || newer.text;
-      main = { ...main, text: newer.text, card_text: shown, x_text: shown, log_text: undefined, test_trip: undefined, pad_trip: undefined, at: newer.at, completed_at: undefined, time_known: undefined, publishedAt: undefined, date: newer.date, url: newer.url, src: newer.src, handle: newer.handle, x_post: undefined, media_override: undefined };
+      main = { ...main, text: newer.text, card_text: shown, x_text: shown, log_text: undefined, test_trip: undefined, pad_trip: undefined, at: newer.at, completed_at: undefined, time_known: undefined, publishedAt: undefined, date: newer.date, url: newer.url, src: newer.src, handle: newer.handle, x_post: undefined, media_override: undefined, beatId: newer.id || main.beatId };
+    }
+    rows.sort(byNew);
+    // r3.2: add unconfirmed single-source beats as Earlier updates only, after headline
+    // selection, so they cannot become `main`. Label is the muted "Single source" line.
+    for (const h of (uncBucket[cid + "|" + v] || [])) {
+      add({ id: h.id, text: h.text, ...(h.card_text ? { card_text: h.card_text } : {}), at: cardIso(h) || h.at, date: h.date, url: h.url || urlOf(h), src: h.src, review_source: "Single source", single_source: true, trust: "unconfirmed", handle: (h.x_post && h.x_post.author && h.x_post.author.username) || (h.media_override && h.media_override.author) || (String(h.src || "").startsWith("@") ? h.src : null) });
     }
     rows.sort(byNew);
     const own = headlineOwn(main);
@@ -4077,7 +4099,8 @@ function rtfCards(road) {
     const def = (!kept && cid === "raptor" && road.review && !((own && own.media_override && (own.media_override.keep_image || own.media_override.image)) || (own && own.x_post && own.x_post.media && own.x_post.media.length) || (own && own.image))) ? raptorDefaultOf(v) : null;
     const face = (face0.pic || !def) ? face0 : { pic: { ...def, type: "photo" }, fallback: true, ev: own, date: null };
     const pic = face.pic;
-    const h = { ...own, id: `rtf-${cid}-${v}`, updates: rows, alt_media: null, complete: !!doneOne, milestone: doneOne ? own.milestone : { phase: "progress" } };
+    const srcBeat = own.beatId || (own.id && !String(own.id).startsWith("rtf-") ? own.id : null);
+    const h = { ...own, id: `rtf-${cid}-${v}`, beatId: srcBeat || undefined, updates: rows, alt_media: null, complete: !!doneOne, milestone: doneOne ? own.milestone : { phase: "progress" } };
     // picture, credit and View on X: headline post if it has a photo, else the newest earlier
     // same-vehicle/section photo (that photo's post only). Headline post stays reachable via RtfCredit.
     if (pic) h.media_override = { image: pic.image, type: pic.type, post_url: pic.post_url, author: String(pic.author || "").replace(/^@/, ""), keep_image: !!(pic.manual || (own.media_override && own.media_override.keep_image) || (face.ev && face.ev.media_override && face.ev.media_override.keep_image)), credit_only: false, fallback: !!face.fallback, default_photo: !!(pic.default_photo || (own.media_override && own.media_override.default_photo) || isDefaultPhoto(pic) || isDefaultPhoto(own && own.media_override)), photo_date: face.date || undefined, crop: pic.crop };
@@ -4776,11 +4799,29 @@ function StarshipTracker() {
     }, 300);
     return () => clearTimeout(t);
   }, [entryReq, road]);
-  const jumpToPost = (catId, i, postId) => { // postId: a Page 2 card id (Page 1 current Road drawer, same entries)
+  const jumpToPost = (catId, i, postId, hint) => { // postId: exact beat id (or rtf card id); hint may be the pill ({cardId, beatId, text})
     const pane = feedScroll.current;
-    const el = pane && pane.querySelector(`#post-${CSS.escape(postId || `${catId}-${i}`)}`);
-    if (!el) return;
-    if (rfsReveal(el)) { setTimeout(() => jumpToPost(catId, i, postId), reduceMotion() ? 30 : 340); return; }
+    if (!pane) return;
+    const pill = hint && typeof hint === "object" ? hint : null;
+    const beatId = (pill && (pill.beatId || postId)) || postId || `${catId}-${i}`;
+    const cardId = (pill && pill.cardId) || (/^rtf-/.test(String(beatId)) ? beatId : null);
+    const card = (cardId && pane.querySelector(`#post-${CSS.escape(cardId)}`))
+      || pane.querySelector(`#post-${CSS.escape(beatId)}`)
+      || pane.querySelector(`[data-beat="${CSS.escape(beatId)}"]`)
+        && pane.querySelector(`[data-beat="${CSS.escape(beatId)}"]`).closest("article.post");
+    if (!card) return;
+    // Prefer the exact beat: the card headline if it is that beat, else the Earlier updates row.
+    let el = (card.getAttribute("data-beat") === beatId || card.id === "post-" + beatId) ? card : null;
+    if (!el) {
+      const row = card.querySelector(`[data-beat="${CSS.escape(beatId)}"], [data-entry="${CSS.escape(beatId)}"]`);
+      if (row) {
+        const det = row.closest("details");
+        if (det) det.open = true;
+        el = row;
+      }
+    }
+    if (!el) el = card;
+    if (rfsReveal(card)) { setTimeout(() => jumpToPost(catId, i, postId, hint), reduceMotion() ? 30 : 340); return; }
     const head = pane.querySelector(".feed-head");
     const y = Math.max(0, relTop(el, pane) - (head ? head.offsetHeight : 0) - 14);
     const flash = () => { el.classList.remove("hl"); void el.offsetWidth; el.classList.add("hl"); setTimeout(() => el.classList.remove("hl"), 2400); };
@@ -5408,6 +5449,14 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px 2px color-mix(in srgb, var(--c) 50%, transparent);
 }
 .post.hl::after { animation: post-hl 2.2s forwards; }
+.feed-bu .bu-pill { position: relative; }
+.feed-bu .bu-pill::after { /* same transparent outline/glow as .post::after, for a jumped-to earlier-update row */
+  content: ""; position: absolute; inset: -1px; border-radius: 10px; pointer-events: none; opacity: 0;
+  background: transparent;
+  border: 2px solid color-mix(in srgb, var(--c) 80%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px 2px color-mix(in srgb, var(--c) 50%, transparent);
+}
+.feed-bu .bu-pill.hl::after { animation: post-hl 2.2s forwards; }
 @keyframes post-hl { 0% { opacity: 0; } 11% { opacity: 1; animation-timing-function: linear; } 45% { opacity: 1; animation-timing-function: cubic-bezier(.45,0,.25,1); } 100% { opacity: 0; } }
 .post-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; row-gap: 4px; min-height: 24px; } /* 15 Nov: a long chip pair pushes the date onto its own line (right), never clips it */
 .chip {

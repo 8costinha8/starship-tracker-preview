@@ -1327,13 +1327,97 @@
           box: box0, vehicle: vehName, vehicleId: vehId, flight: Number(fl),
           label, text, url, links: 1,
           at: (start && start.iso) || "", endAt: (end && end.iso) || "",
-          sources: lead.url ? [{ url: lead.url }] : []
+          sources: lead.url ? [{ url: lead.url }] : [],
+          sourceId: lead.entry && lead.entry.id, sourceDate: lead.entry && lead.entry.date
         });
       });
     }
     return pills;
   }
 
+  function pillVehKey(p) {
+    return p.vehicleId === "PAD" || /^pad$/i.test(p.vehicleId || "") ? "pad"
+      : p.vehicleId === "FAA" || p.vehicleId === "DATE" ? String(p.vehicleId).toLowerCase()
+      : p.vehicleId;
+  }
+  function dayOf(x) {
+    if (!x) return null;
+    return parseEntryDay(x) || (x.at && ukDate(String(x.at).slice(0, 10))) || null;
+  }
+  function inPillWindow(p, x) {
+    const d = dayOf(x);
+    if (!d) return false;
+    const start = ukDate(p.at) || null;
+    const end = ukDate(p.endAt || p.at) || start;
+    if (!start || !end) return true;
+    return d.iso >= start.iso && d.iso <= end.iso;
+  }
+  function textHits(a, b) {
+    const na = String(a || "").toLowerCase().replace(/\s+/g, " ").trim();
+    const nb = String(b || "").toLowerCase().replace(/\s+/g, " ").trim();
+    if (!na || !nb) return 0;
+    if (na === nb) return 3;
+    if (na.length > 20 && (nb.includes(na.slice(0, 28)) || na.includes(nb.slice(0, 28)))) return 2;
+    if (/pusher/.test(na) && /pusher/.test(nb)) return 2;
+    return 0;
+  }
+  const KIND_RANK = { cryo_complete: 0, return_engines: 0, engines_ahead: 0, engines: 0, no_visible: 1, return: 1, pre_move: 3, arrive: 3, stand_lift: 4 };
+  function histVehOk(p, h) {
+    const id = String(p.vehicleId || "").toUpperCase();
+    const hw = String(h.hardware || "").toUpperCase().replace(/^SHIP\s*/, "S").replace(/^BOOSTER\s*/, "B");
+    if (id === "PAD" || id === "FAA" || id === "DATE") return !/^[SB]\d+$/.test(hw);
+    if (/^[SB]\d+$/.test(id)) {
+      const name = (id[0] === "S" ? "Ship " : "Booster ") + id.slice(1);
+      return hw === id || new RegExp(name.replace(/\s+/, "\\s*"), "i").test(`${h.text || ""} ${h.hardware || ""}`);
+    }
+    return true;
+  }
+  // r3.2: each pill targets the exact Page 2 beat (id + date), not merely the vehicle+category card.
+  function assignPillBeatTargets(pills, beats, road) {
+    for (const p of pills) {
+      p.cardId = `rtf-${p.box}-${pillVehKey(p)}`;
+      const useBeats = p.box === "cryo" || p.box === "raptor";
+      const pool = [];
+      if (useBeats) {
+        for (const b of beats || []) {
+          if (b.box !== p.box || b.vehicleId !== p.vehicleId) continue;
+          if (p.flight != null && b.flight != null && Number(b.flight) !== Number(p.flight)) continue;
+          pool.push({ id: b.id, date: b.date, at: b.at, text: b.text, kind: b.kindEvent });
+        }
+      } else {
+        const cat = (road.categories || []).find((c) => c.id === p.box);
+        for (const h of (cat && cat.history) || []) {
+          if (!h || !h.id || !histVehOk(p, h)) continue;
+          if (p.flight != null && h.flight != null && Number(h.flight) !== Number(p.flight)) continue;
+          pool.push({ id: h.id, date: h.date, at: h.at, text: h.text || h.card_text, kind: h.kind });
+        }
+      }
+      const inWin = pool.filter((x) => inPillWindow(p, x));
+      const list = inWin.length ? inWin : pool;
+      let found = null;
+      if (p.sourceId) found = list.find((x) => x.id === p.sourceId) || pool.find((x) => x.id === p.sourceId) || null;
+      if (!found && list.length) {
+        found = list.slice().sort((a, b) => {
+          const tb = textHits(p.text, b.text) - textHits(p.text, a.text);
+          if (tb) return tb;
+          if (p.milestoneKind) {
+            const ma = a.kind === p.milestoneKind ? 0 : 1, mb = b.kind === p.milestoneKind ? 0 : 1;
+            if (ma !== mb) return ma - mb;
+          }
+          const ra = KIND_RANK[a.kind] == null ? 2 : KIND_RANK[a.kind], rb = KIND_RANK[b.kind] == null ? 2 : KIND_RANK[b.kind];
+          if (ra !== rb) return ra - rb;
+          return String((dayOf(b) && dayOf(b).iso) || "").localeCompare(String((dayOf(a) && dayOf(a).iso) || ""));
+        })[0];
+      }
+      if (found && found.id) {
+        p.beatId = found.id;
+        p.beatDate = found.date || fmtDay(dayOf(found)) || "";
+      } else {
+        p.beatId = p.beatId || p.cardId;
+        p.beatDate = p.beatDate || "";
+      }
+    }
+  }
 
   function applyRaptorStatus(road, pills, beats, facts) {
     const raptor = (road.categories || []).find((c) => c.id === "raptor");
@@ -1487,12 +1571,7 @@
       const rBeats = beats.filter((b) => b.vehicleId === p.vehicleId && b.box === p.box);
     }
     appendOtherPills(road, pills);
-    for (const p of pills) {
-      const veh = p.vehicleId === "PAD" || /^pad$/i.test(p.vehicleId || "") ? "pad"
-        : p.vehicleId === "FAA" || p.vehicleId === "DATE" ? String(p.vehicleId).toLowerCase()
-        : p.vehicleId;
-      p.beatId = `rtf-${p.box}-${veh}`;
-    }
+    for (const p of pills) p.cardId = `rtf-${p.box}-${pillVehKey(p)}`;
     pills.sort((a, b) => (a.box === b.box ? 0 : a.box < b.box ? -1 : 1) || String(b.endAt || b.at).localeCompare(String(a.endAt || a.at)));
 
     changed = writeHistory(road, beatGroups, beats, current, log, livePhotos) || changed;
@@ -1510,6 +1589,7 @@
     }
     changed = applyRaptorStatus(road, pills, beats, facts) || changed;
     changed = applyReviewDisplay(road, pills, log) || changed;
+    assignPillBeatTargets(pills, beats, road);
     changed = writeArchive(road, pills, beats, facts, log) || changed;
     road.review = {
       generated: true,

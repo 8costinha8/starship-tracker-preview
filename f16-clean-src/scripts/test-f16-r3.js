@@ -139,16 +139,45 @@ check(/past-sum/.test(fc) && /past\.map/.test(fc) && !/ReviewPills/.test(fc),
 check(/grid-template-columns:\s*1fr 1fr/.test(app) && /\.past-box/.test(app),
   "1: .past-sum remains a 2-col grid of .past-box cards");
 
-// Page 1 pills never have an external href; each upcoming pill maps to a Page 2 beat id
+// Page 1 pills never have an external href; each upcoming pill maps to its EXACT Page 2 beat (id and date)
 const upcomingPills = pills.filter((p) => Number(p.flight) === Number(road.flight));
 check(!/href=\{p\.url\}/.test(app.slice(app.indexOf("function ReviewPills"), app.indexOf("function RoadCard"))),
   "Page 1 ReviewPills have no external href");
-check(upcomingPills.every((p) => p.beatId && /^rtf-/.test(p.beatId)),
-  "each upcoming Page 1 pill maps to a Page 2 beat id (rtf-*)");
+function dayToken(s) {
+  const t = String(s || "");
+  const m = t.match(/(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i);
+  return m ? m[1] + " " + m[2].slice(0, 3) : (t.match(/\d{4}-\d{2}-\d{2}/) || [])[0] || "";
+}
+function sameDay(a, b) {
+  const da = dayToken(a), db = dayToken(b);
+  return !!(da && db && (da === db || String(a).includes(db) || String(b).includes(da)));
+}
+check(upcomingPills.every((p) => p.beatId && p.beatDate && p.cardId),
+  "r3.2: every upcoming pill has an exact beat id, beat date, and host card id");
 appFns(["rtfCards"], ({ rtfCards }) => {
-  const ids = new Set(rtfCards(road).map((c) => c.id || (c.h && c.h.id)).filter(Boolean));
-  const missing = upcomingPills.filter((p) => !ids.has(p.beatId)).map((p) => p.id + "->" + p.beatId);
-  check(missing.length === 0, "each Page 1 pill beatId exists on a Page 2 rtf card (missing " + (missing.join(", ") || "none") + ")");
+  const cards = rtfCards(road).filter((c) => !c.empty && c.h);
+  const byId = Object.fromEntries(cards.map((c) => [c.id || (c.h && c.h.id), c]));
+  const missingCard = upcomingPills.filter((p) => !byId[p.cardId]).map((p) => p.id + "->" + p.cardId);
+  check(missingCard.length === 0, "r3.2: every Page 1 pill resolves to a Page 2 card that is actually rendered (missing " + (missingCard.join(", ") || "none") + ")");
+  for (const p of upcomingPills) {
+    const card = byId[p.cardId];
+    if (!card) continue;
+    const head = card.h;
+    const headHit = head.beatId === p.beatId || head.id === p.beatId;
+    const row = (head.updates || []).find((u) => u.id === p.beatId);
+    const dateAt = headHit ? head.date : (row && row.date);
+    check(!!(headHit || row), "r3.2: pill " + p.id + " exact beat " + p.beatId + " (" + p.beatDate + ") is the headline or an Earlier updates row on " + p.cardId);
+    check(sameDay(dateAt, p.beatDate), "r3.2: pill " + p.id + " target date is " + p.beatDate + " (got " + dateAt + ")");
+  }
+  const r1 = upcomingPills.find((p) => p.id === "pill-B23-cryo-r1");
+  const r2 = upcomingPills.find((p) => p.id === "pill-B23-cryo-r2");
+  check(r1 && sameDay(r1.beatDate, "15 Oct") && r1.beatId !== "rtf-cryo-B23" && r1.cardId === "rtf-cryo-B23",
+    "r3.2: B23 Cryo Round 1 targets the 15 Oct beat, not the vehicle card (" + (r1 && r1.beatId) + " " + (r1 && r1.beatDate) + ")");
+  check(r2 && sameDay(r2.beatDate, "30 Oct") && r2.beatId !== (r1 && r1.beatId),
+    "r3.2: B23 Cryo Round 2 targets the 30 Oct beat, distinct from Round 1 (" + (r2 && r2.beatId) + " " + (r2 && r2.beatDate) + ")");
+  const r1row = ((((byId["rtf-cryo-B23"] || {}).h) || {}).updates || []).find((u) => u.id === (r1 && r1.beatId));
+  check(r1row && sameDay(r1row.date, "15 Oct"),
+    "r3.2: B23 R1 beat is the 15 Oct Earlier updates row (got " + (r1row && r1row.date) + ")");
   return true;
 });
 
@@ -208,6 +237,38 @@ appFns(["rtfCards", "cardDate", "urlOf"], ({ rtfCards, cardDate, urlOf }) => {
   }
   return true;
 });
+
+
+// r3.2: unconfirmed single-source beats appear under the matching card's Earlier updates,
+// marked "Single source" in the muted source-line style. Trust and grouping otherwise unchanged.
+check(pusherHist && pusherHist.trust === "unconfirmed",
+  "r3.2: S43 pusher history trust is still unconfirmed (got " + (pusherHist && pusherHist.trust) + ")");
+appFns(["rtfCards"], ({ rtfCards }) => {
+  const cards = rtfCards(road).filter((c) => !c.empty && c.h);
+  const pad = cards.find((c) => (c.id || (c.h && c.h.id)) === "rtf-pad-S43");
+  check(!!pad, "r3.2: S43 pad card is rendered");
+  const head = String((pad && pad.h && (pad.h.card_text || pad.h.text)) || "");
+  check(!/pusher/i.test(head), "r3.2: unconfirmed pusher beat is not the S43 pad headline (got " + head + ")");
+  const rows = (pad && pad.h && pad.h.updates) || [];
+  const row = rows.find((u) => /pusher/i.test(u.text || u.card_text || "") && (u.id === "f16-s43-2115205843880992791" || /Ship 43/.test(u.text || "")));
+  check(!!row, "r3.2: S43 pusher beat f16-s43-2115205843880992791 is in the S43 pad Earlier updates (got " + rows.map((u) => u.text).join(" | ") + ")");
+  check(row && (row.single_source || row.trust === "unconfirmed") && row.review_source === "Single source",
+    "r3.2: pusher earlier-update is marked Single source (got " + (row && row.review_source) + ")");
+  // Unconfirmed items never lead any card
+  for (const c of cards) {
+    const h = c.h;
+    check(h.trust !== "unconfirmed" && !h.single_source,
+      "r3.2: rendered headline " + h.id + " is not an unconfirmed single-source beat");
+  }
+  return true;
+});
+check(/single \? <span className="rev-src">Single source<\/span>/.test(app) || /<span className="rev-src">Single source<\/span>/.test(app),
+  "r3.2: Earlier updates use the muted .rev-src line 'Single source' (no image badge)");
+const jumpSrc = app.slice(app.indexOf("const jumpToPost"), app.indexOf("const jumpToPost") + 2200);
+check(/det\.open = true/.test(jumpSrc) && /data-beat/.test(jumpSrc) && /el\.classList.add\("hl"\)/.test(jumpSrc),
+  "r3.2: jumpToPost expands Earlier updates, finds the exact beat row, and glows that element");
+check(/\.bu-pill\.hl::after/.test(app) && /background:\s*transparent/.test(app.slice(app.indexOf(".feed-bu .bu-pill::after"), app.indexOf(".feed-bu .bu-pill.hl::after") + 80)),
+  "r3.2: jumped-to earlier-update rows use the same transparent outline glow, not an opaque fill");
 
 if (fails.length) { console.error("\n" + fails.length + " failure(s)"); process.exit(1); }
 console.log("\nAll f16-clean-r3 logic checks passed.");

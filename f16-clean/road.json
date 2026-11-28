@@ -2532,7 +2532,9 @@
         ],
         "milestoneKind": null,
         "links": 1,
-        "beatId": "rtf-cryo-B23"
+        "cardId": "rtf-cryo-B23",
+        "beatId": "beat-2116198873345544505",
+        "beatDate": "30 Oct"
       },
       {
         "id": "pill-S43-cryo-r1",
@@ -2689,7 +2691,9 @@
         ],
         "milestoneKind": "cryo_complete",
         "links": 1,
-        "beatId": "rtf-cryo-S43"
+        "cardId": "rtf-cryo-S43",
+        "beatId": "beat-nsf-2026-10-25-roberts-road-expansion-flight-16",
+        "beatDate": "23 Oct"
       },
       {
         "id": "pill-B23-cryo-r1",
@@ -2832,7 +2836,9 @@
         ],
         "milestoneKind": "cryo_complete",
         "links": 1,
-        "beatId": "rtf-cryo-B23"
+        "cardId": "rtf-cryo-B23",
+        "beatId": "beat-nsf-2026-10-25-roberts-road-expansion-flight-16",
+        "beatDate": "15 Oct"
       },
       {
         "id": "pill-S42-cryo-r2",
@@ -2898,7 +2904,9 @@
         ],
         "milestoneKind": "cryo_complete",
         "links": 1,
-        "beatId": "rtf-cryo-S42"
+        "cardId": "rtf-cryo-S42",
+        "beatId": "beat-2108857024977268944",
+        "beatDate": "9 Oct"
       },
       {
         "id": "pill-S42-cryo-r1",
@@ -3069,7 +3077,9 @@
         ],
         "milestoneKind": "cryo_complete",
         "links": 1,
-        "beatId": "rtf-cryo-S42"
+        "cardId": "rtf-cryo-S42",
+        "beatId": "beat-2096501401845178706",
+        "beatDate": "6 Sep"
       },
       {
         "id": "pill-B22-cryo-f15-r1",
@@ -3088,7 +3098,10 @@
             "url": "https://x.com/Blobifie/status/2097943705911193755"
           }
         ],
-        "beatId": "rtf-cryo-B22"
+        "sourceDate": "10 Sep",
+        "cardId": "rtf-cryo-B22",
+        "beatId": "rtf-cryo-B22",
+        "beatDate": ""
       },
       {
         "id": "pill-FAA-faa-f15-r2",
@@ -3107,7 +3120,10 @@
             "url": "https://x.com/NASASpaceflight/status/2121317448477728883"
           }
         ],
-        "beatId": "rtf-faa-faa"
+        "sourceDate": "13 Nov",
+        "cardId": "rtf-faa-faa",
+        "beatId": "rtf-faa-faa",
+        "beatDate": ""
       },
       {
         "id": "pill-PAD-pad-f16-r1",
@@ -3126,7 +3142,11 @@
             "url": "https://x.com/TrackingTheSB/status/2123269690457780726"
           }
         ],
-        "beatId": "rtf-pad-pad"
+        "sourceId": "x-2123269690457780726",
+        "sourceDate": "19 Nov",
+        "cardId": "rtf-pad-pad",
+        "beatId": "x-2123269690457780726",
+        "beatDate": "19 Nov"
       },
       {
         "id": "pill-S43-pad-f16-r1",
@@ -3145,7 +3165,11 @@
             "url": "https://x.com/Blobifie/status/2115205843880992791"
           }
         ],
-        "beatId": "rtf-pad-S43"
+        "sourceId": "f16-s43-2115205843880992791",
+        "sourceDate": "27 Oct",
+        "cardId": "rtf-pad-S43",
+        "beatId": "f16-s43-2115205843880992791",
+        "beatDate": "27 Oct"
       },
       {
         "id": "pill-S42-pad-f15-r1",
@@ -3164,7 +3188,10 @@
             "url": "https://x.com/efraser77/status/2121005568722964862"
           }
         ],
-        "beatId": "rtf-pad-S42"
+        "sourceDate": "12 Nov",
+        "cardId": "rtf-pad-S42",
+        "beatId": "rtf-pad-S42",
+        "beatDate": ""
       },
       {
         "id": "pill-PAD-pad-f15-r1",
@@ -3183,7 +3210,10 @@
             "url": "https://x.com/LabPadre/status/2121493937852473798"
           }
         ],
-        "beatId": "rtf-pad-pad"
+        "sourceDate": "14 Nov",
+        "cardId": "rtf-pad-pad",
+        "beatId": "x-2123269690457780726",
+        "beatDate": "19 Nov"
       },
       {
         "id": "pill-B22-pad-f15-r2",
@@ -3202,7 +3232,10 @@
             "url": "https://x.com/CSI_Starbase/status/2120046271859921250"
           }
         ],
-        "beatId": "rtf-pad-B22"
+        "sourceDate": "10 Nov",
+        "cardId": "rtf-pad-B22",
+        "beatId": "rtf-pad-B22",
+        "beatDate": ""
       },
       {
         "id": "pill-B22-pad-f15-r1",
@@ -3221,7 +3254,10 @@
             "url": "https://x.com/RGVaerialphotos/status/2114578590792859900"
           }
         ],
-        "beatId": "rtf-pad-B22"
+        "sourceDate": "26 Oct",
+        "cardId": "rtf-pad-B22",
+        "beatId": "rtf-pad-B22",
+        "beatDate": ""
       },
       {
         "id": "pill-S43-raptor-r1",
@@ -3244,7 +3280,9 @@
         ],
         "milestoneKind": "engines",
         "links": 1,
-        "beatId": "rtf-raptor-S43"
+        "cardId": "rtf-raptor-S43",
+        "beatId": "beat-2114673311045353935-engines_ahead",
+        "beatDate": "26 Oct"
       },
       {
         "id": "pill-B23-raptor-r1",
@@ -3288,7 +3326,9 @@
         ],
         "milestoneKind": "return_engines",
         "links": 1,
-        "beatId": "rtf-raptor-B23"
+        "cardId": "rtf-raptor-B23",
+        "beatId": "beat-nsf-2026-10-18-spacex-flight-15-16-milestones",
+        "beatDate": "18 Oct"
       },
       {
         "id": "pill-B22-raptor-f15-r1",
@@ -3307,7 +3347,10 @@
             "url": "https://x.com/SpaceX/status/2114444137067844004"
           }
         ],
-        "beatId": "rtf-raptor-B22"
+        "sourceDate": "24 Oct",
+        "cardId": "rtf-raptor-B22",
+        "beatId": "rtf-raptor-B22",
+        "beatDate": ""
       },
       {
         "id": "pill-S42-raptor-f15-r3",
@@ -3326,7 +3369,10 @@
             "url": "https://www.youtube.com/watch?v=t9iGVxSx0aw"
           }
         ],
-        "beatId": "rtf-raptor-S42"
+        "sourceDate": "14 Oct",
+        "cardId": "rtf-raptor-S42",
+        "beatId": "beat-spacebytes-2026-09-06-starbase-infrastructure-advances-toward-flight-14-return_engines",
+        "beatDate": "6 Sep"
       },
       {
         "id": "pill-S42-raptor-f15-r2",
@@ -3345,7 +3391,10 @@
             "url": "https://x.com/LabPadre/status/2105350891859501311"
           }
         ],
-        "beatId": "rtf-raptor-S42"
+        "sourceDate": "30 Sep",
+        "cardId": "rtf-raptor-S42",
+        "beatId": "beat-spacebytes-2026-09-06-starbase-infrastructure-advances-toward-flight-14-return_engines",
+        "beatDate": "6 Sep"
       },
       {
         "id": "pill-S42-raptor-f15-r1",
@@ -3364,7 +3413,10 @@
             "url": "https://x.com/NASASpaceflight/status/2098104487428694216"
           }
         ],
-        "beatId": "rtf-raptor-S42"
+        "sourceDate": "10 Sep",
+        "cardId": "rtf-raptor-S42",
+        "beatId": "beat-spacebytes-2026-09-06-starbase-infrastructure-advances-toward-flight-14-return_engines",
+        "beatDate": "6 Sep"
       },
       {
         "id": "pill-B23-static-f16-r1",
@@ -3383,7 +3435,11 @@
             "url": "https://x.com/RGVaerialphotos/status/2125798344182075667"
           }
         ],
-        "beatId": "rtf-static-B23"
+        "sourceId": "x-2125798344182075667",
+        "sourceDate": "26 Nov",
+        "cardId": "rtf-static-B23",
+        "beatId": "x-2125798344182075667",
+        "beatDate": "26 Nov"
       },
       {
         "id": "pill-S42-static-f15-r1",
@@ -3402,7 +3458,10 @@
             "url": "https://x.com/NASASpaceflight/status/2115231900961005856"
           }
         ],
-        "beatId": "rtf-static-S42"
+        "sourceDate": "27 Oct",
+        "cardId": "rtf-static-S42",
+        "beatId": "rtf-static-S42",
+        "beatDate": ""
       },
       {
         "id": "pill-B22-static-f15-r1",
@@ -3421,7 +3480,10 @@
             "url": "https://x.com/NASASpaceflight/status/2114347288739098706"
           }
         ],
-        "beatId": "rtf-static-B22"
+        "sourceDate": "25 Oct",
+        "cardId": "rtf-static-B22",
+        "beatId": "rtf-static-B22",
+        "beatDate": ""
       }
     ],
     "beats": [
