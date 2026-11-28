@@ -2084,7 +2084,7 @@ function Lightbox({ src, alt, onClose }) {
 // An entry with trust: "unconfirmed" gets a small "Unconfirmed" tag.
 // Every box is shown, the Launch date box included (it sends pushes, so it must be visible too).
 const ROAD_HIDDEN = [];
-const ROAD_URL = SIM ? `sim/${SIM}/road.json` : "road.json?r3.3";
+const ROAD_URL = SIM ? `sim/${SIM}/road.json` : "road.json?r3.4";
 const ROAD_CACHE_KEY = "starship-road-cache-v1";
 const ROAD_STATUS_TEXT = { none: "Not yet", pending: "Not yet", progress: "In progress", done: "Complete", complete: "Complete" }; // finished boxes use ROAD_DONE_LABEL
 // finished-status label per category (box pills, Road page chips, Flight Log pills); "Complete" for an unknown box. "Done" is never shown.
@@ -3738,19 +3738,6 @@ const roadMediaOf = (h, cat) => (isShipCryo(h, cat) && h.media_override && h.med
 // 3 Nov: a combined pill ("Cryo tests · Ship 42") shows as two same-style pills side by side, no dot separator
 const pillParts = (name) => String(name || "").split(/\s+·\s+/).filter(Boolean);
 
-// r3.3: keep the muted source line under the text unless it just repeats the photo badge's credited handle.
-const reviewSourceDupesBadge = (h, mo) => {
-  const src = String((h && h.review_source) || "").replace(/^@/, "").trim().toLowerCase();
-  if (!src || !mo || !(mo.image || mo.author || mo.post_url)) return false;
-  const handles = new Set();
-  const add = (v) => { const t = String(v || "").replace(/^@/, "").trim().toLowerCase(); if (t) handles.add(t); };
-  add(mo.author);
-  const crop = mo.crop === "bottom" ? "bottom" : "top"; // production photo-marks crop mapping
-  const cred = badgeCreditOf(mo.author, mo.post_url, mo.image, 16 / 9, crop, CREDITS);
-  add(cred && cred.handle);
-  for (const hdl of handles) if (src === hdl || src === hdl + ".com" || src.replace(/\.com$/, "") === hdl) return true;
-  return false;
-};
 function FeedPost({ p, onPhotoTap, idx, st }) {
   const { h, cat } = p;
   const mo1 = roadMediaOf(h, cat), pair = splitOf(h, mo1);
@@ -3765,7 +3752,6 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
         <span className="post-date">{cardDate(h)}</span>
       </div>
       <p className="post-text">{h.review_source ? (h.card_text || h.x_text || h.text) : scrub(h.card_text || h.x_text || h.text)}</p>
-      {h.review_source && !reviewSourceDupesBadge(h, mo) ? <span className="rev-src">{h.review_source}</span> : null}
       {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
       {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
       <div className="card-foot">
@@ -3812,7 +3798,7 @@ function RtfBuildUp({ h }) {
       <ul>{rows.map((u, i) => {
       const iso = upIso(u);
       const single = !!(u.single_source || u.trust === "unconfirmed");
-      const body = <><div className="bu-top"><span className="bu-date">{iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date)}</span></div><div className="bu-text">{(u.review_source || single ? cardT(u) : scrub(cardT(u))).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "")}{single ? <span className="rev-src">Single source</span> : null}</div></>;
+      const body = <><div className="bu-top"><span className="bu-date">{iso ? `${ukStamp(iso, false)} · ${feedTime(iso)}` : fmtDay(u.date)}</span></div><div className="bu-text">{(u.review_source || single ? cardT(u) : scrub(cardT(u))).replace(/^\d{1,2}(?:[–-]\d{1,2})? [A-Z][a-z]{2}:\s*/, "")}{single ? <>{" "}<span className="rev-src">Single source</span></> : null}</div></>;
       const rowId = u.id ? `post-${h.id}__${u.id}` : undefined;
       return extOf(u) ? <li key={u.id || i} id={rowId} className="bu-pill bu-ext" data-beat={u.id || undefined} data-entry={u.id || undefined} data-date={u.date || undefined}><a href={extOf(u)} target="_blank" rel="noopener noreferrer" aria-label={`${u.text} — ${rtfLinkText(u.url).toLowerCase()}${rtfHandle(u) ? " (" + rtfHandle(u) + ")" : ""}`} onClick={stop}>{body}</a></li>
         : <li key={u.id || i} id={rowId} className="bu-pill bu-nolink" data-beat={u.id || undefined} data-entry={u.id || undefined} data-date={u.date || undefined}>{body}</li>;
@@ -4098,7 +4084,7 @@ function rtfCards(road) {
     }
     rows.sort(byNew);
     // r3.2: add unconfirmed single-source beats as Earlier updates only, after headline
-    // selection, so they cannot become `main`. Label is the muted "Single source" line.
+    // selection, so they cannot become `main`. Muted "Single source" follows the beat sentence.
     for (const h of (uncBucket[cid + "|" + v] || [])) {
       add({ id: h.id, text: h.text, ...(h.card_text ? { card_text: h.card_text } : {}), at: cardIso(h) || h.at, date: h.date, url: h.url || urlOf(h), src: h.src, review_source: "Single source", single_source: true, trust: "unconfirmed", handle: (h.x_post && h.x_post.author && h.x_post.author.username) || (h.media_override && h.media_override.author) || (String(h.src || "").startsWith("@") ? h.src : null) });
     }
@@ -5667,7 +5653,7 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
 .rev-pill { display: block; text-decoration: none; color: inherit; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 9px 14px; margin-bottom: 8px; background: rgba(0,0,0,.2); }
 .rev-pill-label { display: block; font-weight: 500; font-size: 10.5px; line-height: 1.3; font-family: inherit; color: #9aa0a8; margin-bottom: 2px; }
 .rev-pill-text { display: block; font-weight: 400; font-size: 13.5px; line-height: 1.35; font-family: inherit; }
-.rev-src { display: block; margin-top: 4px; font-weight: 400; font-size: 11px; line-height: 1.3; font-family: inherit; color: #8a9099; }
+.rev-src { display: inline; margin-left: 0.4em; font-weight: 400; font-size: 11px; line-height: 1.3; font-family: inherit; color: #8a9099; }
 .rev-empty { font-family: inherit; font-size: 13.5px; line-height: 1.35; color: var(--muted, #97A3BD); padding: 4px 0 2px; }
 `;
 // Energy v10 design overlay styles (from the preview repo, 96850ff variants/energy/variant.css). Rendered after css, so it wins ties.

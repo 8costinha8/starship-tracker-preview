@@ -181,9 +181,7 @@ appFns(["rtfCards"], ({ rtfCards }) => {
   return true;
 });
 
-// Page 2: muted .rev-src stays when it does not duplicate the photo badge
-check(/reviewSourceDupesBadge/.test(app) && /h\.review_source && !reviewSourceDupesBadge\(h, mo\)/.test(app),
-  "Page 2 keeps the muted source line under the text unless it duplicates the badge");
+// r3.4: no source @handle/outlet line above or over the Page 2 photo (production has none).
 
 
 // r3.1 (1): fallback default-photo metadata never feeds a beat's date, link, or credit
@@ -260,8 +258,8 @@ appFns(["rtfCards"], ({ rtfCards }) => {
   }
   return true;
 });
-check(/single \? <span className="rev-src">Single source<\/span>/.test(app) || /<span className="rev-src">Single source<\/span>/.test(app),
-  "r3.2: Earlier updates use the muted .rev-src line 'Single source' (no image badge)");
+check(/bu-text\{[\s\S]*?single \? <>\{" "\}<span className="rev-src">Single source<\/span><\/>/.test(app) || /<span className="rev-src">Single source<\/span>/.test(app) && /bu-text/.test(app.slice(app.indexOf("function RtfBuildUp"), app.indexOf("function RtfBuildUp")+2500)),
+  "r3.2: Earlier updates keep muted 'Single source' after the beat sentence (no image badge)");
 const jumpSrc = app.slice(app.indexOf("const jumpToPost"), app.indexOf("const jumpToPost") + 2200);
 check(/det\.open = true/.test(jumpSrc) && /data-beat/.test(jumpSrc) && /el\.classList.add\("hl"\)/.test(jumpSrc),
   "r3.2: jumpToPost expands Earlier updates, finds the exact beat row, and glows that element");
@@ -314,6 +312,21 @@ const oneClose = app.slice(app.indexOf("function OneMedia"), app.indexOf("functi
 check(!/SrcBadge[^>]*>}\s*<\/div>/.test(oneClose) && oneClose.includes("<SrcBadge") && oneClose.includes("</div>"),
   "r3.3: OneMedia SrcBadge is a sibling in xm-grid (no leftover JSX brace)");
 
+
+
+// r3.4: no Page 2 card renders a source @handle/outlet line above or over the photo.
+const feedPostSrc = app.slice(app.indexOf("function FeedPost"), app.indexOf("const rtfIsX"));
+check(!/className="rev-src">\{h\.review_source\}/.test(feedPostSrc) && !/reviewSourceDupesBadge/.test(feedPostSrc) && !/<span className="rev-src">/.test(feedPostSrc),
+  "r3.4: FeedPost does not render a source @handle/outlet line above or over the photo");
+check(!/h\.review_source && !reviewSourceDupesBadge/.test(app) && !/h\.review_source \? <span className="rev-src">/.test(app),
+  "r3.4: no Page 2 headline card renders review_source as a muted line above the photo");
+const rtfBuSrc = app.slice(app.indexOf("function RtfBuildUp"), app.indexOf("function RtfBuildUp") + 3500);
+check(/className="bu-text"/.test(rtfBuSrc) && /single \? <>\{" "\}<span className="rev-src">Single source<\/span><\/>/.test(rtfBuSrc),
+  "r3.4: Single source is plain muted text after the Earlier-updates beat sentence, not a label above an image");
+check(/\.rev-src \{[^}]*display:\s*inline/.test(app),
+  "r3.4: .rev-src is inline after the sentence, not a block line above the photo");
+check(!/\.post-text[\s\S]{0,200}rev-src[\s\S]{0,200}PickMedia/.test(feedPostSrc),
+  "r3.4: FeedPost has no rev-src between the post text and the photo");
 
 if (fails.length) { console.error("\n" + fails.length + " failure(s)"); process.exit(1); }
 console.log("\nAll f16-clean-r3 logic checks passed.");
