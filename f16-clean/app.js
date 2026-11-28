@@ -481,7 +481,8 @@ function normDay(s) {
   return t.replace(/\s{2,}/g, " ").trim();
 }
 // An entry's date: its post time when known (full stamp), else its stored day label (date only).
-const postIdOf = (h) => h && ((h.media_override && !h.media_override.credit_only && (h.media_override.post_id || (String(h.media_override.post_url || "").match(/status\/(\d+)/) || [])[1])) || (h.x_post && h.x_post.post_id) || (String(h.url || "").match(/x\.com\/[^/]+\/status\/(\d+)/) || [])[1]);
+const isDefaultPhotoMo = (mo) => !!(mo && (mo.default_photo || /(?:ship|booster)-raptor-default/.test(String(mo.image || ""))));
+const postIdOf = (h) => h && ((h.media_override && !h.media_override.credit_only && !isDefaultPhotoMo(h.media_override) && (h.media_override.post_id || (String(h.media_override.post_url || "").match(/status\/(\d+)/) || [])[1])) || (h.x_post && h.x_post.post_id) || (String(h.url || "").match(/x\.com\/[^/]+\/status\/(\d+)/) || [])[1]);
 const sfIso = (id) => { try { return new Date(Number((BigInt(id) >> 22n) + 1288834974657n)).toISOString(); } catch { return ""; } };
 // THE date formatter: every date in the app goes through ukStamp (or fmtDay for a stored day label).
 const fmtDay = (s) => normDay(s);
@@ -3610,8 +3611,9 @@ function OneMedia({ mo }) {
   if (bad) return null;
   return (
     <div className="xm">
-      <div className="xm-grid n1"><a href={mo.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+      <div className="xm-grid n1">{(!isDefaultPhoto(mo) && mo.post_url) ? <a href={mo.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
         <img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</a>
+        : <><img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</>}
         {!mo.road && <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.road ? mo.photo_date : undefined} crop={mo.crop === "bottom" ? "bottom" : mo.crop === "center" ? "center" : "top"} hideBadge={!!mo.hideBadge} />}</div>
       {/* credit-only photo: the photo and its badge already open the photo's post; the card keeps one View on X (its own post) */}
       {!mo.road && (mo.photo_date || mo.credit_only) && <div className="xm-foot"><span className="xm-ctx">{mo.photo_date ? `Photo · ${mo.photo_date}` : `Photo · @${mo.author}`}</span></div>}
@@ -3639,7 +3641,7 @@ function XMedia({ x, hideBadge }) {
 // An entry with an X post credits and links the post's author, so text, media and credit match.
 const srcOf = (h) => (h.media_override && !h.media_override.credit_only ? `@${h.media_override.author}` : h.x_post && h.x_post.author && h.x_post.author.username ? `@${h.x_post.author.username}` : uiSrc(h.src));
 const isYouTube = (u) => /(^|\.)(youtube\.com|youtu\.be)$/i.test(hostOf(u || ""));
-const isDefaultPhoto = (mo) => !!(mo && (mo.default_photo || /(?:ship|booster)-raptor-default/.test(String(mo.image || ""))));
+const isDefaultPhoto = (mo) => isDefaultPhotoMo(mo);
 const urlOf = (h) => (h.media_override && !h.media_override.credit_only && h.media_override.post_url) && !isDefaultPhoto(h.media_override) ? h.media_override.post_url : ((h.x_post && h.x_post.url) || (h.url && !isYouTube(h.url) ? h.url : null)); // YouTube sources: not clickable; a raptor default still keeps the headline link
 const openUrl = (u) => window.open(u, "_blank", "noopener,noreferrer");
 const linkProps = (h) => { const u = urlOf(h); return u ? { role: "link", tabIndex: 0, "aria-label": `${h.x_text || h.text} — open ${h.x_post ? "the post on X" : "the source"}`,
@@ -5399,11 +5401,11 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
   background: var(--card); border: 1px solid rgba(170,190,245,.12); border-radius: 18px;
   padding: 14px 16px; box-shadow: 0 18px 40px -28px rgba(8,12,28,.9);
 }
-.post::after { /* tap-to-post highlight */
+.post::after { /* tap-to-post highlight: outline/glow only — never an opaque fill that blanks the card */
   content: ""; position: absolute; inset: -1px; border-radius: 18px; pointer-events: none; opacity: 0;
-  background: var(--bg, color-mix(in srgb, var(--c) 8%, transparent));
-  border: 1.5px solid color-mix(in srgb, var(--c) 75%, transparent);
-  box-shadow: 0 0 30px -4px color-mix(in srgb, var(--c) 55%, transparent);
+  background: transparent;
+  border: 2px solid color-mix(in srgb, var(--c) 80%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 30%, transparent), 0 0 28px 2px color-mix(in srgb, var(--c) 50%, transparent);
 }
 .post.hl::after { animation: post-hl 2.2s forwards; }
 @keyframes post-hl { 0% { opacity: 0; } 11% { opacity: 1; animation-timing-function: linear; } 45% { opacity: 1; animation-timing-function: cubic-bezier(.45,0,.25,1); } 100% { opacity: 0; } }

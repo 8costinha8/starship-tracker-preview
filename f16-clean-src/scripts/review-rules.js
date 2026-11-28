@@ -1133,6 +1133,16 @@
         if (h.text && /megabay/i.test(h.text)) h.text = tidyPlace(h.text);
         if (h.card_text && /megabay/i.test(h.card_text)) h.card_text = tidyPlace(h.card_text);
         if (h.log_text && /megabay/i.test(h.log_text)) h.log_text = tidyPlace(h.log_text);
+        if (c.id === "pad") {
+          for (const k of ["text", "card_text", "x_text", "log_text"]) {
+            if (h[k] && /pusher/i.test(h[k])) {
+              const next = tidyPadPillText(h[k], h.url);
+              if (next !== h[k]) { h[k] = next; changed = true; }
+            }
+          }
+        }
+        const src = sourceFromEntry(h);
+        if (src && h.review_source !== src) { h.review_source = src; changed = true; }
       }
     }
     for (const f of road.feed_items || []) {
@@ -1535,8 +1545,9 @@
   function tidyPadPillText(text, url) {
     const t = String(text || "").replace(/\s+/g, " ").trim();
     // Verbatim source (Blobifie 2115205843880992791): "SpaceX completed post catch pusher testing with S43 with this test going much smoother than when it was done with S42!"
-    if (/post-?catch pusher/i.test(t) && /S43|Ship 43/.test(t)) {
-      return "SpaceX completed post-catch pusher testing with Ship 43, much smoother than with Ship 42.";
+    // S43 has not flown: drop "post-catch" even though the source used that phrase.
+    if (/pusher test/i.test(t) && /S43|Ship 43/.test(t)) {
+      return "SpaceX completed pusher testing with Ship 43, much smoother than with Ship 42.";
     }
     return t;
   }
@@ -1567,6 +1578,14 @@
     return outlet || "";
   }
 
+  function sourceFromEntry(h) {
+    if (!h) return "";
+    if (h.review_source) return h.review_source;
+    const url = h.url || (h.x_post && h.x_post.url) || "";
+    const handle = h.src || (h.x_post && h.x_post.author && (h.x_post.author.username || h.x_post.author)) || "";
+    // Never credit a fallback default photo — only the headline / same-source post.
+    return displaySource({ url, handle, outlet: h.source, kind: url && !/x\.com|twitter\.com/i.test(url) ? "article" : undefined });
+  }
   function writeHistory(road, beatGroups, beats, currentVehicles, log, livePhotos) {
     let changed = false;
     const current = new Set(currentVehicles);

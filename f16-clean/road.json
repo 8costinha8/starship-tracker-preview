@@ -694,7 +694,8 @@
             "author": "RGVaerialphotos",
             "type": "photo",
             "needs_fill": true
-          }
+          },
+          "review_source": "@RGVaerialphotos"
         }
       ],
       "log_latest": "Booster 23 preparing for static fire."
@@ -774,7 +775,8 @@
           },
           "frameChecked": true,
           "edited_from": "Crews resume work on Pad 2 after Flight 15.",
-          "edited": true
+          "edited": true,
+          "review_source": "@TrackingTheSB"
         },
         {
           "id": "f16-s43-2115315741709001123",
@@ -846,14 +848,15 @@
             "image": "https://pbs.twimg.com/media/HVsYHvSaQAAzZ3c.jpg",
             "keep_image": true,
             "crop": "top"
-          }
+          },
+          "review_source": "@TrackingTheSB"
         },
         {
           "id": "f16-s43-2115205843880992791",
           "date": "27 Oct",
           "at": "2026-10-27T22:15:46.000Z",
-          "text": "Ship 43 completed post-catch pusher tests.",
-          "x_text": "Ship 43 completed post-catch pusher tests.",
+          "text": "SpaceX completed pusher testing with Ship 43, much smoother than with Ship 42.",
+          "x_text": "SpaceX completed pusher testing with Ship 43, much smoother than with Ship 42.",
           "src": "@Blobifie",
           "source": "Blobifie",
           "trust": "unconfirmed",
@@ -908,7 +911,8 @@
           },
           "unverified": true,
           "note": "one author (Blobifie ×2)",
-          "card_text": "Ship 43 likely ran post-catch pusher tests."
+          "card_text": "SpaceX completed pusher testing with Ship 43, much smoother than with Ship 42.",
+          "review_source": "@Blobifie"
         },
         {
           "id": "f16-s43-2114880263264346277",
@@ -978,7 +982,8 @@
             "keep_image": true,
             "picked_by": "Bernardo",
             "note": "Manual (Bernardo, 24 Nov 13:56 UK, option 5): Ship 43 on the Pad 2 chopsticks, photo by Amy Doehring / WAI Media, posted by @mymatrixplug; WAI watermark cropped out (bottom 166 px of 926, vehicle untouched)."
-          }
+          },
+          "review_source": "@Blobifie"
         },
         {
           "id": "f16-s43-2114798577293635905",
@@ -1058,7 +1063,8 @@
                 "at": "2026-10-26T19:17:26.000Z"
               }
             ]
-          }
+          },
+          "review_source": "NASASpaceFlight.com"
         }
       ],
       "log_latest": "Pad 2 work has resumed."
@@ -3129,7 +3135,7 @@
         "vehicleId": "S43",
         "flight": 16,
         "label": "26–28 Oct",
-        "text": "SpaceX completed post-catch pusher testing with Ship 43, much smoother than with Ship 42.",
+        "text": "SpaceX completed pusher testing with Ship 43, much smoother than with Ship 42.",
         "url": "https://x.com/Blobifie/status/2115205843880992791",
         "links": 1,
         "at": "2026-10-26",

@@ -81,6 +81,10 @@ check(staticHist && /HYBZR8RXcAAaFs6/.test(staticHist.media_override.image || ""
 const nr = JSON.parse(fs.readFileSync(path.join(ROOT, "data/needs-review.json"), "utf8"));
 check((nr.items || []).some((i) => i.type === "needs-fill" && /HYBZR8RXcAAaFs6/.test(String(i.image || ""))),
   "5: data/needs-review.json has a needs-fill item for the RGV photo");
+check(staticHist && /RGVaerialphotos/i.test(staticHist.review_source || ""),
+  "2: 26 Nov static has a muted source line from the same source (@RGVaerialphotos) (got " + (staticHist && staticHist.review_source) + ")");
+check(staticHist && /RGVaerialphotos/i.test(staticHist.url || "") && /RGVaerialphotos/i.test(staticHist.review_source || ""),
+  "2: 26 Nov review_source and url are the same source object");
 
 // 6. Round N only on test categories; date/FAA/pad are date-labelled; no stale NET; pad activity is not a static pill
 for (const p of pills) {
@@ -97,10 +101,13 @@ check(!f15date.some((p) => /NET 8 November/i.test(p.text + p.label)),
 
 // 7. Pad pusher wording matches the source (S43 has not flown)
 const pusher = pills.find((p) => /pusher/i.test(p.text || ""));
-check(pusher && /SpaceX completed post-catch pusher testing with Ship 43/i.test(pusher.text) && /smoother than with Ship 42/i.test(pusher.text),
-  "7: pad pusher wording matches the Blobifie source, no invented post-catch flight (got " + (pusher && pusher.text) + ")");
+check(pusher && /SpaceX completed pusher testing with Ship 43/i.test(pusher.text) && /smoother than with Ship 42/i.test(pusher.text) && !/post-catch/i.test(pusher.text),
+  "7/e: pad pusher wording drops post-catch (S43 has not flown) (got " + (pusher && pusher.text) + ")");
 check(pusher && !/^Ship 43 completed post-catch pusher tests\.?$/i.test(pusher.text),
   "7: old 'Ship 43 completed post-catch pusher tests' wording is gone");
+const pusherHist = ((road.categories.find((c) => c.id === "pad") || {}).history || []).find((h) => /pusher/i.test(h.text || h.card_text || ""));
+check(pusherHist && /SpaceX completed pusher testing with Ship 43/i.test(pusherHist.text || "") && !/post-catch/i.test(pusherHist.text || ""),
+  "7/e: Page 2 pad history agrees with the pill (got " + (pusherHist && pusherHist.text) + ")");
 
 // 8. pills wrap — CSS has no line-clamp on .rev-pill
 const app = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
@@ -151,6 +158,56 @@ check(/h\.review_source \? <span className="rev-src">/.test(app),
 check(/!mo\.road && <SrcBadge/.test(app) || /hideBadge \/>/.test(app),
   "Page 2 road cards do not render the photo credit badge overlay");
 
+
+// r3.1 (1): fallback default-photo metadata never feeds a beat's date, link, or credit
+const DEF_URLS = [
+  "https://x.com/SpaceX/status/1543289714022678528",
+  "https://x.com/StarshipGazer/status/2092363913207693371"
+];
+function fromDefault(val) {
+  const s = String(val || "");
+  return DEF_URLS.some((u) => s.includes(u.split("/").pop()) || s === u) || /Starship Gazer/i.test(s) && /raptor-default/.test(s);
+}
+for (const b of beats.filter((b) => b.media_override && (b.media_override.default_photo || /raptor-default/.test(b.media_override.image || "")))) {
+  check(b.url !== (b.media_override.post_url || ""), "1: beat " + b.id + " link is not the default-photo post (" + b.url + ")");
+  check(b.source !== (b.media_override.author && ("@" + b.media_override.author)) && !new RegExp("^@?" + (b.media_override.author || "___") + "$", "i").test(b.source || ""),
+    "1: beat " + b.id + " credit is not the default-photo author (source=" + b.source + " author=" + (b.media_override && b.media_override.author) + ")");
+  check(!/25 Aug/.test(b.date || ""), "1: beat " + b.id + " date is not the default-photo date (got " + b.date + ")");
+}
+
+// r3.1 (d): pill-jump glow must not paint an opaque fill over the card
+const afterCss = app.slice(app.indexOf(".post::after"), app.indexOf(".post.hl::after"));
+check(/background:\s*transparent/.test(afterCss) && !/background:\s*var\(--bg/.test(afterCss),
+  "d: .post::after glow uses a transparent fill, not var(--bg)");
+check(/box-shadow:/.test(afterCss) && /border:/.test(afterCss),
+  "d: .post::after keeps an outline / box-shadow glow");
+
+// source: postIdOf and OneMedia strip default-photo URLs from link candidates
+check(/!isDefaultPhotoMo\(h\.media_override\)/.test(app) || /!isDefaultPhoto\(h\.media_override\)/.test(app),
+  "1: postIdOf ignores a default-photo media_override");
+check(/!isDefaultPhoto\(mo\) && mo\.post_url/.test(app),
+  "1: OneMedia does not use a default-photo post_url as the image href");
+
+appFns(["rtfCards", "cardDate", "urlOf"], ({ rtfCards, cardDate, urlOf }) => {
+  const cards = rtfCards(road).filter((c) => c.h && !c.empty);
+  const b23 = cards.find((c) => c.h && c.h.id === "rtf-raptor-B23");
+  check(b23 && /18 Oct/.test(cardDate(b23.h) || b23.h.date || "") && !/25 Aug/.test(cardDate(b23.h) || ""),
+    "1: B23 Raptor Page 2 date is 18 Oct, not the default-photo 25 Aug (got " + (b23 && cardDate(b23.h)) + ")");
+  for (const c of cards) {
+    const h = c.h;
+    if (!(h.media_override && (h.media_override.default_photo || /raptor-default/.test(h.media_override.image || "")))) continue;
+    const pu = h.media_override.post_url || "";
+    check(!urlOf(h) || urlOf(h) !== pu, "1: rtf card " + h.id + " urlOf is not the default-photo post");
+    check(h.url !== pu, "1: rtf card " + h.id + " headline url is not the default-photo post");
+    const author = String((h.media_override && h.media_override.author) || "");
+    if (author && h.review_source) {
+      check(!new RegExp("^@?" + author + "$", "i").test(String(h.review_source)),
+        "1: rtf card " + h.id + " credit is not the default-photo author (" + h.review_source + ")");
+    }
+    check(!/25 Aug/.test(cardDate(h) || ""), "1: rtf card " + h.id + " date is not 25 Aug (got " + cardDate(h) + ")");
+  }
+  return true;
+});
 
 if (fails.length) { console.error("\n" + fails.length + " failure(s)"); process.exit(1); }
 console.log("\nAll f16-clean-r3 logic checks passed.");
