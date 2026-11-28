@@ -10,7 +10,7 @@
     unsubscribe: async () => { set("off"); return { ok: true }; },
     dismiss: () => set("off"),
     getStatus: () => (get() === "on" ? "on" : "off"),
-    hasDecided: () => get() != null,
+    hasDecided: () => true,
     sendFeedback: async () => ({ ok: false, error: "Preview: feedback is not sent" }),
   };
 })();

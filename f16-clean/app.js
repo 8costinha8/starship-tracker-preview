@@ -1783,9 +1783,10 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road, listIndex = 0 
               <div className="past-sum" data-photos={past.some((e) => e.photo) ? "1" : undefined} aria-label={`Road to Flight ${f.n}`}>
                 {road.review ? (
                   <div className="past-review">
-                    <ReviewPills road={road} box="cryo" vehicles={[f.ship, f.booster, ...(typeof vehiclesForFlight === "function" ? vehiclesForFlight(road, f.n) : [])].filter(Boolean)} />
-                    <ReviewPills road={road} box="raptor" vehicles={[f.ship, f.booster, ...(typeof vehiclesForFlight === "function" ? vehiclesForFlight(road, f.n) : [])].filter(Boolean)} />
-                    {past.filter((e) => e.box !== "cryo" && e.box !== "raptor").map((e, i) => (
+                    {["cryo", "raptor", "static", "pad", "faa", "date"].map((box) => (
+                      <ReviewPills key={box} road={road} box={box} flight={f.n} vehicles={[f.ship, f.booster, road.pad, "PAD", "FAA", "DATE", "FAA licence", "Launch pad", "Launch date", ...(typeof vehiclesForFlight === "function" ? vehiclesForFlight(road, f.n) : [])].filter(Boolean)} />
+                    ))}
+                    {past.filter((e) => !hasReviewPill(road, e.box, e.vehicle, f.n)).map((e, i) => (
                       <div className="past-box" key={e.id || i} data-id={e.box} data-entry={e.id} style={catVars(e.box, e.color)}>
                         {past.some((x) => x.photo) && (e.photo ? <BoxPhoto src={e.photo.image} crop={e.photo.crop} className="past-photo" /> : <div className="past-photo past-photo-none" />)}
                         <PastTop vehicle={e.vehicle} labels={e.labels || [e.label]} />
@@ -2392,10 +2393,26 @@ function roadBoxEntries(road, rows) {
 const roadBoxLatest = (list) => { const e = (list || []).slice().sort((a, b) => (Date.parse(b.iso) || 0) - (Date.parse(a.iso) || 0))[0]; return e ? e.text : null; };
 // --- end road-parity helpers ---
 
-function ReviewPills({ road, box, vehicles }) {
+function vehKey(name) {
+  const s = String(name || "").trim();
+  const m = s.match(/^(Ship|Booster)\s+(\d+)$/i);
+  if (m) return (m[1][0].toUpperCase() === "S" ? "S" : "B") + m[2];
+  if (/^[SB]\d+$/i.test(s)) return s.toUpperCase();
+  if (/^pad\b|launch pad/i.test(s)) return "PAD";
+  if (/faa/i.test(s)) return "FAA";
+  if (/launch date/i.test(s)) return "DATE";
+  return s;
+}
+function hasReviewPill(road, box, vehicle, flight) {
+  const pills = (road && road.review && road.review.pills) || [];
+  const k = vehKey(vehicle);
+  return pills.some((p) => p.box === box && (p.vehicleId === k || p.vehicle === vehicle || vehKey(p.vehicle) === k) && (flight == null || p.flight == null || Number(p.flight) === Number(flight)));
+}
+function ReviewPills({ road, box, vehicles, flight, empty }) {
   const scoped = Array.isArray(vehicles);
   const allow = scoped ? new Set(vehicles) : null;
-  const pills = ((road.review && road.review.pills) || []).filter((p) => p.box === box && (!scoped || allow.has(p.vehicleId) || allow.has(p.vehicle)));
+  const fl = flight != null ? Number(flight) : (road && road.flight);
+  const pills = ((road.review && road.review.pills) || []).filter((p) => p.box === box && (p.flight == null || fl == null || Number(p.flight) === fl) && (!scoped || allow.has(p.vehicleId) || allow.has(p.vehicle) || allow.has(vehKey(p.vehicle))));
   const order = (a, b) => {
     const va = /^Ship/.test(a.vehicle) ? 0 : /^Booster/.test(a.vehicle) ? 1 : 2;
     const vb = /^Ship/.test(b.vehicle) ? 0 : /^Booster/.test(b.vehicle) ? 1 : 2;
@@ -2408,7 +2425,7 @@ function ReviewPills({ road, box, vehicles }) {
     if (last && last.vehicle === p.vehicle) last.items.push(p);
     else groups.push({ vehicle: p.vehicle, items: [p] });
   }
-  if (!groups.length) return null;
+  if (!groups.length) return empty ? <div className="rev-pills"><div className="rev-empty">Nothing reported yet.</div></div> : null;
   return (
     <div className="rev-pills">
       {groups.map((g) => (
@@ -2449,11 +2466,12 @@ function RoadCard({ road, onEntryTap, openReq, heroNet, netPending, heroFlight }
   const pill = (m) => <span className={"badge badge-" + m.status}><span className="badge-stack">{pillLabels.map((l) => <span key={l} className="badge-ghost" aria-hidden="true">{l}</span>)}<span className="badge-txt">{label(m)}</span></span></span>;
   // 13 Nov: an item opens only if its drawer would show something (Flight Log cards with a line, or a history entry this card lists).
   // Decided from the data, never from the item id or flight number. Others render as a plain div: no tap, hover, focus or aria-expanded.
-  const hasDrawer = (m) => (parity[m.id] || []).length > 0;
+  const hasDrawer = (m) => !!(road.review) || (parity[m.id] || []).length > 0;
   // 24 Nov #1: the row's one-line summary is the category summary (road.json categories[].latest, checked by summary-guard);
   // no summary → the newest Page 2 entry's words; the drawer still lists Page 2's own cards.
   const catLatest = (m) => { const c = (road.categories || []).find((x) => x.id === m.id); const t = c && String(c.latest || "").trim(); return t && !/^nothing reported yet\.?$/i.test(t) ? t : null; };
   const boxLine = (m) => catLatest(m) || roadBoxLatest(parity[m.id]) || (m.id === "date" && dateNet ? `NET ${dateNet}` : "Nothing reported yet"); // no Page 2 entry yet: the same wording later flights use (Launch date: the hero's NET)
+  const wordSafeLine = (str, max) => { const t = String(str || "").replace(/\s+/g, " ").trim(); if (t.length <= max) return t; const cut = t.slice(0, max); const i = cut.lastIndexOf(" "); return (i >= max * 0.6 ? cut.slice(0, i) : cut).replace(/[.,;:]$/, "") + "…"; };
   const count = (m) => { if (m.flog || !ONE_CARD.includes(m.id) || m.status === "done" || !window.RoadCleanup) return null;
     const vp = window.RoadCleanup.vehicleProgress(m, road); return vp.total && vp.done ? `${vp.done} of ${vp.total}` : null; };
   return (
@@ -2479,15 +2497,15 @@ function RoadCard({ road, onEntryTap, openReq, heroNet, netPending, heroFlight }
               <span className="callout-icon">{m.icon}</span>
               <span className="callout-body">
                 <span className="callout-name">{m.name}</span>
-                <span className="callout-latest">{boxLine(m)}</span>
+                <span className="callout-latest">{road.review ? wordSafeLine(boxLine(m), 38) : boxLine(m)}</span>
               </span>
               {count(m) ? <span className="badge-wrap">{pill(m)}<span className="badge-count">{count(m)}</span></span>
                 : pill(m)}
             </Head>
             {canOpen && <div className="callout-hist"><div className="callout-hist-inner">
-              {road.review && (m.id === "cryo" || m.id === "raptor")
-                ? <ReviewPills road={road} box={m.id} vehicles={road.vehicles || []} />
-                : parity[m.id].map((e) => <ParityCard key={e.id} e={e} onTap={onEntryTap ? () => onEntryTap(m.id, null, e.id) : null} open={isOpen} />)}
+              {road.review
+                ? <ReviewPills road={road} box={m.id} flight={road.flight} vehicles={[...(road.vehicles || []), road.pad, "PAD", "FAA", "DATE", "FAA licence", "Launch pad", "Launch date"].filter(Boolean)} empty />
+                : (parity[m.id] || []).map((e) => <ParityCard key={e.id} e={e} onTap={onEntryTap ? () => onEntryTap(m.id, null, e.id) : null} open={isOpen} />)}
             </div></div>}
           </div>
         );
@@ -3990,7 +4008,14 @@ function rtfCards(road) {
     const cat = cats[cid]; let list = (bucket[cid + "|" + v] || []).slice().sort((a, b) => (Date.parse(cardIso(b)) || 0) - (Date.parse(cardIso(a)) || 0));
     if (road.review && (cid === "cryo" || cid === "raptor")) {
       const bs = (road.review.beats || []).filter((b) => b.box === cid && (b.vehicleId === v || b.vehicle === vname(v)));
-      if (bs.length) list = bs.map((b) => ({ id: b.id, date: b.date, at: b.at ? (String(b.at).length <= 10 ? b.at + "T12:00:00.000Z" : b.at) : undefined, text: b.text, card_text: b.text, url: b.url, src: b.source ? b.source : "", hardware: v, review_source: b.source, no_push: true }));
+      if (bs.length) list = bs.map((b) => ({
+        id: b.id, date: b.date,
+        at: b.time_known === false ? undefined : (b.at && String(b.at).length > 10 ? b.at : undefined),
+        time_known: b.time_known,
+        text: b.text, card_text: b.text, url: b.url, src: b.source ? b.source : "",
+        hardware: v, review_source: b.source, no_push: true,
+        media_override: b.media_override, x_post: b.x_post, image: b.image, image_src: b.image_src, keep_image: b.keep_image, photo: b.photo
+      }));
     }
     const wdrOrDone = cid === "pad" ? list.find((h) => isDoneCard(h) && /wet dress/i.test(h.text || "")) : list.find((h) => rtfIsDone(h, cid));
     const ovBox = typeof boxOverrides === "function" ? boxOverrides(road, road.flight) : null;
@@ -4044,7 +4069,7 @@ function rtfCards(road) {
     const face0 = man ? { pic: { image: man.image, type: man.type || "photo", post_url: man.post_url || own.url, author: man.author, crop: man.crop, manual: true }, fallback: !samePost(man.post_url || own.url, own.url), ev: pinnedEv, date: man.photo_date || null }
       : cardFaceOrFallback(own, list, cid, doneOne ? own : null);
     const kept = !!(man && man.keep_image && man.image);
-    const def = (!kept && cid === "raptor" && road.review) ? raptorDefaultOf(v) : null;
+    const def = (!kept && cid === "raptor" && road.review && !((main && main.media_override && (main.media_override.keep_image || main.media_override.image)) || (main && main.x_post && main.x_post.media && main.x_post.media.length) || (main && main.image))) ? raptorDefaultOf(v) : null;
     const face = (face0.pic || !def) ? face0 : { pic: { ...def, type: "photo" }, fallback: true, ev: own, date: null };
     const pic = face.pic;
     const h = { ...own, id: `rtf-${cid}-${v}`, updates: rows, alt_media: null, complete: !!doneOne, milestone: doneOne ? own.milestone : { phase: "progress" } };
@@ -4479,7 +4504,7 @@ function StarshipTracker() {
 
   // First visit: ask about notifications once, before any decision is stored.
   React.useEffect(() => {
-    if (window.STNotify && !window.STNotify.hasDecided()) setNotifyModalOpen(true);
+    if (!(typeof document !== "undefined" && document.getElementById("pv-flag")) && window.STNotify && !window.STNotify.hasDecided()) setNotifyModalOpen(true);
   }, []);
 
   // Block background scroll while the notifications modal is open.
@@ -5547,13 +5572,16 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
   background: rgba(10,16,32,.62); padding: 3px 8px; border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
 /* f16-clean preview: text-only Page 1 pills; muted primary source on Page 2 beats */
+.past-review { display: contents; }
+.past-review .rev-pills { grid-column: 1 / -1; }
 .rev-pills { padding: 8px 12px 12px; }
 .rev-veh { margin-bottom: 10px; }
-.rev-veh-name { font: 600 11px/1.2 system-ui; color: var(--on, #e8eaee); opacity: .75; margin: 2px 0 6px; }
+.rev-veh-name { font-weight: 600; font-size: 11px; line-height: 1.2; font-family: inherit; color: var(--on, #e8eaee); opacity: .75; margin: 2px 0 6px; }
 .rev-pill { display: block; text-decoration: none; color: inherit; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; padding: 9px 14px; margin-bottom: 8px; background: rgba(0,0,0,.2); }
-.rev-pill-label { display: block; font: 500 10.5px/1.3 system-ui; color: #9aa0a8; margin-bottom: 2px; }
-.rev-pill-text { display: block; font: 400 13.5px/1.35 system-ui; }
-.rev-src { display: block; margin-top: 4px; font: 400 11px/1.3 system-ui; color: #8a9099; }
+.rev-pill-label { display: block; font-weight: 500; font-size: 10.5px; line-height: 1.3; font-family: inherit; color: #9aa0a8; margin-bottom: 2px; }
+.rev-pill-text { display: block; font-weight: 400; font-size: 13.5px; line-height: 1.35; font-family: inherit; }
+.rev-src { display: block; margin-top: 4px; font-weight: 400; font-size: 11px; line-height: 1.3; font-family: inherit; color: #8a9099; }
+.rev-empty { font-family: inherit; font-size: 13.5px; line-height: 1.35; color: var(--muted, #97A3BD); padding: 4px 0 2px; }
 `;
 // Energy v10 design overlay styles (from the preview repo, 96850ff variants/energy/variant.css). Rendered after css, so it wins ties.
 const VARIANT_CSS = `
