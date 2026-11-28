@@ -2084,7 +2084,7 @@ function Lightbox({ src, alt, onClose }) {
 // An entry with trust: "unconfirmed" gets a small "Unconfirmed" tag.
 // Every box is shown, the Launch date box included (it sends pushes, so it must be visible too).
 const ROAD_HIDDEN = [];
-const ROAD_URL = SIM ? `sim/${SIM}/road.json` : "road.json?r3.2";
+const ROAD_URL = SIM ? `sim/${SIM}/road.json` : "road.json?r3.3";
 const ROAD_CACHE_KEY = "starship-road-cache-v1";
 const ROAD_STATUS_TEXT = { none: "Not yet", pending: "Not yet", progress: "In progress", done: "Complete", complete: "Complete" }; // finished boxes use ROAD_DONE_LABEL
 // finished-status label per category (box pills, Road page chips, Flight Log pills); "Complete" for an unknown box. "Done" is never shown.
@@ -2614,7 +2614,7 @@ const badgeCreditOf = (author, url, image, aspect, crop, credits) => {
   const c = P.creditOf(rec ? rec.text : "", { poster: poster || (rec && rec.poster) || "", image, aspect, crop });
   return { ...c, poster: poster || (rec && rec.poster) || "" };
 };
-function SrcBadge({ author, url, image, keep, date, aspect = 16 / 9, crop = "top", hideBadge }) {
+function SrcBadge({ author, url, image, keep, date, aspect = 16 / 9, crop = "top" }) {
   const [av, setAv] = React.useState(AVATARS);
   const [cr, setCr] = React.useState(CREDITS);
   const [bad, setBad] = React.useState(false);
@@ -2622,8 +2622,8 @@ function SrcBadge({ author, url, image, keep, date, aspect = 16 / 9, crop = "top
   React.useEffect(() => { if (CREDITS) return; creditSubs.add(setCr); return () => creditSubs.delete(setCr); }, []);
   const cred = badgeCreditOf(author, url, image, aspect, crop, cr);
   const h = cred.handle;
-  if (!h || hideBadge || (image && NO_BADGE_IMAGES().includes(image) && !keep) || markHidesBadge(image, aspect, crop)) return null;
-  const rec = av && av[h.toLowerCase()];
+  if (!h || (image && NO_BADGE_IMAGES().includes(image) && !keep) || markHidesBadge(image, aspect, crop)) return null;
+  const rec = av && (av[h.toLowerCase()] || av[h.toLowerCase().replace(/\s+/g, "")]);
   return (
     <a className="src-badge" href={url || `https://x.com/${h}`} target="_blank" rel="noopener noreferrer" data-credit={cred.via} data-poster={cred.poster || undefined}
       title={`@${h}${cred.name && cred.name.toLowerCase() !== h.toLowerCase() ? ` (${cred.name})` : ""} on X${cred.via !== "poster" && cred.poster && cred.poster.toLowerCase() !== h.toLowerCase() ? ` · posted by @${cred.poster}` : ""}${date ? " · photo " + date : ""}`}
@@ -3595,7 +3595,7 @@ function SplitMedia({ pair, onPhotoTap, alt, road, date }) {
           <a key={i} href={m.image} target="_blank" rel="noopener noreferrer" aria-label={`${alt} \u2014 photo ${i + 1}`}
             onClick={(e) => { e.stopPropagation(); if (onPhotoTap) { e.preventDefault(); onPhotoTap(m.image, `${alt} \u2014 photo ${i + 1}`); } }}>
             <img decoding="async" className={cropClass(m)} src={localImg(m.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(m.image, () => setBad((b) => ({ ...b, [i]: true })))} /></a>))}
-        {!road && <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} date={road ? date : undefined} aspect={8 / 9} crop={pair[1].crop === "bottom" ? "bottom" : "top"} />}
+        <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} date={road ? date : undefined} aspect={8 / 9} crop={pair[1].crop === "bottom" ? "bottom" : "top"} />
       </div>
     </div>
   );
@@ -3614,7 +3614,7 @@ function OneMedia({ mo }) {
       <div className="xm-grid n1">{(!isDefaultPhoto(mo) && mo.post_url) ? <a href={mo.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
         <img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</a>
         : <><img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</>}
-        {!mo.road && <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.road ? mo.photo_date : undefined} crop={mo.crop === "bottom" ? "bottom" : mo.crop === "center" ? "center" : "top"} hideBadge={!!mo.hideBadge} />}</div>
+        <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.road ? mo.photo_date : undefined} crop={mo.crop === "bottom" ? "bottom" : "top"} /></div>
       {/* credit-only photo: the photo and its badge already open the photo's post; the card keeps one View on X (its own post) */}
       {!mo.road && (mo.photo_date || mo.credit_only) && <div className="xm-foot"><span className="xm-ctx">{mo.photo_date ? `Photo · ${mo.photo_date}` : `Photo · @${mo.author}`}</span></div>}
     </div>
@@ -3729,7 +3729,7 @@ const SHIP_CRYO_IMAGE = "images/ship-cryo.jpg";
 const SHIP_RAPTOR_IMAGE = "images/ship-raptor-default.jpg";
 const BOOSTER_RAPTOR_IMAGE = "images/booster-raptor-default.jpg";
 const raptorDefaultOf = (v) => (/^S/i.test(v) ? { image: SHIP_RAPTOR_IMAGE, author: "SpaceX", post_url: "https://x.com/SpaceX/status/1543289714022678528", crop: "center", default_photo: true }
-  : /^B/i.test(v) ? { image: BOOSTER_RAPTOR_IMAGE, author: "Starship Gazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", hideBadge: true, default_photo: true } : null);
+  : /^B/i.test(v) ? { image: BOOSTER_RAPTOR_IMAGE, author: "StarshipGazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", default_photo: true } : null);
 const isShipCryo = (h, cat) => { const t = `${h.x_text || ""} ${h.text || ""} ${h.log_text || ""}`; return !!cat && cat.id === "cryo" && /\b(ship|s)\s?\d{2}\b/i.test(t) && !/\bbooster\b|\bb\d{2}\b/i.test(t); };
 // 1 Nov: a hand-saved local copy of the card's own source media (images/…, credited) also wins over the standing photo.
 const ownLocalMedia = (mo) => !!mo && /^images\//.test(String(mo.image || "")) && mo.image !== SHIP_CRYO_IMAGE && !!mo.author;
@@ -3737,6 +3737,20 @@ const roadMediaOf = (h, cat) => (isShipCryo(h, cat) && h.media_override && h.med
   ? { post_url: urlOf(h), author: (h.media_override && h.media_override.author) || "", type: "photo", image: SHIP_CRYO_IMAGE } : h.media_override);
 // 3 Nov: a combined pill ("Cryo tests · Ship 42") shows as two same-style pills side by side, no dot separator
 const pillParts = (name) => String(name || "").split(/\s+·\s+/).filter(Boolean);
+
+// r3.3: keep the muted source line under the text unless it just repeats the photo badge's credited handle.
+const reviewSourceDupesBadge = (h, mo) => {
+  const src = String((h && h.review_source) || "").replace(/^@/, "").trim().toLowerCase();
+  if (!src || !mo || !(mo.image || mo.author || mo.post_url)) return false;
+  const handles = new Set();
+  const add = (v) => { const t = String(v || "").replace(/^@/, "").trim().toLowerCase(); if (t) handles.add(t); };
+  add(mo.author);
+  const crop = mo.crop === "bottom" ? "bottom" : "top"; // production photo-marks crop mapping
+  const cred = badgeCreditOf(mo.author, mo.post_url, mo.image, 16 / 9, crop, CREDITS);
+  add(cred && cred.handle);
+  for (const hdl of handles) if (src === hdl || src === hdl + ".com" || src.replace(/\.com$/, "") === hdl) return true;
+  return false;
+};
 function FeedPost({ p, onPhotoTap, idx, st }) {
   const { h, cat } = p;
   const mo1 = roadMediaOf(h, cat), pair = splitOf(h, mo1);
@@ -3751,8 +3765,8 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
         <span className="post-date">{cardDate(h)}</span>
       </div>
       <p className="post-text">{h.review_source ? (h.card_text || h.x_text || h.text) : scrub(h.card_text || h.x_text || h.text)}</p>
-      {h.review_source ? <span className="rev-src">{h.review_source}</span> : null}
-      {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} hideBadge />}
+      {h.review_source && !reviewSourceDupesBadge(h, mo) ? <span className="rev-src">{h.review_source}</span> : null}
+      {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
       {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
       <div className="card-foot">
         {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} /> : <CreditLine h={h} />}
@@ -4901,7 +4915,7 @@ const REVIEW_LAYOUT_CSS = `
 .callout-hist-inner:has(> .rev-pills:only-child .rev-empty:only-child) { padding-left: 14px; }
 .callout-hist-inner:has(> .rev-pills:only-child .rev-empty:only-child)::before { display: none; }
 button.rev-pill { font: inherit; text-align: left; width: 100%; cursor: pointer; appearance: none; }
-.post .src-badge { display: none !important; } /* Page 2: muted source line under the text, no credit badge on the photo */
+
 `;
 
 const css = `

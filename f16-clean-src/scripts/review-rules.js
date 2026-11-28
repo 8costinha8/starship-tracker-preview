@@ -1040,7 +1040,7 @@
   }
   const RAPTOR_DEFAULT = {
     S: { image: "images/ship-raptor-default.jpg", author: "SpaceX", post_url: "https://x.com/SpaceX/status/1543289714022678528", crop: "center", default_photo: true, fallback: true },
-    B: { image: "images/booster-raptor-default.jpg", author: "Starship Gazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", hideBadge: true, default_photo: true, fallback: true }
+    B: { image: "images/booster-raptor-default.jpg", author: "StarshipGazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", default_photo: true, fallback: true }
   };
   function photoAgreesWithLink(h, url) {
     if (!h || !hasPhoto(h) || !url) return !hasPhoto(h);

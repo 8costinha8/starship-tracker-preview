@@ -181,11 +181,9 @@ appFns(["rtfCards"], ({ rtfCards }) => {
   return true;
 });
 
-// Page 2: credit badge overlay removed on road cards; muted .rev-src stays
-check(/h\.review_source \? <span className="rev-src">/.test(app),
-  "Page 2 keeps the muted source line under the text");
-check(/!mo\.road && <SrcBadge/.test(app) || /hideBadge \/>/.test(app),
-  "Page 2 road cards do not render the photo credit badge overlay");
+// Page 2: muted .rev-src stays when it does not duplicate the photo badge
+check(/reviewSourceDupesBadge/.test(app) && /h\.review_source && !reviewSourceDupesBadge\(h, mo\)/.test(app),
+  "Page 2 keeps the muted source line under the text unless it duplicates the badge");
 
 
 // r3.1 (1): fallback default-photo metadata never feeds a beat's date, link, or credit
@@ -269,6 +267,53 @@ check(/det\.open = true/.test(jumpSrc) && /data-beat/.test(jumpSrc) && /el\.clas
   "r3.2: jumpToPost expands Earlier updates, finds the exact beat row, and glows that element");
 check(/\.bu-pill\.hl::after/.test(app) && /background:\s*transparent/.test(app.slice(app.indexOf(".feed-bu .bu-pill::after"), app.indexOf(".feed-bu .bu-pill.hl::after") + 80)),
   "r3.2: jumped-to earlier-update rows use the same transparent outline glow, not an opaque fill");
+
+
+// r3.3: restore production's bottom-right circular source badge; no top-left source overlay on the photo.
+check(!/\.post \.src-badge \{ display: none/.test(app),
+  "r3.3: Page 2 does not hide .src-badge");
+check(/function OneMedia[\s\S]{0,900}<SrcBadge author=\{mo\.author\}/.test(app) && !/\{\!mo\.road && <SrcBadge/.test(app),
+  "r3.3: OneMedia always renders the production SrcBadge (not gated on !mo.road)");
+check(/function SplitMedia[\s\S]{0,1200}<SrcBadge author=\{pair\[1\]\.author\}/.test(app) && !/\{\!road && <SrcBadge/.test(app),
+  "r3.3: SplitMedia always renders SrcBadge like production");
+check(!/XMedia x=\{h\.x_post\} hideBadge/.test(app),
+  "r3.3: FeedPost XMedia does not force-hide the badge");
+const badgeCss = app.slice(app.indexOf(".xm-grid > a.src-badge, .xm-split > a.src-badge {"), app.indexOf(".xm-grid > a.src-badge, .xm-split > a.src-badge {") + 400);
+check(/position:\s*absolute;\s*right:\s*8px;\s*bottom:\s*8px/.test(badgeCss) && /border-radius:\s*50%/.test(badgeCss),
+  "r3.3: src-badge is production's bottom-right circular logo badge");
+// no source-text overlay pinned to the top-left of the photo slot
+const xmCssStart = app.indexOf(".xm-grid {");
+const xmCss = app.slice(xmCssStart, xmCssStart + 2500);
+check(!/src-label|photo-src-overlay|img-credit/.test(app.slice(app.indexOf("function OneMedia"), app.indexOf("function XMedia"))),
+  "r3.3: OneMedia has no top-left source-text overlay component");
+check(!/\.xm-grid[^{]*::(before|after)[^}]*content:[^;]*@/.test(app),
+  "r3.3: no CSS pseudo-element source handle on the photo");
+// photo-marks applied the way production applies them: hideBadge(image, aspect, crop) with crop bottom|top
+check(/crop=\{mo\.crop === "bottom" \? "bottom" : "top"\}/.test(app) && /markHidesBadge\(image, aspect, crop\)/.test(app),
+  "r3.3: SrcBadge/photo-marks use production's bottom-or-top crop mapping");
+check(/<script defer src="scripts\/photo-marks\.js"><\/script>/.test(fs.readFileSync(path.join(ROOT, "index.html"), "utf8")),
+  "r3.3: index.html loads scripts/photo-marks.js like production");
+const PM = require(path.join(ROOT, "scripts/photo-marks.js"));
+appFns(["rtfCards"], ({ rtfCards }) => {
+  const cards = rtfCards(road).filter((c) => !c.empty && c.h);
+  let photos = 0;
+  for (const c of cards) {
+    const mo = c.h.media_override;
+    if (!mo || !mo.image) continue;
+    photos++;
+    const crop = mo.crop === "bottom" ? "bottom" : "top";
+    const hidden = PM.hideBadge(mo.image, 16 / 9, crop);
+    check(typeof hidden === "boolean", "r3.3: photo-marks.hideBadge applies to " + c.id + " crop=" + crop);
+    // A force-hidden badge on a default still would skip production's mark rule
+    if (mo.default_photo) check(!mo.hideBadge, "r3.3: default photo " + c.id + " does not force-hide the badge; photo-marks decides");
+  }
+  check(photos >= 4, "r3.3: several Page 2 photo cards were checked for photo-marks (" + photos + ")");
+  return true;
+});
+const oneClose = app.slice(app.indexOf("function OneMedia"), app.indexOf("function XMedia"));
+check(!/SrcBadge[^>]*>}\s*<\/div>/.test(oneClose) && oneClose.includes("<SrcBadge") && oneClose.includes("</div>"),
+  "r3.3: OneMedia SrcBadge is a sibling in xm-grid (no leftover JSX brace)");
+
 
 if (fails.length) { console.error("\n" + fails.length + " failure(s)"); process.exit(1); }
 console.log("\nAll f16-clean-r3 logic checks passed.");
