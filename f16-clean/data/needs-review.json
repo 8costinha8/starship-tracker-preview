@@ -738,6 +738,22 @@
       "reason": "feed item is history (not rewritten); hero/card use the higher-tier day",
       "kept": "hero NET 12 Nov",
       "msg": "feed \"NET Nov 2026\" (flight-mvsjfivy-8b129a) is a month-only Launch Library date; hero day NET 12 Nov is the higher-tier value"
+    },
+    {
+      "date": "2026-11-28T14:36:40.968Z",
+      "type": "needs-fill",
+      "image": "https://pbs.twimg.com/media/HYBZR8RXcAAaFs6.jpg",
+      "card_id": "x-2125798344182075667",
+      "post_url": "https://x.com/RGVaerialphotos/status/2125798344182075667",
+      "reason": "No 16:9 crop keeps both RGV watermarks fully in frame. Tusk makes a Grok fill for Bernardo to approve; no auto-swap, no flat bars.",
+      "item": "x-2125798344182075667",
+      "values": [
+        "https://pbs.twimg.com/media/HYBZR8RXcAAaFs6.jpg"
+      ],
+      "sources": [
+        "https://x.com/RGVaerialphotos/status/2125798344182075667"
+      ],
+      "msg": "needs-fill x-2125798344182075667: https://pbs.twimg.com/media/HYBZR8RXcAAaFs6.jpg"
     }
   ],
   "_about": "Self-check (scripts/self-check.js) clashes it could not settle by rule: the higher-tier value was kept; a human decides."

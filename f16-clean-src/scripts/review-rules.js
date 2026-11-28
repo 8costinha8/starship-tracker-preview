@@ -837,9 +837,9 @@
       id: `pill-${round.vehicle}-raptor-r${n}`,
       box: "raptor", vehicle: vName(round.vehicle), vehicleId: round.vehicle, flight: flightGuess(round.vehicle),
       label: `From ${fmtDay(d)}`,
-      text: all.some((f) => f.kindEvent === "engines_ahead") || /ahead of (?:hopefully )?getting its engines|will now receive/i.test(texts)
-        ? `Back in ${place} ahead of engine installation.`
-        : `Back in ${place} from cryo testing for engine installation.`,
+      text: saysEnginesInstalled(texts)
+        ? `All ${round.vehicle[0] === "S" ? 6 : 33} Raptors installed.`
+        : `Engine installation under way since ${fmtDay(d)}.`,
       url: linkSrc ? linkSrc.url : "", at: (d && d.iso) || "",
       sources: uniqueSources(all), milestoneKind: mKind, links: 1
     };
@@ -864,7 +864,11 @@
       const stand = ship ? "cryo stand" : "booster cryo stand";
       return `Lifted onto the ${stand} at ${place} ahead of the trip.`;
     }
-    if (kind === "pre_move") return `Rolled out to Massey's.`;
+    if (kind === "pre_move") {
+      const n = opts && opts.roundN;
+      const who = v;
+      return n ? `Rolled out to Massey's for ${who} cryo testing (round ${n}).` : `Rolled out to Massey's for ${who} cryo testing.`;
+    }
     if (kind === "arrive") return `Arrived at Massey's.`;
     if (kind === "cryo_complete" || kind === "cryo_test") {
       if (opts && opts.twelveH) {
@@ -878,7 +882,9 @@
         return `The cryo proof test was under way.`;
       }
       if (opts && opts.thirdTest) return `Completed a third cryo proof test after its engines were removed.`;
-      return `Completed cryo proof testing at Massey's on ${fmtDay(date)}.`;
+      const day = fmtDay(date);
+      if (!day) return ""; // never emit "on ."
+      return `Completed cryo proof testing at Massey's on ${day}.`;
     }
     if (kind === "return" || kind === "no_visible") {
       if (opts && opts.noVisible) {
@@ -944,14 +950,20 @@
       const ahead = intents.some((i) => /will now receive|ahead of (?:hopefully )?getting its engines|ahead of engine installation/i.test(i.text || ""))
         || /will now receive|ahead of (?:hopefully )?getting its engines/i.test((src && src.text) || "");
       const kind = ahead ? "engines_ahead" : "return_engines";
+      // url, handle, outlet and published time must come from the same source object.
+      const same = src || when;
       out.push({
         ...when,
-        id: String(when.id || when.url || veh) + "-" + kind,
+        id: String(same.id || same.url || when.id || veh) + "-" + kind,
         kindEvent: kind,
         box: "raptor",
         eventDate: when.eventDate,
         text: (src && src.text) || when.text,
-        url: (src && src.url) || when.url,
+        url: same.url,
+        handle: same.handle,
+        outlet: same.outlet,
+        publishedMs: same.publishedMs,
+        dateOnly: same.dateOnly,
         liveEntry: undefined,
         liveBox: undefined
       });
@@ -1026,6 +1038,23 @@
     cands.sort((a, b) => score(b) - score(a));
     return cands[0] ? photoFields(cands[0]) : {};
   }
+  const RAPTOR_DEFAULT = {
+    S: { image: "images/ship-raptor-default.jpg", author: "SpaceX", post_url: "https://x.com/SpaceX/status/1543289714022678528", crop: "center", default_photo: true, fallback: true },
+    B: { image: "images/booster-raptor-default.jpg", author: "Starship Gazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", hideBadge: true, default_photo: true, fallback: true }
+  };
+  function photoAgreesWithLink(h, url) {
+    if (!h || !hasPhoto(h) || !url) return !hasPhoto(h);
+    const pu = (h.media_override && h.media_override.post_url) || (h.x_post && h.x_post.url) || "";
+    if (!pu || (h.media_override && (h.media_override.fallback || h.media_override.default_photo))) return true;
+    const id = (u) => ((String(u || "").match(/status\/(\d+)/) || [])[1] || String(u || "").split("?")[0]);
+    return id(pu) && id(url) && id(pu) === id(url);
+  }
+  function applyRaptorDefaultPhoto(b) {
+    const box = b && (b.box || b.stage);
+    if (!b || box !== "raptor" || hasPhoto(b)) return;
+    const d = /^S/i.test(b.vehicleId || b.vehicle) ? RAPTOR_DEFAULT.S : RAPTOR_DEFAULT.B;
+    b.media_override = { ...(b.media_override || {}), ...d, fallback: true };
+  }
   function fillRoundPhotos(beats, livePhotos) {
     for (const b of beats) {
       if (hasPhoto(b)) continue;
@@ -1033,6 +1062,7 @@
       const pin = earlier.find((o) => o.media_override && o.media_override.keep_image) || earlier[0];
       if (pin) Object.assign(b, photoFields(pin));
     }
+    for (const b of beats) applyRaptorDefaultPhoto(b);
   }
   function beatTimeMeta(group, link, date) {
     const src = link || (group || []).slice().sort((a, b) => (a.band || 9) - (b.band || 9))[0];
@@ -1083,17 +1113,19 @@
           const blob = JSON.stringify(h);
           if (!/HYBZR8RXcAAaFs6|2125798344182075667/.test(blob)) continue;
           if (!h.media_override) h.media_override = {};
-          if (h.media_override.crop !== "bottom") {
-            if (!h.media_override.image && h.x_post && h.x_post.media && h.x_post.media[0]) {
-              const m = h.x_post.media[0];
-              h.media_override.image = m.url || m.preview_url || m.media_url_https || h.media_override.image;
-              h.media_override.post_url = h.media_override.post_url || (h.x_post && h.x_post.url) || h.url;
-              h.media_override.author = h.media_override.author || (h.x_post.author && h.x_post.author.username);
-              h.media_override.type = m.type || "photo";
-            }
-            h.media_override.crop = "bottom";
+          if (!h.media_override.image && h.x_post && h.x_post.media && h.x_post.media[0]) {
+            const m = h.x_post.media[0];
+            h.media_override.image = m.url || m.preview_url || m.media_url_https || h.media_override.image;
+            h.media_override.post_url = h.media_override.post_url || (h.x_post && h.x_post.url) || h.url;
+            h.media_override.author = h.media_override.author || (h.x_post.author && h.x_post.author.username);
+            h.media_override.type = m.type || "photo";
             changed = true;
           }
+          // No 16:9 crop keeps both RGV watermarks in frame. Don't swap the photo, don't add flat bars:
+          // flag needs-fill (Tusk makes a Grok fill for Bernardo to approve).
+          if (h.media_override.crop) { delete h.media_override.crop; changed = true; }
+          if (!h.media_override.needs_fill) { h.media_override.needs_fill = true; changed = true; }
+          flagStaticNeedsFill(h);
         }
       }
       if (c.latest && /megabay/i.test(c.latest)) { c.latest = tidyPlace(c.latest); changed = true; }
@@ -1223,32 +1255,66 @@
         rows.push({ flight, box, veh, text: t, url: h.url, date: h.date, iso, entry: h });
       }
     }
+    // Archive summary lines (e.g. "Flight 15 launched on 13 Nov…") so Launch date can drop superseded NETs.
+    for (const [n, arch] of Object.entries(road.archive || {})) {
+      const flight = Number(n);
+      for (const it of (arch.summary && arch.summary.items) || []) {
+        const t = tidyPlace((it && it.text) || "");
+        if (!it || !t) continue;
+        const isDate = it.box === "date" || it.id === "date" || /launch date/i.test(String(it.vehicle || "")) || /\blaunched on\b|\bNET\b/i.test(t);
+        if (!isDate) continue;
+        if (isLowQualityLine(t)) continue;
+        const m = t.match(/(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)/i);
+        let day = parseEntryDay(it);
+        if (!day && m) {
+          const mo = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"].indexOf(m[2].slice(0,3).toLowerCase()) + 1;
+          day = ukFromYMD(2026, mo, Number(m[1]));
+        }
+        const iso = (day && day.iso) || "";
+        const url = it.url || it.post_url || "";
+        rows.push({ flight, box: "date", veh: { id: "DATE", name: "Launch date" }, text: t, url, date: it.date, iso, entry: it, fromSummary: true });
+      }
+    }
     const by = {};
     for (const r of rows) {
       const k = `${r.flight}|${r.box}|${r.veh.id}`;
       (by[k] = by[k] || []).push(r);
     }
     for (const [k, list] of Object.entries(by)) {
-      const [fl, box, vehId] = k.split("|");
-      if (pills.some((p) => p.box === box && p.vehicleId === vehId && (p.flight == null || String(p.flight) === String(fl)))) continue;
+      const [fl, box0, vehId] = k.split("|");
+      if (pills.some((p) => p.box === box0 && p.vehicleId === vehId && (p.flight == null || String(p.flight) === String(fl)))) continue;
       const vehName = list[0].veh.name;
-      const rounds = clusterRounds(list);
+      let list2 = list.filter((x) => eventBoxOf(box0, x.text) === box0);
+      if (box0 === "date") {
+        // only the latest target / outcome; drop superseded NETs
+        list2 = list2.slice().sort((a, b) => String(b.iso || "").localeCompare(String(a.iso || "")));
+        const launch = list2.filter((x) => /\blaunched on\b/i.test(x.text));
+        list2 = (launch[0] ? [launch[0]] : (list2[0] ? [list2[0]] : []));
+      }
+      if (!list2.length) continue;
+      const rounds = clusterRounds(list2);
       const flightDone = Number(fl) !== road.flight;
+      const testCat = box0 === "cryo" || box0 === "raptor" || box0 === "static";
       rounds.forEach((r, i) => {
         const isos = r.items.map((x) => x.iso).filter(Boolean).sort();
         const start = isos[0] ? ukDate(isos[0]) : null;
         const end = isos.length ? ukDate(isos[isos.length - 1]) : start;
         const lead = leadEntry(r.items.filter((x) => x.url) || []) || leadEntry(r.items);
         const url = (lead && lead.url) || (r.items.find((x) => x.url) || {}).url || "";
-        if (!url) return; // no link → keep the production card
+        if (!url && box0 !== "date") return; // no link → keep the production card (date: still drop stale NET even without a url by not emitting it)
+        if (!url) return;
         const ongoing = !flightDone && i === rounds.length - 1 && /prepar|under way|resumed|ahead of/i.test(lead.text || "") && !/complet(?:ed)|fired|issued|launched/i.test(lead.text || "");
         const nRound = i + 1;
-        const label = ongoing && start ? `From ${fmtDay(start)}` : `Round ${nRound} · ${spanDays(start, end)}`;
+        const label = testCat
+          ? (ongoing && start ? `From ${fmtDay(start)}` : `Round ${nRound} · ${spanDays(start, end)}`)
+          : datePillLabel(start, end, ongoing);
+        if (!label) return;
         let text = tidyPlace(lead.text || "").replace(/\s+/g, " ").trim();
         text = text.split(/(?<=\.)\s+/)[0];
+        if (box0 === "pad") text = tidyPadPillText(text, url);
         pills.push({
-          id: `pill-${vehId}-${box}-f${fl}-r${nRound}`,
-          box, vehicle: vehName, vehicleId: vehId, flight: Number(fl),
+          id: `pill-${vehId}-${box0}-f${fl}-r${nRound}`,
+          box: box0, vehicle: vehName, vehicleId: vehId, flight: Number(fl),
           label, text, url, links: 1,
           at: (start && start.iso) || "", endAt: (end && end.iso) || "",
           sources: lead.url ? [{ url: lead.url }] : []
@@ -1256,6 +1322,45 @@
       });
     }
     return pills;
+  }
+
+
+  function applyRaptorStatus(road, pills, beats, facts) {
+    const raptor = (road.categories || []).find((c) => c.id === "raptor");
+    if (!raptor) return false;
+    const vs = (road.vehicles || []).map((v) => String(v).toUpperCase()).filter((v) => /^[SB]\d+$/.test(v));
+    const textsFor = (v) => [
+      ...(pills || []).filter((p) => p.box === "raptor" && p.vehicleId === v).map((p) => p.text),
+      ...(beats || []).filter((b) => b.box === "raptor" && b.vehicleId === v).map((b) => b.text),
+      ...(facts || []).filter((f) => !f.drop && f.vehicle === v && (f.box === "raptor" || f.kindEvent === "return_engines" || f.kindEvent === "engines_ahead")).map((f) => f.text),
+      ...(raptor.history || []).filter((h) => String(h.hardware || "").replace(/^Booster\s*/i, "B").replace(/^Ship\s*/i, "S") === v).map((h) => h.text)
+    ];
+    const installed = vs.length > 0 && vs.every((v) => textsFor(v).some(saysEnginesInstalled));
+    const any = vs.some((v) => textsFor(v).some((t) => String(t || "").trim()));
+    const status = installed ? "done" : any ? "progress" : (raptor.status === "done" || raptor.status === "complete" ? "progress" : (raptor.status || "none"));
+    const latest = installed
+      ? (vs.length > 1 ? "Both vehicles' engines are installed." : "Engines are installed.")
+      : (any ? "Engine installation under way." : (raptor.latest && !/nothing reported yet/i.test(raptor.latest) ? raptor.latest : "Nothing reported yet"));
+    let changed = false;
+    if (raptor.status !== status) { raptor.status = status; changed = true; }
+    if (raptor.latest !== latest) { raptor.latest = latest; raptor.log_latest = latest; changed = true; }
+    else if (raptor.log_latest !== raptor.latest) { raptor.log_latest = raptor.latest; changed = true; }
+    return changed;
+  }
+  function flagStaticNeedsFill(h) {
+    if (typeof require !== "function") return;
+    try {
+      const pf = require("./photo-fill.js");
+      const path = require("path");
+      const file = path.join(__dirname, "..", "data", "needs-review.json");
+      const image = (h.media_override && h.media_override.image) || "https://pbs.twimg.com/media/HYBZR8RXcAAaFs6.jpg";
+      pf.flagNeedsFill({
+        image,
+        card_id: (h && h.id) || "x-2125798344182075667",
+        post_url: (h.media_override && h.media_override.post_url) || h.url || "https://x.com/RGVaerialphotos/status/2125798344182075667",
+        reason: "No 16:9 crop keeps both RGV watermarks fully in frame. Tusk makes a Grok fill for Bernardo to approve; no auto-swap, no flat bars."
+      }, file);
+    } catch (e) { /* preview flag is best-effort; tests still assert needs_fill on the override */ }
   }
 
   function applyToRoad(road, opts = {}) {
@@ -1324,13 +1429,17 @@
         const span = fl.start && fl.end ? spanDays(fl.start, fl.end) : "";
         // Skip a lone cryo_test beat on a day that already has a complete beat, except S43 evening start.
         if (kind === "cryo_test" && groups.some((o) => o !== g && beatKind(o) === "cryo_complete" && eventDateOf(o) && date && eventDateOf(o).iso === date.iso) && !/evening/i.test(g.map((f) => f.text).join(" "))) continue;
+        const cryoRoundN = r && r.box === "cryo" ? (cryo.indexOf(r) + 1) : 0;
         const rawText = beatText(g, kind, {
           twelveH: fl.twelveH && (kind === "cryo_complete" || kind === "cryo_test"),
           twoTests: !!(fl.twoTests && kind === "cryo_complete" && date && testDatesOf(r || { items: [] }, fl.start).some((d) => d.iso === date.iso)), noVisible: fl.noVisible, overnight: fl.overnight,
           thirdTest: fl.thirdTest && kind === "cryo_complete", completed: fl.completed, span,
-          mostLikelyPass: r && r.box === "cryo" && strongInferencePass(r, facts)
+          mostLikelyPass: r && r.box === "cryo" && strongInferencePass(r, facts),
+          roundN: cryoRoundN || undefined, date
         });
+        if (!date || !fmtDay(date) || !String(rawText || "").trim() || /\son \.$/.test(rawText)) continue; // never emit an empty date
         const text = notPillCopy(rawText, pill, kind);
+        if (!String(text || "").trim() || /\son \.$/.test(text)) continue;
         const tplKey = `${veh}|${(fl.start && fl.start.iso) || (date && date.iso) || ""}|${kind}|${normText(text)}`;
         if ((kind === "pre_move" || kind === "arrive" || kind === "stand_lift") && seenTpl.has(tplKey)) continue;
         seenTpl.add(tplKey);
@@ -1344,14 +1453,22 @@
           text,
           url: link ? link.url : "",
           source: link ? displaySource(link) : "",
+          sourceHandle: link ? sourceHandleOf(link) : "",
           sources: uniqueSources(g),
           kindEvent: kind,
-          publishedMs: g.reduce((m, f) => Math.max(m, f.publishedMs || 0), 0),
+          publishedMs: link && link.publishedMs ? link.publishedMs : (g.reduce((m, f) => Math.max(m, f.publishedMs || 0), 0)),
           ...photos
         });
       }
     }
     fillRoundPhotos(beats, livePhotos);
+    for (const b of beats) {
+      const kept = b.media_override && b.media_override.keep_image;
+      if (b.box === "raptor" && !kept && !photoAgreesWithLink(b, b.url)) {
+        delete b.media_override; delete b.x_post; delete b.image; delete b.image_src; delete b.keep_image; delete b.photo;
+      }
+      applyRaptorDefaultPhoto(b);
+    }
     beats.sort((a, b) => String(b.at).localeCompare(String(a.at)) || (b.publishedMs || 0) - (a.publishedMs || 0));
     for (const p of pills) {
       if (p.flight == null) p.flight = flightGuess(p.vehicleId);
@@ -1360,6 +1477,12 @@
       const rBeats = beats.filter((b) => b.vehicleId === p.vehicleId && b.box === p.box);
     }
     appendOtherPills(road, pills);
+    for (const p of pills) {
+      const veh = p.vehicleId === "PAD" || /^pad$/i.test(p.vehicleId || "") ? "pad"
+        : p.vehicleId === "FAA" || p.vehicleId === "DATE" ? String(p.vehicleId).toLowerCase()
+        : p.vehicleId;
+      p.beatId = `rtf-${p.box}-${veh}`;
+    }
     pills.sort((a, b) => (a.box === b.box ? 0 : a.box < b.box ? -1 : 1) || String(b.endAt || b.at).localeCompare(String(a.endAt || a.at)));
 
     changed = writeHistory(road, beatGroups, beats, current, log, livePhotos) || changed;
@@ -1368,15 +1491,14 @@
       const done = (c.history || []).some((h) => h.complete || COMPLETED_CRYO_RE.test(h.text || ""));
       if (c.id === "cryo" && done && c.status !== "done") { c.status = "done"; changed = true; }
     }
-    const raptor = (road.categories || []).find((c) => c.id === "raptor");
-    if (raptor && pills.some((p) => p.box === "raptor")) {
-      if (/nothing reported yet/i.test(raptor.latest || "")) {
-        raptor.latest = "Engine installation under way.";
-        raptor.log_latest = raptor.latest;
-        if (raptor.status === "none") raptor.status = "progress";
-        changed = true;
-      }
+    for (const b of beats) {
+      const blob = JSON.stringify(b);
+      if (!/HYBZR8RXcAAaFs6|2125798344182075667/.test(blob)) continue;
+      if (!b.media_override) b.media_override = { image: "https://pbs.twimg.com/media/HYBZR8RXcAAaFs6.jpg" };
+      if (b.media_override.crop) delete b.media_override.crop;
+      b.media_override.needs_fill = true;
     }
+    changed = applyRaptorStatus(road, pills, beats, facts) || changed;
     changed = applyReviewDisplay(road, pills, log) || changed;
     changed = writeArchive(road, pills, beats, facts, log) || changed;
     road.review = {
@@ -1390,6 +1512,38 @@
       }))
     };
     return { road, changed, pills, beats, facts };
+  }
+
+  function sourceHandleOf(link) {
+    if (!link) return "";
+    const url = link.url || "";
+    const article = link.kind === "article" || link.dateOnly || (url && !/x\.com|twitter\.com/i.test(url) && /\.(com|net|org)\//i.test(url));
+    if (article) return displaySource(link);
+    const h = String(link.handle || "").replace(/^@/, "");
+    return h ? "@" + h : displaySource(link);
+  }
+  function saysEnginesInstalled(t) {
+    const s = String(t || "");
+    if (/due to receive|ahead of engine|for engine installation|being reinstalled|headed back for|removed from|will now receive/i.test(s)) return false;
+    return /ready with all\s*\d+\s*raptors|raptors were all in|all (?:six|6|33) raptors\b[\s\S]*\b(?:in|installed)|engines are installed|installed (?:all )?(?:its |the )?(?:six |6 |33 )?raptors/i.test(s);
+  }
+  function eventBoxOf(box, text) {
+    const t = String(text || "");
+    if (box === "static" && /heads? back after pad activity|pad activity at Pad/i.test(t) && !/static fire/i.test(t)) return "pad";
+    return box;
+  }
+  function tidyPadPillText(text, url) {
+    const t = String(text || "").replace(/\s+/g, " ").trim();
+    // Verbatim source (Blobifie 2115205843880992791): "SpaceX completed post catch pusher testing with S43 with this test going much smoother than when it was done with S42!"
+    if (/post-?catch pusher/i.test(t) && /S43|Ship 43/.test(t)) {
+      return "SpaceX completed post-catch pusher testing with Ship 43, much smoother than with Ship 42.";
+    }
+    return t;
+  }
+  function datePillLabel(start, end, ongoing) {
+    if (ongoing && start) return `From ${fmtDay(start)}`;
+    if (start && end && start.iso !== end.iso) return spanDays(start, end);
+    return fmtDay(start || end) || "";
   }
 
   function displaySource(link) {
@@ -1451,7 +1605,7 @@
           at: tm.time_known && link && link.publishedMs ? new Date(link.publishedMs).toISOString() : (date ? date.iso : undefined),
           time_known: tm.time_known,
           text, x_text: text, src: link ? ("@" + (link.handle || "").replace(/^@/, "")) : undefined,
-          source: link ? displaySource(link) : undefined, url: link && link.url, trust: "trusted",
+          source: link ? displaySource(link) : undefined, review_source: link ? displaySource(link) : undefined, url: link && link.url, trust: "trusted",
           no_push: true, tier: link && link.tier === 1 ? 1 : 2, hardware: veh, stage: box,
           complete: kind === "cryo_complete" || undefined
         };
@@ -1459,6 +1613,8 @@
         log(`review: new ${box} ${veh} ${entry.date}: ${text.slice(0, 90)}`);
       }
       attachPhotos(entry, photos);
+      if (box === "raptor") applyRaptorDefaultPhoto(entry);
+      if (link && !entry.review_source) entry.review_source = displaySource(link);
       byBox[box].push({ entry, veh, at: Date.parse(entry.at || "") || 0, kind });
     }
     for (const box of ["cryo", "raptor"]) {
@@ -1509,19 +1665,7 @@
       arch.entries = arch.entries.filter((e) => !(e.box === "cryo" && /Ship 42/.test((e.text || "") + (e.vehicle || "")) && /27 Oct/.test(e.date || "") && MORE_CRYO.test(e.text || "")));
       if (arch.entries.length !== before) { changed = true; log("review: dropped stale S42 27 Oct cryo archive row"); }
     }
-    const s42 = pills.filter((p) => p.vehicleId === "S42" && p.box === "cryo")
-      .sort((a, b) => String(b.at).localeCompare(String(a.at)));
-    if (s42.length && arch.summary && Array.isArray(arch.summary.items)) {
-      const others = arch.summary.items.filter((it) => !(it.box === "cryo" && it.vehicle === "Ship 42"));
-      const items = s42.map((p) => {
-        let text = `${p.label}. ${p.text}`;
-        if (text.length > 120) text = p.text;
-        if (text.length > 120) text = text.slice(0, 117) + "…";
-        return { box: "cryo", vehicle: "Ship 42", text };
-      });
-      arch.summary.items = [...items, ...others];
-      changed = true;
-    }
+    // Past-flight Roads keep production's compact archive summary (no pill rewrite).
     return changed;
   }
 
@@ -1569,7 +1713,7 @@
   }
 
   return {
-    applyToRoad, pillsFor, grouped, isCleanText, renderedTexts,
+    applyToRoad, pillsFor, grouped, isCleanText, renderedTexts, saysEnginesInstalled, tidyPadPillText, sourceHandleOf,
     parseEventDate, classify, about: aboutSource, authorityBand, primaryLink, factFromSource, extractClaims,
     isTier1, isStale, isBot, fmtDay, ukDate, carriesMilestone, isMilestoneKind, eventKind,
     RETURN_ENGINES, COMPLETED_CRYO_RE, linkInWindow, namesVehicle, namesOtherFlightOnly,

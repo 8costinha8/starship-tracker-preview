@@ -36,8 +36,8 @@ check(!/all 33 Raptors/.test(allText) && !/so all 33 Raptors are installed/.test
 const flogText = JSON.stringify(flog.boxes ? flog.boxes(road) : flog);
 check(!/ready with all 33 Raptors/.test(flogText), "2: flight log does not invent 'ready with all 33 Raptors'");
 const rap = b23Raptor[0];
-check(rap && /18 Oct/.test(rap.label) && /Mega Bay 1/.test(rap.text) && /engine installation/.test(rap.text),
-  "3: B23 raptor pill: From 18 Oct, back in Mega Bay 1 for engine installation");
+check(rap && /18 Oct/.test(rap.label) && /under way since 18 Oct/i.test(rap.text),
+  "3: B23 raptor pill: From 18 Oct, engine installation under way since 18 Oct (got " + (rap && rap.label + " | " + rap.text) + ")");
 const b18 = b23Beats.find((b) => b.date === "18 Oct" && b.box === "raptor");
 check(b18 && /returned to Mega Bay 1 from cryo testing for engine installation/i.test(b18.text),
   "3: 18 Oct beat is raptor, wording keeps cryo context");
@@ -102,8 +102,8 @@ for (const b of beats) {
 }
 const s43Raptor = pills.filter((p) => p.vehicleId === "S43" && p.box === "raptor");
 check(s43Raptor.length === 1, "G: S43 has one raptor pill (got " + s43Raptor.length + ")");
-check(s43Raptor[0] && /From 26 Oct/.test(s43Raptor[0].label) && /Back in Mega Bay 2 ahead of engine installation/.test(s43Raptor[0].text),
-  "G: S43 raptor pill From 26 Oct · Back in Mega Bay 2 ahead of engine installation.");
+check(s43Raptor[0] && /From 26 Oct/.test(s43Raptor[0].label) && /Engine installation under way since 26 Oct/.test(s43Raptor[0].text),
+  "G: S43 raptor pill From 26 Oct · Engine installation under way since 26 Oct.");
 const s43_26 = s43Beats.filter((b) => b.date === "26 Oct");
 for (const b of s43_26) {
   check(!/2115409771495133347/.test(b.url || ""), "D: S43 26 Oct must not link Blobifie 28 Oct recap");

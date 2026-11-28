@@ -66,21 +66,26 @@ function previewEntries(n) {
 
 for (const p of pills) {
   check(p.vehicle && p.label && p.text, "pill has heading, label, text: " + p.id);
-  check(/^(Round \d+ · |From )/.test(p.label), "pill label is Round N · range or From date: " + p.id + " " + p.label);
+  const dateLabel = /^(Round \d+ · |From |\d{1,2}(?:–\d{1,2})?\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec))/;
+  check(dateLabel.test(p.label), "pill label is Round N · range, From date, or a date label: " + p.id + " " + p.label);
+  if (p.box === "faa" || p.box === "date" || p.box === "pad") {
+    check(!/^Round \d+/.test(p.label), "FAA/date/pad pills are date-labelled, not Round N: " + p.id + " " + p.label);
+  }
   check(p.links === 1 || (!!p.url && !Array.isArray(p.url)), "pill has exactly one link field: " + p.id);
   check(!p.image && !p.media_override && !p.x_post && !p.photo, "pill is text-only (no image fields): " + p.id);
   check(!/Megabay/i.test(p.text + p.label + p.vehicle), "pill Mega Bay spelling: " + p.id);
 }
 
-for (const n of [...flights].sort((a, b) => b - a)) {
-  for (const box of BOXES) {
-    const list = pills.filter((p) => p.box === box && Number(p.flight) === Number(n));
-    if (!list.length) {
-      check(true, "F" + n + " " + box + ": empty state (no pills)");
-    } else {
-      check(list.every((p) => p.vehicle && p.label && p.text), "F" + n + " " + box + ": " + list.length + " pill(s) in format");
-    }
+const upcoming = road.flight;
+for (const box of BOXES) {
+  const list = pills.filter((p) => p.box === box && Number(p.flight) === Number(upcoming));
+  if (!list.length) {
+    check(true, "F" + upcoming + " " + box + ": empty state (no pills) — upcoming flight only");
+  } else {
+    check(list.every((p) => p.vehicle && p.label && p.text), "F" + upcoming + " " + box + ": " + list.length + " pill(s) in format (upcoming flight)");
   }
+}
+for (const n of [...flights].sort((a, b) => b - a)) {
   const prod = new Set(prodEntries(n));
   const prev = new Set(previewEntries(n));
   const missing = [...prod].filter((k) => !prev.has(k));
@@ -90,8 +95,13 @@ for (const n of [...flights].sort((a, b) => b - a)) {
 const src = fs.readFileSync(path.join(ROOT, "app.js"), "utf8");
 const fn = src.slice(src.indexOf("function ReviewPills"), src.indexOf("function RoadCard"));
 check(!/<img/i.test(fn), "ReviewPills has no <img>");
-check(/display:\s*contents/.test(src) && /past-review \.rev-pills/.test(src), "A: .past-review{display:contents} and .rev-pills grid-column are in app.js");
+check(/className="past-sum"/.test(src) && /past\.map\(\(e, i\)/.test(src), "A: past-flight Road uses production past-sum + past.map cards");
+check(!/<div className="past-review">/.test(src.slice(src.indexOf("function FlightCard"), src.indexOf("function PastText")>-1?src.indexOf("function PastText"):src.length)), "A: FlightCard past-sum does not wrap a .past-review pill stack");
 check(/font-family:\s*inherit/.test(src.slice(src.indexOf(".rev-pill-text"))), "E: pill text inherits Manrope (no system-ui)");
+const pastFn = src.slice(src.indexOf("function FlightCard"), src.indexOf("function PastText") > 0 ? src.indexOf("function PastText") : src.indexOf("function FlightCard")+8000);
+check(!/ReviewPills/.test(pastFn) && /past-sum/.test(pastFn), "C: past-flight Road (FlightCard) renders production past-sum, no ReviewPills");
+check(!/href=\{p\.url\}/.test(src.slice(src.indexOf("function ReviewPills"), src.indexOf("function RoadCard"))), "Page 1 ReviewPills have no external href");
+
 
 if (fails.length) { console.error("\n" + fails.length + " failure(s)"); process.exit(1); }
 console.log("\nAll F16 Page 1 drawer checks passed.");

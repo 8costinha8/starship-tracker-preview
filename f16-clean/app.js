@@ -1781,20 +1781,7 @@ function FlightCard({ f, open, onTap, onPhotoTap, register, road, listIndex = 0 
               </button>
               <div className={"past-wrap" + (pastOpen ? " open" : "")} id={`past-${f.n}`} aria-hidden={!pastOpen}><div className="past-wrap-inner">
               <div className="past-sum" data-photos={past.some((e) => e.photo) ? "1" : undefined} aria-label={`Road to Flight ${f.n}`}>
-                {road.review ? (
-                  <div className="past-review">
-                    {["cryo", "raptor", "static", "pad", "faa", "date"].map((box) => (
-                      <ReviewPills key={box} road={road} box={box} flight={f.n} vehicles={[f.ship, f.booster, road.pad, "PAD", "FAA", "DATE", "FAA licence", "Launch pad", "Launch date", ...(typeof vehiclesForFlight === "function" ? vehiclesForFlight(road, f.n) : [])].filter(Boolean)} />
-                    ))}
-                    {past.filter((e) => !hasReviewPill(road, e.box, e.vehicle, f.n)).map((e, i) => (
-                      <div className="past-box" key={e.id || i} data-id={e.box} data-entry={e.id} style={catVars(e.box, e.color)}>
-                        {past.some((x) => x.photo) && (e.photo ? <BoxPhoto src={e.photo.image} crop={e.photo.crop} className="past-photo" /> : <div className="past-photo past-photo-none" />)}
-                        <PastTop vehicle={e.vehicle} labels={e.labels || [e.label]} />
-                        <PastText tiers={(e.tiers && e.tiers.length ? e.tiers : [e.text]).map((t) => scrub(String(t || "")))} />
-                      </div>
-                    ))}
-                  </div>
-                ) : past.map((e, i) => (
+                {past.map((e, i) => (
                   <div className="past-box" key={e.id || i} data-id={e.box} data-entry={e.id} style={catVars(e.box, e.color)}>
                     {past.some((x) => x.photo) && (e.photo ? <BoxPhoto src={e.photo.image} crop={e.photo.crop} className="past-photo" /> : <div className="past-photo past-photo-none" />)}
                     <PastTop vehicle={e.vehicle} labels={e.labels || [e.label]} />
@@ -2355,6 +2342,13 @@ function decorateFlogItem(m, flog, road, heroNet, heroFlight, now) {
   else if (m.id === "faa" && f) f = faaLicenceDisplay(f);
   f = afterLiftoffFlog(f, m.id, road, heroFlight, now);
   if (f) f = filterRoadFlogEvents(f, road);
+  if (road && road.review && m.id === "raptor") {
+    const st = m.status;
+    const statusText = (globalThis.RoadRules || null)
+      ? globalThis.RoadRules.statusText(st, m.id)
+      : (st === "done" || st === "complete" ? "Installed" : st === "progress" ? "In progress" : (st === "none" || st === "pending" ? "Not yet" : String(st || "Not yet")));
+    return { ...m, status: st, flog: { ...(f || {}), status: st, statusText, latest: m.latest || (f && f.latest) || "" } };
+  }
   if (!f) return m;
   // 24 Nov #5 (one mapping, hero = Page 2): a test box keeps its own stronger status (Pad "progress" in road.json is In progress,
   // not the Flight Log's "Not yet"); STICKY COMPLETE: a box that is Complete is never shown lower.
@@ -2408,7 +2402,7 @@ function hasReviewPill(road, box, vehicle, flight) {
   const k = vehKey(vehicle);
   return pills.some((p) => p.box === box && (p.vehicleId === k || p.vehicle === vehicle || vehKey(p.vehicle) === k) && (flight == null || p.flight == null || Number(p.flight) === Number(flight)));
 }
-function ReviewPills({ road, box, vehicles, flight, empty }) {
+function ReviewPills({ road, box, vehicles, flight, empty, onJump }) {
   const scoped = Array.isArray(vehicles);
   const allow = scoped ? new Set(vehicles) : null;
   const fl = flight != null ? Number(flight) : (road && road.flight);
@@ -2426,6 +2420,7 @@ function ReviewPills({ road, box, vehicles, flight, empty }) {
     else groups.push({ vehicle: p.vehicle, items: [p] });
   }
   if (!groups.length) return empty ? <div className="rev-pills"><div className="rev-empty">Nothing reported yet.</div></div> : null;
+  const jump = (p) => { if (onJump && p.beatId) onJump(p.box, null, p.beatId); };
   return (
     <div className="rev-pills">
       {groups.map((g) => (
@@ -2433,8 +2428,10 @@ function ReviewPills({ road, box, vehicles, flight, empty }) {
           <div className="rev-veh-name">{g.vehicle}</div>
           {g.items.map((p) => {
             const body = <><span className="rev-pill-label">{p.label}</span><span className="rev-pill-text">{p.text}</span></>;
-            return p.url ? <a key={p.id} className="rev-pill" href={p.url} target="_blank" rel="noopener noreferrer">{body}</a>
-              : <div key={p.id} className="rev-pill">{body}</div>;
+            // Page 1 pills never open X/NSF: they jump to the Page 2 beat (production glow highlight).
+            return p.beatId && onJump
+              ? <button type="button" key={p.id} className="rev-pill" data-beat={p.beatId} onClick={() => jump(p)}>{body}</button>
+              : <div key={p.id} className="rev-pill" data-beat={p.beatId || undefined}>{body}</div>;
           })}
         </div>
       ))}
@@ -2504,7 +2501,7 @@ function RoadCard({ road, onEntryTap, openReq, heroNet, netPending, heroFlight }
             </Head>
             {canOpen && <div className="callout-hist"><div className="callout-hist-inner">
               {road.review
-                ? <ReviewPills road={road} box={m.id} flight={road.flight} vehicles={[...(road.vehicles || []), road.pad, "PAD", "FAA", "DATE", "FAA licence", "Launch pad", "Launch date"].filter(Boolean)} empty />
+                ? <ReviewPills road={road} box={m.id} flight={road.flight} vehicles={[...(road.vehicles || []), road.pad, "PAD", "FAA", "DATE", "FAA licence", "Launch pad", "Launch date"].filter(Boolean)} empty onJump={onEntryTap} />
                 : (parity[m.id] || []).map((e) => <ParityCard key={e.id} e={e} onTap={onEntryTap ? () => onEntryTap(m.id, null, e.id) : null} open={isOpen} />)}
             </div></div>}
           </div>
@@ -3597,7 +3594,7 @@ function SplitMedia({ pair, onPhotoTap, alt, road, date }) {
           <a key={i} href={m.image} target="_blank" rel="noopener noreferrer" aria-label={`${alt} \u2014 photo ${i + 1}`}
             onClick={(e) => { e.stopPropagation(); if (onPhotoTap) { e.preventDefault(); onPhotoTap(m.image, `${alt} \u2014 photo ${i + 1}`); } }}>
             <img decoding="async" className={cropClass(m)} src={localImg(m.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(m.image, () => setBad((b) => ({ ...b, [i]: true })))} /></a>))}
-        <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} date={road ? date : undefined} aspect={8 / 9} crop={pair[1].crop === "bottom" ? "bottom" : "top"} />
+        {!road && <SrcBadge author={pair[1].author} url={pair[1].post_url} image={pair[1].image} date={road ? date : undefined} aspect={8 / 9} crop={pair[1].crop === "bottom" ? "bottom" : "top"} />}
       </div>
     </div>
   );
@@ -3615,13 +3612,13 @@ function OneMedia({ mo }) {
     <div className="xm">
       <div className="xm-grid n1"><a href={mo.post_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
         <img decoding="async" className={cropClass(mo)} src={localImg(mo.image)} alt="" loading="lazy" referrerPolicy="no-referrer" onError={imgFallback(mo.image, () => setBad(true))} />{mo.type === "video" && PLAY_ICON}</a>
-        <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.road ? mo.photo_date : undefined} crop={mo.crop === "bottom" ? "bottom" : mo.crop === "center" ? "center" : "top"} hideBadge={!!mo.hideBadge} /></div>
+        {!mo.road && <SrcBadge author={mo.author} url={mo.post_url} image={mo.image} keep={!!mo.keep_image} date={mo.road ? mo.photo_date : undefined} crop={mo.crop === "bottom" ? "bottom" : mo.crop === "center" ? "center" : "top"} hideBadge={!!mo.hideBadge} />}</div>
       {/* credit-only photo: the photo and its badge already open the photo's post; the card keeps one View on X (its own post) */}
       {!mo.road && (mo.photo_date || mo.credit_only) && <div className="xm-foot"><span className="xm-ctx">{mo.photo_date ? `Photo · ${mo.photo_date}` : `Photo · @${mo.author}`}</span></div>}
     </div>
   );
 }
-function XMedia({ x }) {
+function XMedia({ x, hideBadge }) {
   const [bad, setBad] = React.useState({});
   const media = (x.media || []).map((m, i) => ({ ...m, i })).filter((m) => !bad[m.i] && (m.type === "photo" ? m.url : m.video_url || m.poster));
   if (!media.length) return null;
@@ -3634,7 +3631,7 @@ function XMedia({ x }) {
           : m.video_url
           ? <XVideo key={m.i} m={m} url={x.url} />
           : <a key={m.i} href={x.url} target="_blank" rel="noopener noreferrer"><img decoding="async" src={m.poster} alt="" loading="lazy" referrerPolicy="no-referrer" onError={off(m.i)} />{PLAY_ICON}</a>)}
-        <SrcBadge author={(x.x_post && x.x_post.author && x.x_post.author.username) || (x.author && x.author.username) || x.author} url={x.url} />
+        {!hideBadge && <SrcBadge author={(x.x_post && x.x_post.author && x.x_post.author.username) || (x.author && x.author.username) || x.author} url={x.url} />}
       </div>
     </div>
   );
@@ -3642,7 +3639,8 @@ function XMedia({ x }) {
 // An entry with an X post credits and links the post's author, so text, media and credit match.
 const srcOf = (h) => (h.media_override && !h.media_override.credit_only ? `@${h.media_override.author}` : h.x_post && h.x_post.author && h.x_post.author.username ? `@${h.x_post.author.username}` : uiSrc(h.src));
 const isYouTube = (u) => /(^|\.)(youtube\.com|youtu\.be)$/i.test(hostOf(u || ""));
-const urlOf = (h) => (h.media_override && !h.media_override.credit_only && h.media_override.post_url) || (h.x_post && h.x_post.url) || (h.url && !isYouTube(h.url) ? h.url : null); // YouTube sources: not clickable
+const isDefaultPhoto = (mo) => !!(mo && (mo.default_photo || /(?:ship|booster)-raptor-default/.test(String(mo.image || ""))));
+const urlOf = (h) => (h.media_override && !h.media_override.credit_only && h.media_override.post_url) && !isDefaultPhoto(h.media_override) ? h.media_override.post_url : ((h.x_post && h.x_post.url) || (h.url && !isYouTube(h.url) ? h.url : null)); // YouTube sources: not clickable; a raptor default still keeps the headline link
 const openUrl = (u) => window.open(u, "_blank", "noopener,noreferrer");
 const linkProps = (h) => { const u = urlOf(h); return u ? { role: "link", tabIndex: 0, "aria-label": `${h.x_text || h.text} — open ${h.x_post ? "the post on X" : "the source"}`,
   onClick: (e) => { if (!e.target.closest("a, video, button, .xm-video")) openUrl(u); }, onKeyDown: (e) => { if (e.key === "Enter" && e.target === e.currentTarget) openUrl(u); } } : {}; };
@@ -3728,8 +3726,8 @@ function FeedBuildUp({ h, plain, idx }) {
 const SHIP_CRYO_IMAGE = "images/ship-cryo.jpg";
 const SHIP_RAPTOR_IMAGE = "images/ship-raptor-default.jpg";
 const BOOSTER_RAPTOR_IMAGE = "images/booster-raptor-default.jpg";
-const raptorDefaultOf = (v) => (/^S/i.test(v) ? { image: SHIP_RAPTOR_IMAGE, author: "SpaceX", post_url: "https://x.com/SpaceX/status/1543289714022678528", crop: "center" }
-  : /^B/i.test(v) ? { image: BOOSTER_RAPTOR_IMAGE, author: "Starship Gazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", hideBadge: true } : null);
+const raptorDefaultOf = (v) => (/^S/i.test(v) ? { image: SHIP_RAPTOR_IMAGE, author: "SpaceX", post_url: "https://x.com/SpaceX/status/1543289714022678528", crop: "center", default_photo: true }
+  : /^B/i.test(v) ? { image: BOOSTER_RAPTOR_IMAGE, author: "Starship Gazer", post_url: "https://x.com/StarshipGazer/status/2092363913207693371", crop: "center", hideBadge: true, default_photo: true } : null);
 const isShipCryo = (h, cat) => { const t = `${h.x_text || ""} ${h.text || ""} ${h.log_text || ""}`; return !!cat && cat.id === "cryo" && /\b(ship|s)\s?\d{2}\b/i.test(t) && !/\bbooster\b|\bb\d{2}\b/i.test(t); };
 // 1 Nov: a hand-saved local copy of the card's own source media (images/…, credited) also wins over the standing photo.
 const ownLocalMedia = (mo) => !!mo && /^images\//.test(String(mo.image || "")) && mo.image !== SHIP_CRYO_IMAGE && !!mo.author;
@@ -3752,7 +3750,7 @@ function FeedPost({ p, onPhotoTap, idx, st }) {
       </div>
       <p className="post-text">{h.review_source ? (h.card_text || h.x_text || h.text) : scrub(h.card_text || h.x_text || h.text)}</p>
       {h.review_source ? <span className="rev-src">{h.review_source}</span> : null}
-      {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} />}
+      {mo ? <PickMedia mo={mo} /> : h.media_context ? <ContextMedia mc={h.media_context} /> : !h.milestone && h.x_post && <XMedia x={h.x_post} hideBadge />}
       {/* 24 Nov footer: one row, "Earlier updates ⌄" toggle left, one link to the headline post right */}
       <div className="card-foot">
         {String(h.id || "").startsWith("rtf-") ? <RtfCredit h={h} /> : <CreditLine h={h} />}
@@ -3893,7 +3891,8 @@ function headlineOwn(h) {
   if (!h) return h;
   const url = h.url || (h.x_post && h.x_post.url) || "";
   const xp = h.x_post && samePost(h.x_post.url, url) ? h.x_post : undefined;
-  const mo = h.media_override && samePost(h.media_override.post_url || "", url) ? h.media_override : undefined;
+  // A fallback default photo (raptor ship/booster stills) is not the headline post; keep it on the card.
+  const mo = h.media_override && (h.media_override.fallback || samePost(h.media_override.post_url || "", url)) ? h.media_override : undefined;
   return { ...h, x_post: xp, media_override: mo };
 }
 function cardFacePicture(own, cid, done) {
@@ -3942,6 +3941,10 @@ function eventPhoto(h, cid) {
 function cardFaceOrFallback(own, list, cid, done) {
   const ownPic = cardFacePicture(own, cid, done);
   if (ownPic) return { pic: ownPic, fallback: false, ev: own, date: null };
+  if (own && own.media_override && own.media_override.fallback && own.media_override.image) {
+    const mo = own.media_override;
+    return { pic: { image: mo.image, type: mo.type || "photo", post_url: mo.post_url, author: mo.author, crop: mo.crop }, fallback: true, ev: own, date: null };
+  }
   // 24 Nov photo gate: a ship cryo card whose own picture is not confidently good shows Bernardo's standing photo
   if (cid === "cryo" && own && isShipCryo(own, { id: "cryo" })) { const pick = (typeof window !== "undefined" && window.RoadPick) || (typeof globalThis !== "undefined" && globalThis.RoadPick);
     const raw = pick && pick.cardPicture([own], { cid, done: done || null });
@@ -4069,14 +4072,14 @@ function rtfCards(road) {
     const face0 = man ? { pic: { image: man.image, type: man.type || "photo", post_url: man.post_url || own.url, author: man.author, crop: man.crop, manual: true }, fallback: !samePost(man.post_url || own.url, own.url), ev: pinnedEv, date: man.photo_date || null }
       : cardFaceOrFallback(own, list, cid, doneOne ? own : null);
     const kept = !!(man && man.keep_image && man.image);
-    const def = (!kept && cid === "raptor" && road.review && !((main && main.media_override && (main.media_override.keep_image || main.media_override.image)) || (main && main.x_post && main.x_post.media && main.x_post.media.length) || (main && main.image))) ? raptorDefaultOf(v) : null;
+    const def = (!kept && cid === "raptor" && road.review && !((own && own.media_override && (own.media_override.keep_image || own.media_override.image)) || (own && own.x_post && own.x_post.media && own.x_post.media.length) || (own && own.image))) ? raptorDefaultOf(v) : null;
     const face = (face0.pic || !def) ? face0 : { pic: { ...def, type: "photo" }, fallback: true, ev: own, date: null };
     const pic = face.pic;
     const h = { ...own, id: `rtf-${cid}-${v}`, updates: rows, alt_media: null, complete: !!doneOne, milestone: doneOne ? own.milestone : { phase: "progress" } };
     // picture, credit and View on X: headline post if it has a photo, else the newest earlier
     // same-vehicle/section photo (that photo's post only). Headline post stays reachable via RtfCredit.
-    if (pic) h.media_override = { image: pic.image, type: pic.type, post_url: pic.post_url, author: String(pic.author || "").replace(/^@/, ""), keep_image: !!(pic.manual || (own.media_override && own.media_override.keep_image) || (face.ev && face.ev.media_override && face.ev.media_override.keep_image)), credit_only: false, fallback: !!face.fallback, photo_date: face.date || undefined, crop: pic.crop };
-    if (!pic && h.media_override && h.media_override.image && !h.media_override.credit_only) { h.media_override = undefined; h.x_post = h.x_post ? { ...h.x_post, media: [] } : h.x_post; h.photo_gated = true; } // 24 Nov: a gated picture is not drawn by the card renderer either
+    if (pic) h.media_override = { image: pic.image, type: pic.type, post_url: pic.post_url, author: String(pic.author || "").replace(/^@/, ""), keep_image: !!(pic.manual || (own.media_override && own.media_override.keep_image) || (face.ev && face.ev.media_override && face.ev.media_override.keep_image)), credit_only: false, fallback: !!face.fallback, default_photo: !!(pic.default_photo || (own.media_override && own.media_override.default_photo) || isDefaultPhoto(pic) || isDefaultPhoto(own && own.media_override)), photo_date: face.date || undefined, crop: pic.crop };
+    if (!pic && h.media_override && h.media_override.image && !h.media_override.credit_only && !h.media_override.fallback) { h.media_override = undefined; h.x_post = h.x_post ? { ...h.x_post, media: [] } : h.x_post; h.photo_gated = true; } // 24 Nov: a gated picture is not drawn by the card renderer either; keep fallback defaults
     // Headline post stays on h.url; Earlier updates stay strictly older (no same-time headline row).
     h.rtf_pic = pic ? (pic.from || face.ev) : own; h.media_context = null;
     out.push({ h, cat: { ...cat, name: `${cat.name} · ${vname(v)}` }, ci: 0, hi: 0, id: h.id, flight: road.flight, done: !!doneOne });
@@ -4793,6 +4796,7 @@ function StarshipTracker() {
     <div className={"st" + (feedOn ? " feed-on" : "") + (dragging ? " feed-drag" : "") + (feedOpen && !dragging ? " feed-open" : "") + (FX("xfade") ? " fx-xfade" : "")} ref={rootRef} style={{ "--fp": feedOpen ? 1 : 0 }}>
       <style>{css}</style>
       <style>{VARIANT_CSS}</style>
+      <style>{REVIEW_LAYOUT_CSS}</style>
       {phoneHeader}
       <div className="st-layout">
       <div className="st-wrap" aria-hidden={!wide && feedOpen ? true : undefined}>
@@ -4838,6 +4842,24 @@ function StarshipTracker() {
 }
 
 /* ───────────── styles ───────────── */
+
+/* f16-clean-r3: past-flight Roads keep production's 2-col grid (no review pills).
+   Upcoming-flight Page 1 drawers use .rev-pills. Empty-state rail is hidden. */
+const REVIEW_LAYOUT_CSS = `
+.past-sum > .past-review { grid-column: 1 / -1; display: block; min-width: 0; width: 100%; }
+.past-sum > .past-review:empty { display: none; }
+.past-sum > .past-box { min-width: 0; max-height: none; }
+.rev-pills { min-width: 0; }
+.rev-pill, .rev-pill-text, .rev-pill-label {
+  overflow: visible; white-space: normal; overflow-wrap: break-word; word-break: break-word;
+  display: block; max-height: none; -webkit-line-clamp: unset; line-clamp: unset;
+}
+.callout-hist-inner:has(.rev-empty):not(:has(.rev-pill))::before { display: none; }
+.callout-hist-inner:has(> .rev-pills:only-child .rev-empty:only-child) { padding-left: 14px; }
+.callout-hist-inner:has(> .rev-pills:only-child .rev-empty:only-child)::before { display: none; }
+button.rev-pill { font: inherit; text-align: left; width: 100%; cursor: pointer; appearance: none; }
+.post .src-badge { display: none !important; } /* Page 2: muted source line under the text, no credit badge on the photo */
+`;
 
 const css = `
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700&display=swap');
@@ -5572,8 +5594,8 @@ button.feed-pill:focus-visible { outline: 2px solid #A9BDF0; outline-offset: 4px
   background: rgba(10,16,32,.62); padding: 3px 8px; border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
 /* f16-clean preview: text-only Page 1 pills; muted primary source on Page 2 beats */
-.past-review { display: contents; }
-.past-review .rev-pills { grid-column: 1 / -1; }
+.past-review { display: block; }
+.past-review .rev-pills { display: block; }
 .rev-pills { padding: 8px 12px 12px; }
 .rev-veh { margin-bottom: 10px; }
 .rev-veh-name { font-weight: 600; font-size: 11px; line-height: 1.2; font-family: inherit; color: var(--on, #e8eaee); opacity: .75; margin: 2px 0 6px; }
